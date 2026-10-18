@@ -41,6 +41,7 @@ open class MainActivity: FlutterActivity() {
         channel!!.setMethodCallHandler { call,result ->
             try {
                 when(call.method) {
+                    "isBreakPopup" -> result.success(this is BreakPopupActivity)
                     "consumeBreakOpen" -> {
                         // Retained on the Activity until Flutter has loaded session state.
                         // Handles both launcher creation and onNewIntent (warm notification tap).

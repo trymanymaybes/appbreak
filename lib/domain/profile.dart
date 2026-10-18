@@ -73,3 +73,15 @@ Activity selectForProfile(
   final index = fit.indexWhere((a) => a.id == previous);
   return fit[(index + 1) % fit.length];
 }
+
+/// Manual browsing is stable as time passes; routine categories constrain
+/// automatic suggestions, while explicit exclusions apply to both paths.
+List<Activity> browsableActivities(
+  List<Activity> all,
+  Map<String, dynamic> profile,
+) {
+  final disabled = ((profile['disabledActivities'] ?? []) as List)
+      .cast<String>()
+      .toSet();
+  return all.where((a) => !disabled.contains(a.id)).toList();
+}

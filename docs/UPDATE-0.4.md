@@ -60,3 +60,15 @@ microphone permissions. Direct controls open the Android prompts/settings, with 
 general app settings fallback after denial. Status refreshes on resume and permission
 results. No blanket permission prompts are fired on launch. Microphone remains
 requested on Speak/Record or explicit Allow microphone. Setup Back returns to the app.
+
+## Dark breaks and complete manual browsing
+
+The floating popup starts with a dark native theme and a dark Flutter theme. Normal
+app break, finished, pending-confirmation and paused-break screens also use dark mode.
+The activity title uses the theme's contrasting primary colour in dark mode.
+
+Next/Previous and Choose activity now browse all installed activities except explicit
+per-routine exclusions. They no longer shrink with remaining time or routine category
+filters. Automatic selection still respects category, duration and exclusions. Longer
+activities show a time warning; selecting one preserves the existing timer and session
+identity. Quiet rest remains an explicit fallback. Tests exercise all 12 bundled choices.

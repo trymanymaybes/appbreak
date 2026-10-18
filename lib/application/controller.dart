@@ -83,11 +83,7 @@ class Companion extends ChangeNotifier {
       profiles.first;
   int get breakSeconds =>
       profile['breakSeconds'] ?? settings['breakSeconds'] ?? 60;
-  List<Activity> get alternatives => fittingActivities(
-    activities,
-    profile,
-    (session.remaining(moment) / 1000).floor(),
-  );
+  List<Activity> get alternatives => browsableActivities(activities, profile);
   Future<void> updateProfile(Map<String, dynamic> changes) =>
       saveRoutine({...profile, ...changes});
   Future<void> saveRoutine(Map<String, dynamic> routine) => act(() async {
@@ -136,7 +132,7 @@ class Companion extends ChangeNotifier {
     if (session.phase != Phase.rest) return;
     final a = activities.firstWhere((a) => a.id == id);
     if (id != 'quiet.soft' && !alternatives.any((x) => x.id == id))
-      throw StateError('This activity no longer fits the remaining break.');
+      throw StateError('This activity is disabled for this routine.');
     await device.call('stopSpeech');
     session = session.at(
       Phase.rest,

@@ -684,7 +684,9 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                 a.title,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: Color(c.profile['color'] ?? 0xff356859),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Theme.of(context).colorScheme.primary
+                      : Color(c.profile['color'] ?? 0xff356859),
                 ),
               ),
               Text(
@@ -731,6 +733,13 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
           if (v) await c.device.call('stopSpeech');
         }),
       ),
+      Text(
+        '${c.alternatives.length} activities available to browse. Routine categories guide automatic suggestions.',
+      ),
+      if (a.seconds > seconds && s.phase == Phase.rest)
+        Text(
+          'Suggested duration: ${a.seconds} seconds; $seconds seconds remain. Try part of this activity or choose another.',
+        ),
       if (s.phase == Phase.rest)
         Wrap(
           children: [
@@ -817,12 +826,14 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
             shrinkWrap: true,
             children: [
               const Text(
-                'Only enabled activities fitting the remaining time are shown.',
+                'Browse all activities except those disabled for this routine. Longer activities may not finish before the break ends; choosing one keeps the current timer.',
               ),
               for (final a in fit)
                 ListTile(
                   title: Text(a.title),
-                  subtitle: Text('${a.seconds} seconds • ${a.category}'),
+                  subtitle: Text(
+                    '${a.seconds} seconds • ${a.category}${a.seconds * 1000 > c.session.remaining(c.moment) ? ' • longer than time left' : ''}',
+                  ),
                   onTap: () {
                     Navigator.pop(ctx);
                     c.switchActivity(a.id);
@@ -1014,7 +1025,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                         }),
                       ),
                     const Text(
-                      'Individual activities — unchecked items are excluded from rotation. Long activities are also filtered by available time.',
+                      'Individual activities — unchecked items are excluded from rotation and manual browsing. Automatic suggestions also respect category and duration; manual browsing includes other categories and longer activities.',
                     ),
                     for (final a in c.activities)
                       if (enabled.contains(a.category))
