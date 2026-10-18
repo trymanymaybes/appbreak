@@ -2,7 +2,11 @@
 
 Android-first, local-first Flutter implementation. A separate product and source tree; no Many Maybes branding, infrastructure, account, content or repository is reused.
 
-**Status: Android pre-alpha build; device acceptance remains outstanding.** Flutter analysis, 27 Dart/widget tests and six Python pack-validator tests pass. FOSS release and native instrumentation APKs compile successfully; four native interval-accounting unit tests pass. An ARM64 release-mode APK is available with a debug test signature; its compiled manifest has no Internet permission. Android SDK terms and Apache-2.0 / CC-BY-4.0 licences were explicitly approved on 2026-10-18. No device tests or store publication are claimed. Source repository: https://github.com/trymanymaybes/appbreak. Read `docs/STATUS.md` before evaluating readiness.
+**Status: Android pre-alpha build; device acceptance remains outstanding.** Flutter analysis, 34 Dart/widget tests and six Python pack-validator tests pass. FOSS release and native instrumentation APKs compile successfully; nine native interval-accounting unit tests pass. An ARM64 release-mode APK is available with a debug test signature; its compiled manifest has no Internet permission. Android SDK terms and Apache-2.0 / CC-BY-4.0 licences were explicitly approved on 2026-10-18. No device tests or store publication are claimed. Source repository: https://github.com/trymanymaybes/appbreak. Read `docs/STATUS.md` before evaluating readiness.
+
+## Version 0.3 update
+
+See `docs/UPDATE-0.3.md` for the Routines page: automatic screen-use, manual sessions, repeating intervals and scheduled daily reminders; per-routine activities, goals, colours and notification channels; screen-off resets; break-notification countdown; and Yes/Skip confirmation after emergency exit or Android Back. Screen rest is enabled by default after migration but needs Usage access. Popups require system overlay permission. Device acceptance is still outstanding.
 
 ## Version 0.2 update
 
@@ -14,7 +18,7 @@ The initial browser upload contains this README and `appbreak-source.zip`. Extra
 
 ## First runnable milestone
 
-Configure a work interval in Settings → enable notification permission → Start work session → receive a local reminder or enter the break while the app is visible → quiet rest (or select an installed offline voice and press Play) → optionally capture an idea → confirm participation → inspect local progress. Start the next work session when ready. A user-confirmed completion is never represented as verified eye rest, movement or hydration.
+Configure a work interval in Settings → enable notification permission → Start work session → receive a local reminder or enter the break while the app is visible → quiet rest (or select an installed offline voice and press Play) → optionally capture an idea → confirm participation → inspect local progress. Automatic routines repeat; manually started routines can repeat or stop after one session. A user-confirmed completion is never represented as verified eye rest, movement or hydration.
 
 ## Layout
 
@@ -32,7 +36,7 @@ Configure a work interval in Settings → enable notification permission → Sta
 | `android/app/src/androidTest` | Device tests for persistence and backups, not executed here |
 | `docs` | Architecture, privacy, capability matrix, release gates, device checklist and roadmap |
 
-ChangeNotifier is deliberately used instead of adding Riverpod to a four-screen app. Domain rules are independent of Flutter. Android adapters use platform APIs rather than third-party Flutter plugins. The native receiver has a small mirrored recovery rule set because it must run without starting a Dart engine; parity tests on devices remain a release gate.
+ChangeNotifier is deliberately used instead of adding Riverpod to a five-section app. Domain rules are independent of Flutter. Android adapters use platform APIs rather than third-party Flutter plugins. The native receiver has a small mirrored recovery rule set because it must run without starting a Dart engine; parity tests on devices remain a release gate.
 
 ## Setup and commands
 
