@@ -2,7 +2,11 @@
 
 Android-first, local-first Flutter implementation. A separate product and source tree; no Many Maybes branding, infrastructure, account, content or repository is reused.
 
-**Status: Android pre-alpha build; device acceptance remains outstanding.** Flutter analysis, 19 Dart/widget tests and six Python pack-validator tests pass. FOSS debug/release, Play debug and native instrumentation APKs compile successfully. An ARM64 release-mode APK is available with a debug test signature; its compiled manifest has no Internet permission. Android SDK terms and Apache-2.0 / CC-BY-4.0 licences were explicitly approved on 2026-10-18. No device tests or store publication are claimed. Source repository: https://github.com/trymanymaybes/appbreak. Read `docs/STATUS.md` before evaluating readiness.
+**Status: Android pre-alpha build; device acceptance remains outstanding.** Flutter analysis, 27 Dart/widget tests and six Python pack-validator tests pass. FOSS release and native instrumentation APKs compile successfully; four native interval-accounting unit tests pass. An ARM64 release-mode APK is available with a debug test signature; its compiled manifest has no Internet permission. Android SDK terms and Apache-2.0 / CC-BY-4.0 licences were explicitly approved on 2026-10-18. No device tests or store publication are claimed. Source repository: https://github.com/trymanymaybes/appbreak. Read `docs/STATUS.md` before evaluating readiness.
+
+## Version 0.2 update
+
+See `docs/UPDATE-0.2.md` for break profiles and activity switching, optional popup launch, permission setup/test notification, active-screen timing and offline dictation. Popup, usage-event availability and speech/language support are explicitly device-dependent. Speak saves text; retaining audio is a separate explicit recording action. Install the new test APK as an update to preserve notes.
 
 ## Repository bootstrap
 
