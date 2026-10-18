@@ -1,0 +1,69 @@
+# AppBreak — Smart Break & Activity Companion
+
+Android-first, local-first Flutter implementation. A separate product and source tree; no Many Maybes branding, infrastructure, account, content or repository is reused.
+
+**Status: pre-alpha source implementation, not a verified Android MVP release.** Flutter analysis, 17 Dart/widget tests and six Python pack-validator tests pass. Android SDK licence acceptance was blocked by automatic approval review, so native compilation, APK installation and hardware tests have NOT run. No APK is signed and no app-store release is published. Source repository: https://github.com/trymanymaybes/appbreak. Read `docs/STATUS.md` before evaluating readiness.
+
+## Repository bootstrap
+
+The initial browser upload contains this README and `appbreak-source.zip`. Extract the archive to obtain the complete project tree, documentation, tests and build scripts. A normal tracked-source push is pending GitHub connector write access; its create-file request returned HTTP 403 for this new repository.
+
+## First runnable milestone
+
+Configure a work interval in Settings → enable notification permission → Start work session → receive a local reminder or enter the break while the app is visible → quiet rest (or select an installed offline voice and press Play) → optionally capture an idea → confirm participation → inspect local progress. Start the next work session when ready. A user-confirmed completion is never represented as verified eye rest, movement or hydration.
+
+## Layout
+
+| Path | Responsibility |
+| --- | --- |
+| `lib/domain` | Pure Dart session clock/state rules, activity selection, achievements, sharing projections |
+| `lib/application/controller.dart` | Serialized operations, lifecycle reconciliation, application state using ChangeNotifier |
+| `lib/platform/device.dart` | Replaceable Android method-channel adapter; fake adapter used by tests |
+| `lib/ui` | Material screens, labelled controls, text scaling, share/restore confirmations |
+| `android/app/src/main/kotlin/org/appbreak/companion` | SQLite, AlarmManager, TTS, recording, SAF file pickers and sharing |
+| `assets/activities.json` | Twelve original inert offline activities |
+| `schemas/activity-pack.schema.json` | Versioned community pack schema |
+| `tools/validate_packs.py` | Dependency-free pack validator |
+| `test` | Domain, persistence-failure and large-text UI tests |
+| `android/app/src/androidTest` | Device tests for persistence and backups, not executed here |
+| `docs` | Architecture, privacy, capability matrix, release gates, device checklist and roadmap |
+
+ChangeNotifier is deliberately used instead of adding Riverpod to a four-screen app. Domain rules are independent of Flutter. Android adapters use platform APIs rather than third-party Flutter plugins. The native receiver has a small mirrored recovery rule set because it must run without starting a Dart engine; parity tests on devices remain a release gate.
+
+## Setup and commands
+
+Baseline actually used for Dart checks: Flutter **3.35.7**, Dart **3.9.2**, Flutter commit `adc901062556672b4138e18a4dc62a4be8f4b3c2`. This is a pinned baseline, NOT a claim that it is current stable. Upgrade validation against the current stable Flutter is a release gate.
+
+Android configuration: Java 17, SDK 36, min API 26, AGP 8.11.1, Gradle 8.13, Kotlin 2.1.0; these native versions have not been compiled together here. Install Flutter and Android command-line tools from their official distributions. Review and accept Android SDK terms yourself (or explicitly authorize that step).
+
+```bash
+export PATH="/path/to/flutter/bin:/path/to/android-sdk/cmdline-tools/latest/bin:$PATH"
+export ANDROID_HOME=/path/to/android-sdk
+export CI=true
+export FLUTTER_SUPPRESS_ANALYTICS=true
+sdkmanager --licenses
+sdkmanager 'platform-tools' 'platforms;android-36' 'build-tools;35.0.0' 'ndk;27.0.12077973'
+flutter doctor -v
+flutter pub get --enforce-lockfile
+python3 tools/validate_packs.py
+flutter analyze
+flutter test --reporter expanded
+flutter run --flavor foss
+flutter build apk --debug --flavor foss
+```
+
+The SDK's normal CI mode avoids its Azure instance-metadata autodetection. On container filesystems that reject tar ownership changes, additionally set `TAR_OPTIONS=--no-same-owner` during SDK bootstrapping. Core application runtime has no Internet permission; initial build tooling downloads dependencies.
+
+Device instrumentation, after installing the SDK and connecting a dedicated test device:
+
+```bash
+cd android
+./gradlew :app:connectedFossDebugAndroidTest
+cd ..
+```
+
+Release/signing instructions, including the owner-controlled signing key and F-Droid gates, are in `docs/RELEASE.md`. Do not distribute a debug-signed build as a release.
+
+## Licensing
+
+No licence is assigned to the newly written code or original activities yet. Recommended owner decision: **Apache-2.0 for code; CC-BY-4.0 for original content**. GPL-3.0-or-later for code is an alternative if reciprocal source disclosure is preferred. Upstream third-party licences remain in force and are retained under `third_party/licenses`. The placeholder `LicenseRef-Owner-Decision-Pending` is not a FOSS content licence; F-Droid submission is blocked until resolved.
