@@ -1,0 +1,93 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.13/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :gradle:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle:compileKotlin UP-TO-DATE
+> Task :gradle:compileJava NO-SOURCE
+> Task :gradle:compileGroovy NO-SOURCE
+> Task :gradle:pluginDescriptors UP-TO-DATE
+> Task :gradle:processResources UP-TO-DATE
+> Task :gradle:classes UP-TO-DATE
+> Task :gradle:jar UP-TO-DATE
+> Task :app:FossReleaseMinSdkCheck
+> Task :app:compileFlutterBuildPlayRelease
+> Task :app:packJniLibsflutterBuildPlayRelease
+> Task :app:preBuild UP-TO-DATE
+> Task :app:prePlayReleaseBuild UP-TO-DATE
+> Task :app:configureCMakeRelease[arm64-v8a]
+> Task :app:buildCMakeRelease[arm64-v8a]
+> Task :app:configureCMakeRelease[armeabi-v7a]
+> Task :app:buildCMakeRelease[armeabi-v7a]
+> Task :app:configureCMakeRelease[x86_64]
+> Task :app:buildCMakeRelease[x86_64]
+> Task :app:preFossReleaseBuild UP-TO-DATE
+> Task :app:mergeFossReleaseJniLibFolders UP-TO-DATE
+> Task :app:compileFlutterBuildFossRelease
+> Task :app:packJniLibsflutterBuildFossRelease
+> Task :app:buildKotlinToolingMetadata UP-TO-DATE
+> Task :app:checkFossReleaseDuplicateClasses UP-TO-DATE
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:checkFossReleaseAarMetadata UP-TO-DATE
+> Task :app:cleanMergeFossReleaseAssets
+> Task :app:mergeFossReleaseShaders UP-TO-DATE
+> Task :app:compileFossReleaseShaders NO-SOURCE
+> Task :app:generateFossReleaseAssets UP-TO-DATE
+> Task :app:mergeFossReleaseAssets
+> Task :app:copyFlutterAssetsFossRelease
+> Task :app:generateFossReleaseResValues UP-TO-DATE
+> Task :app:mapFossReleaseSourceSetPaths UP-TO-DATE
+> Task :app:generateFossReleaseResources UP-TO-DATE
+> Task :app:mergeFossReleaseResources UP-TO-DATE
+> Task :app:packageFossReleaseResources UP-TO-DATE
+> Task :app:parseFossReleaseLocalResources UP-TO-DATE
+> Task :app:createFossReleaseCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksFossRelease UP-TO-DATE
+> Task :app:processFossReleaseMainManifest UP-TO-DATE
+> Task :app:processFossReleaseManifest UP-TO-DATE
+> Task :app:processFossReleaseManifestForPackage UP-TO-DATE
+> Task :app:processFossReleaseResources UP-TO-DATE
+> Task :app:mergeFossReleaseNativeLibs
+> Task :app:compileFossReleaseKotlin UP-TO-DATE
+> Task :app:javaPreCompileFossRelease UP-TO-DATE
+> Task :app:compileFossReleaseJavaWithJavac UP-TO-DATE
+> Task :app:mergeFossReleaseArtProfile UP-TO-DATE
+> Task :app:stripFossReleaseDebugSymbols
+> Task :app:extractProguardFiles UP-TO-DATE
+> Task :app:mergeFossReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :app:processFossReleaseJavaRes UP-TO-DATE
+> Task :app:mergeFossReleaseStartupProfile UP-TO-DATE
+> Task :app:compressFossReleaseAssets UP-TO-DATE
+> Task :app:extractFossReleaseVersionControlInfo UP-TO-DATE
+> Task :app:expandFossReleaseArtProfileWildcards
+> Task :app:extractFossReleaseNativeSymbolTables
+> Task :app:generateFossReleaseLintVitalReportModel
+> Task :app:mergeFossReleaseJavaResource
+> Task :app:mergeFossReleaseNativeDebugMetadata UP-TO-DATE
+> Task :app:collectFossReleaseDependencies
+> Task :app:sdkFossReleaseDependencyData
+> Task :app:writeFossReleaseAppMetadata UP-TO-DATE
+> Task :app:writeFossReleaseSigningConfigVersions UP-TO-DATE
+> Task :app:minifyFossReleaseWithR8
+> Task :app:lintVitalAnalyzeFossRelease
+> Task :app:compileFossReleaseArtProfile UP-TO-DATE
+> Task :app:convertShrunkResourcesToBinaryFossRelease UP-TO-DATE
+> Task :app:optimizeFossReleaseResources UP-TO-DATE
+> Task :app:lintVitalReportFossRelease UP-TO-DATE
+> Task :app:lintVitalFossRelease
+
+> Task :app:packageFossRelease
+There are no .so files available to package in the APK for armeabi-v7a, x86_64.
+
+> Task :app:createFossReleaseApkListingFileRedirect UP-TO-DATE
+> Task :app:assembleFossRelease
+w: Detected multiple Kotlin daemon sessions at 
+
+[Incubating] Problems report is available at: file:///workspace/scratch/fdee7b15fc41/appbreak/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.13/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 2m 7s
+66 actionable tasks: 27 executed, 39 up-to-date

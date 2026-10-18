@@ -1,0 +1,16 @@
+name: appbreak
+publish_to: none
+description: A local-first break companion with optional community activity updates.
+version: 0.4.0+4
+environment:
+  sdk: '>=3.9.0 <4.0.0'
+dependencies:
+  flutter:
+    sdk: flutter
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/activities.json

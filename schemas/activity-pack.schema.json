@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:appbreak:activity-pack:1",
+  "title": "AppBreak activity pack v1",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "activities"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "activities": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 200,
+      "items": {
+        "type": "object",
+        "required": [
+          "schemaVersion",
+          "id",
+          "title",
+          "category",
+          "language",
+          "estimatedSeconds",
+          "description",
+          "steps",
+          "requiresVisualAttention",
+          "requiresInput",
+          "accessibleAlternatives",
+          "author",
+          "attribution",
+          "contentLicense"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "language": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "author": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "attribution": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "contentLicense": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "schemaVersion": {
+            "const": 1
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9._-]{1,80}$"
+          },
+          "category": {
+            "enum": [
+              "quiet",
+              "movement",
+              "breathing",
+              "hydration",
+              "quiz",
+              "imagination"
+            ]
+          },
+          "estimatedSeconds": {
+            "type": "integer",
+            "minimum": 20,
+            "maximum": 300
+          },
+          "requiresVisualAttention": {
+            "type": "boolean"
+          },
+          "requiresInput": {
+            "type": "boolean"
+          },
+          "accessibleAlternatives": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 20,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000
+            }
+          },
+          "steps": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 30,
+            "items": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "kind",
+                    "text"
+                  ],
+                  "properties": {
+                    "kind": {
+                      "enum": [
+                        "instruction",
+                        "narration",
+                        "completion"
+                      ]
+                    },
+                    "text": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 2000
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "kind",
+                    "seconds"
+                  ],
+                  "properties": {
+                    "kind": {
+                      "enum": [
+                        "thinking",
+                        "silence"
+                      ]
+                    },
+                    "seconds": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 300
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "answer": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "reflectionQuestion": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        }
+      }
+    }
+  }
+}

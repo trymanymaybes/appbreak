@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "activities": [
+    {
+      "schemaVersion": 1,
+      "id": "community.imagination.window",
+      "title": "An imaginary window",
+      "category": "imagination",
+      "language": "en-IN",
+      "estimatedSeconds": 30,
+      "description": "Imagine a peaceful view, with no need to look at your screen.",
+      "steps": [
+        {
+          "kind": "instruction",
+          "text": "Rest your gaze comfortably away from the screen. Imagine a window overlooking somewhere peaceful. Picture one colour and one sound. You may simply rest instead."
+        },
+        {
+          "kind": "silence",
+          "seconds": 20
+        },
+        {
+          "kind": "completion",
+          "text": "Return whenever you feel ready."
+        }
+      ],
+      "requiresVisualAttention": false,
+      "requiresInput": false,
+      "accessibleAlternatives": [
+        "Quiet rest is always available.",
+        "Read the text instead of using narration.",
+        "For movement, remain seated or imagine the movement without performing it."
+      ],
+      "author": "AppBreak project contributors",
+      "attribution": "Original content prepared for AppBreak",
+      "contentLicense": "CC-BY-4.0"
+    }
+  ]
+}

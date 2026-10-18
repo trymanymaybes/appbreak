@@ -1,0 +1,4 @@
+# Enforce required code-owner review through the main branch protection settings.
+/activity-catalog/ @trymanymaybes
+/tools/validate_catalog.py @trymanymaybes
+/.github/ @trymanymaybes

@@ -1,0 +1,148 @@
+Test-only debug certificate on release-mode ARM64 build. Not production signed.
+
+Verifies
+Verified using v1 scheme (JAR signing): false
+Verified using v2 scheme (APK Signature Scheme v2): true
+Verified using v3 scheme (APK Signature Scheme v3): true
+Verified using v3.1 scheme (APK Signature Scheme v3.1): false
+Verified using v4 scheme (APK Signature Scheme v4): false
+Verified for SourceStamp: false
+Number of signers: 1
+Signer #1 certificate DN: C=US, O=Android, CN=Android Debug
+Signer #1 certificate SHA-256 digest: 476df0a0f9774e562ab7be0da2a3cbfe5fe4071330496cbd5b0203ff8ea93078
+Signer #1 certificate SHA-1 digest: 923d78161b533bfc6089e3645aaf3825a89d324b
+Signer #1 certificate MD5 digest: 33f7c82ba7282d807e9dd346e08d3354
+Signer #1 key algorithm: RSA
+Signer #1 key size (bits): 2048
+Signer #1 public key SHA-256 digest: 2712d4028baad16babb81523903f150278e9c298d626807285e17ddd8e99bb4e
+Signer #1 public key SHA-1 digest: ee32965f3ff33f19db7e7e58e4fa07c4ee121467
+Signer #1 public key MD5 digest: 4546ec065de0b3df737e93ac98febf37
+
+package: org.appbreak.companion
+uses-permission: name='android.permission.POST_NOTIFICATIONS'
+uses-permission: name='android.permission.RECEIVE_BOOT_COMPLETED'
+uses-permission: name='android.permission.RECORD_AUDIO'
+permission: org.appbreak.companion.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+uses-permission: name='org.appbreak.companion.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION'
+
+package: name='org.appbreak.companion' versionCode='1' versionName='0.1.0' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
+sdkVersion:'26'
+targetSdkVersion:'36'
+uses-permission: name='android.permission.POST_NOTIFICATIONS'
+uses-permission: name='android.permission.RECEIVE_BOOT_COMPLETED'
+uses-permission: name='android.permission.RECORD_AUDIO'
+uses-permission: name='org.appbreak.companion.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION'
+application-label:'AppBreak'
+application-label-af:'AppBreak'
+application-label-am:'AppBreak'
+application-label-ar:'AppBreak'
+application-label-as:'AppBreak'
+application-label-az:'AppBreak'
+application-label-be:'AppBreak'
+application-label-bg:'AppBreak'
+application-label-bn:'AppBreak'
+application-label-bs:'AppBreak'
+application-label-ca:'AppBreak'
+application-label-cs:'AppBreak'
+application-label-da:'AppBreak'
+application-label-de:'AppBreak'
+application-label-el:'AppBreak'
+application-label-en-AU:'AppBreak'
+application-label-en-CA:'AppBreak'
+application-label-en-GB:'AppBreak'
+application-label-en-IN:'AppBreak'
+application-label-en-XC:'AppBreak'
+application-label-es:'AppBreak'
+application-label-es-US:'AppBreak'
+application-label-et:'AppBreak'
+application-label-eu:'AppBreak'
+application-label-fa:'AppBreak'
+application-label-fi:'AppBreak'
+application-label-fr:'AppBreak'
+application-label-fr-CA:'AppBreak'
+application-label-gl:'AppBreak'
+application-label-gu:'AppBreak'
+application-label-hi:'AppBreak'
+application-label-hr:'AppBreak'
+application-label-hu:'AppBreak'
+application-label-hy:'AppBreak'
+application-label-in:'AppBreak'
+application-label-is:'AppBreak'
+application-label-it:'AppBreak'
+application-label-iw:'AppBreak'
+application-label-ja:'AppBreak'
+application-label-ka:'AppBreak'
+application-label-kk:'AppBreak'
+application-label-km:'AppBreak'
+application-label-kn:'AppBreak'
+application-label-ko:'AppBreak'
+application-label-ky:'AppBreak'
+application-label-lo:'AppBreak'
+application-label-lt:'AppBreak'
+application-label-lv:'AppBreak'
+application-label-mk:'AppBreak'
+application-label-ml:'AppBreak'
+application-label-mn:'AppBreak'
+application-label-mr:'AppBreak'
+application-label-ms:'AppBreak'
+application-label-my:'AppBreak'
+application-label-nb:'AppBreak'
+application-label-ne:'AppBreak'
+application-label-nl:'AppBreak'
+application-label-or:'AppBreak'
+application-label-pa:'AppBreak'
+application-label-pl:'AppBreak'
+application-label-pt:'AppBreak'
+application-label-pt-BR:'AppBreak'
+application-label-pt-PT:'AppBreak'
+application-label-ro:'AppBreak'
+application-label-ru:'AppBreak'
+application-label-si:'AppBreak'
+application-label-sk:'AppBreak'
+application-label-sl:'AppBreak'
+application-label-sq:'AppBreak'
+application-label-sr:'AppBreak'
+application-label-sr-Latn:'AppBreak'
+application-label-sv:'AppBreak'
+application-label-sw:'AppBreak'
+application-label-ta:'AppBreak'
+application-label-te:'AppBreak'
+application-label-th:'AppBreak'
+application-label-tl:'AppBreak'
+application-label-tr:'AppBreak'
+application-label-uk:'AppBreak'
+application-label-ur:'AppBreak'
+application-label-uz:'AppBreak'
+application-label-vi:'AppBreak'
+application-label-zh-CN:'AppBreak'
+application-label-zh-HK:'AppBreak'
+application-label-zh-TW:'AppBreak'
+application-label-zu:'AppBreak'
+application-icon-160:'res/9w.png'
+application-icon-240:'res/yn.png'
+application-icon-320:'res/FS.png'
+application-icon-480:'res/RJ.png'
+application-icon-640:'res/o-.png'
+application: label='AppBreak' icon='res/9w.png'
+launchable-activity: name='org.appbreak.companion.MainActivity'  label='' icon=''
+uses-library-not-required:'androidx.window.extensions'
+uses-library-not-required:'androidx.window.sidecar'
+feature-group: label=''
+  uses-feature: name='android.hardware.faketouch'
+  uses-implied-feature: name='android.hardware.faketouch' reason='default feature for all apps'
+  uses-feature: name='android.hardware.microphone'
+  uses-implied-feature: name='android.hardware.microphone' reason='requested android.permission.RECORD_AUDIO permission'
+main
+other-receivers
+supports-screens: 'small' 'normal' 'large' 'xlarge'
+supports-any-density: 'true'
+locales: '--_--' 'af' 'am' 'ar' 'as' 'az' 'be' 'bg' 'bn' 'bs' 'ca' 'cs' 'da' 'de' 'el' 'en-AU' 'en-CA' 'en-GB' 'en-IN' 'en-XC' 'es' 'es-US' 'et' 'eu' 'fa' 'fi' 'fr' 'fr-CA' 'gl' 'gu' 'hi' 'hr' 'hu' 'hy' 'in' 'is' 'it' 'iw' 'ja' 'ka' 'kk' 'km' 'kn' 'ko' 'ky' 'lo' 'lt' 'lv' 'mk' 'ml' 'mn' 'mr' 'ms' 'my' 'nb' 'ne' 'nl' 'or' 'pa' 'pl' 'pt' 'pt-BR' 'pt-PT' 'ro' 'ru' 'si' 'sk' 'sl' 'sq' 'sr' 'sr-Latn' 'sv' 'sw' 'ta' 'te' 'th' 'tl' 'tr' 'uk' 'ur' 'uz' 'vi' 'zh-CN' 'zh-HK' 'zh-TW' 'zu'
+densities: '160' '240' '320' '480' '640'
+native-code: 'arm64-v8a'
+
+Native libraries:
+lib/arm64-v8a/libapp.so
+lib/arm64-v8a/libflutter.so
+Notices:
+assets/flutter_assets/NOTICES.Z
+SHA256: 48a30b3b40cbb3c40efa8549df4e3bb0fe463c033ac1e35d8f91d232fe85faea

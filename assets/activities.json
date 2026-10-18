@@ -1,0 +1,405 @@
+{
+  "schemaVersion": 1,
+  "activities": [
+    {
+      "schemaVersion": 1,
+      "id": "quiet.soft",
+      "title": "A little quiet",
+      "category": "quiet",
+      "language": "en-IN",
+      "estimatedSeconds": 20,
+      "description": "Let your gaze settle somewhere comfortable away from this screen. You can also close your eyes if comfortable. Nothing to accomplish.",
+      "steps": [
+        {
+          "kind": "instruction",
+          "text": "Let your gaze settle somewhere comfortable away from this screen. You can also close your eyes if comfortable. Nothing to accomplish."
+        },
+        {
+          "kind": "silence",
+          "seconds": 5
+        },
+        {
+          "kind": "completion",
+          "text": "Your pause is complete. Return when you are ready."
+        }
+      ],
+      "requiresVisualAttention": false,
+      "requiresInput": false,
+      "accessibleAlternatives": [
+        "Quiet rest is always available.",
+        "Read the text instead of using narration.",
+        "For movement, remain seated or imagine the movement without performing it."
+      ],
+      "author": "AppBreak project contributors",
+      "attribution": "Original content prepared for AppBreak",
+      "contentLicense": "CC-BY-4.0"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "quiet.distance",
+      "title": "A distant detail",
+      "category": "quiet",
+      "language": "en-IN",
+      "estimatedSeconds": 60,
+      "description": "Look toward a comfortable distant object. Let your face relax. No need to stare or judge what this does for your eyes.",
+      "steps": [
+        {
+          "kind": "instruction",
+          "text": "Look toward a comfortable distant object. Let your face relax. No need to stare or judge what this does for your eyes."
+        },
+        {
+          "kind": "silence",
+          "seconds": 40
+        },
+        {
+          "kind": "completion",
+          "text": "Your pause is complete. Return when you are ready."
+        }
+      ],
+      "requiresVisualAttention": false,
+      "requiresInput": false,
+      "accessibleAlternatives": [
+        "Quiet rest is always available.",
+        "Read the text instead of using narration.",
+        "For movement, remain seated or imagine the movement without performing it."
+      ],
+      "author": "AppBreak project contributors",
+      "attribution": "Original content prepared for AppBreak",
+      "contentLicense": "CC-BY-4.0"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "movement.hands",
+      "title": "Unclench",
+      "category": "movement",
+      "language": "en-IN",
+      "estimatedSeconds": 30,
+      "description": "Seated or standing, gently open your hands and let them soften. Repeat only if comfortable. You may simply rest your hands instead.",
+      "steps": [
+        {
+          "kind": "instruction",
+          "text": "Seated or standing, gently open your hands and let them soften. Repeat only if comfortable. You may simply rest your hands instead."
+        },
+        {
+          "kind": "silence",
+          "seconds": 10
+        },
+        {
+          "kind": "completion",
+          "text": "Your pause is complete. Return when you are ready."
+        }
+      ],
+      "requiresVisualAttention": false,
+      "requiresInput": false,
+      "accessibleAlternatives": [
+        "Quiet rest is always available.",
+        "Read the text instead of using narration.",
+        "For movement, remain seated or imagine the movement without performing it."
+      ],
+      "author": "AppBreak project contributors",
+      "attribution": "Original content prepared for AppBreak",
+      "contentLicense": "CC-BY-4.0"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "movement.shoulders",
+      "title": "Shoulder space",
+      "category": "movement",
+      "language": "en-IN",
+      "estimatedSeconds": 120,
+      "description": "Sit comfortably. If comfortable, slowly raise your shoulders a little, then let them settle. Leave plenty of rest between movements. Stop if uncomfortable.",
+      "steps": [
+        {
+          "kind": "instruction",
+          "text": "Sit comfortably. If comfortable, slowly raise your shoulders a little, then let them settle. Leave plenty of rest between movements. Stop if uncomfortable."
+        },
+        {
+          "kind": "silence",
+          "seconds": 100
+        },
+        {
+          "kind": "completion",
+          "text": "Your pause is complete. Return when you are ready."
+        }
+      ],
+      "requiresVisualAttention": false,
+      "requiresInput": false,
+      "accessibleAlternatives": [
+        "Quiet rest is always available.",
+        "Read the text instead of using narration.",
+        "For movement, remain seated or imagine the movement without performing it."
+      ],
+      "author": "AppBreak project contributors",
+      "attribution": "Original content prepared for AppBreak",
+      "contentLicense": "CC-BY-4.0"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "breathing.easy",
+      "title": "Ordinary breaths",
+      "category": "breathing",
+      "language": "en-IN",
+      "estimatedSeconds": 60,
+      "description": "Let your breathing stay natural. Notice a few comfortable breaths without holding or forcing them. If this feels unpleasant, notice sounds around you instead.",
+      "steps": [
+        {
+          "kind": "instruction",
+          "text": "Let your breathing stay natural. Notice a few comfortable breaths without holding or forcing them. If this feels unpleasant, notice sounds around you instead."
+        },
+        {
+          "kind": "silence",
+          "seconds": 40
+        },
+        {
+          "kind": "completion",
+          "text": "Your pause is complete. Return when you are ready."
+        }
+      ],
+      "requiresVisualAttention": false,
+      "requiresInput": false,
+      "accessibleAlternatives": [
+        "Quiet rest is always available.",
+        "Read the text instead of using narration.",
+        "For movement, remain seated or imagine the movement without performing it."
+      ],
+      "author": "AppBreak project contributors",
+      "attribution": "Original content prepared for AppBreak",
+      "contentLicense": "CC-BY-4.0"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "breathing.anchor",
+      "title": "A sound nearby",
+      "category": "breathing",
+      "language": "en-IN",
+      "estimatedSeconds": 180,
+      "description": "Notice one nearby sound, then one farther away. There is no need to identify them. Return to ordinary breathing whenever you like.",
+      "steps": [
+        {
+          "kind": "instruction",
+          "text": "Notice one nearby sound, then one farther away. There is no need to identify them. Return to ordinary breathing whenever you like."
+        },
+        {
+          "kind": "silence",
+          "seconds": 160
+        },
+        {
+          "kind": "completion",
+          "text": "Your pause is complete. Return when you are ready."
+        }
+      ],
+      "requiresVisualAttention": false,
+      "requiresInput": false,
+      "accessibleAlternatives": [
+        "Quiet rest is always available.",
+        "Read the text instead of using narration.",
+        "For movement, remain seated or imagine the movement without performing it."
+      ],
+      "author": "AppBreak project contributors",
+      "attribution": "Original content prepared for AppBreak",
+      "contentLicense": "CC-BY-4.0"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "hydration.choice",
+      "title": "A sip if wanted",
+      "category": "hydration",
+      "language": "en-IN",
+      "estimatedSeconds": 30,
+      "description": "If you would like a drink and it is appropriate for you, take a comfortable sip of water. Otherwise take a quiet pause. This app cannot verify drinking.",
+      "steps": [
+        {
+          "kind": "instruction",
+          "text": "If you would like a drink and it is appropriate for you, take a comfortable sip of water. Otherwise take a quiet pause. This app cannot verify drinking."
+        },
+        {
+          "kind": "silence",
+          "seconds": 10
+        },
+        {
+          "kind": "completion",
+          "text": "Your pause is complete. Return when you are ready."
+        }
+      ],
+      "requiresVisualAttention": false,
+      "requiresInput": false,
+      "accessibleAlternatives": [
+        "Quiet rest is always available.",
+        "Read the text instead of using narration.",
+        "For movement, remain seated or imagine the movement without performing it."
+      ],
+      "author": "AppBreak project contributors",
+      "attribution": "Original content prepared for AppBreak",
+      "contentLicense": "CC-BY-4.0"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "quiz.shadow",
+      "title": "The travelling outline",
+      "category": "quiz",
+      "language": "en-IN",
+      "estimatedSeconds": 60,
+      "description": "I follow your walk in sunlight, stretch at evening, and vanish in darkness. What am I?",
+      "steps": [
+        {
+          "kind": "instruction",
+          "text": "I follow your walk in sunlight, stretch at evening, and vanish in darkness. What am I?"
+        },
+        {
+          "kind": "silence",
+          "seconds": 40
+        },
+        {
+          "kind": "completion",
+          "text": "Your pause is complete. Return when you are ready."
+        }
+      ],
+      "requiresVisualAttention": false,
+      "requiresInput": false,
+      "accessibleAlternatives": [
+        "Quiet rest is always available.",
+        "Read the text instead of using narration.",
+        "For movement, remain seated or imagine the movement without performing it."
+      ],
+      "author": "AppBreak project contributors",
+      "attribution": "Original content prepared for AppBreak",
+      "contentLicense": "CC-BY-4.0",
+      "answer": "Your shadow."
+    },
+    {
+      "schemaVersion": 1,
+      "id": "quiz.sequence",
+      "title": "A gentle number puzzle",
+      "category": "quiz",
+      "language": "en-IN",
+      "estimatedSeconds": 120,
+      "description": "A gardener puts two stones in the first pot, four in the second, and six in the third. Following the same pattern, how many in the fourth?",
+      "steps": [
+        {
+          "kind": "instruction",
+          "text": "A gardener puts two stones in the first pot, four in the second, and six in the third. Following the same pattern, how many in the fourth?"
+        },
+        {
+          "kind": "silence",
+          "seconds": 100
+        },
+        {
+          "kind": "completion",
+          "text": "Your pause is complete. Return when you are ready."
+        }
+      ],
+      "requiresVisualAttention": false,
+      "requiresInput": false,
+      "accessibleAlternatives": [
+        "Quiet rest is always available.",
+        "Read the text instead of using narration.",
+        "For movement, remain seated or imagine the movement without performing it."
+      ],
+      "author": "AppBreak project contributors",
+      "attribution": "Original content prepared for AppBreak",
+      "contentLicense": "CC-BY-4.0",
+      "answer": "Eight stones."
+    },
+    {
+      "schemaVersion": 1,
+      "id": "imagination.room",
+      "title": "A room made of weather",
+      "category": "imagination",
+      "language": "en-IN",
+      "estimatedSeconds": 180,
+      "description": "Imagine a comfortable room inspired by your favourite weather. What would its textures feel like? Keep the picture loose; words or feelings are welcome too.",
+      "steps": [
+        {
+          "kind": "instruction",
+          "text": "Imagine a comfortable room inspired by your favourite weather. What would its textures feel like? Keep the picture loose; words or feelings are welcome too."
+        },
+        {
+          "kind": "silence",
+          "seconds": 160
+        },
+        {
+          "kind": "completion",
+          "text": "Your pause is complete. Return when you are ready."
+        }
+      ],
+      "requiresVisualAttention": false,
+      "requiresInput": false,
+      "accessibleAlternatives": [
+        "Quiet rest is always available.",
+        "Read the text instead of using narration.",
+        "For movement, remain seated or imagine the movement without performing it."
+      ],
+      "author": "AppBreak project contributors",
+      "attribution": "Original content prepared for AppBreak",
+      "contentLicense": "CC-BY-4.0",
+      "reflectionQuestion": "What, if anything, would you like to remember?"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "imagination.small",
+      "title": "One small kindness",
+      "category": "imagination",
+      "language": "en-IN",
+      "estimatedSeconds": 300,
+      "description": "Think of a small kindness you could offer yourself today. It can be ordinary, free, and private. There is no obligation to write it down.",
+      "steps": [
+        {
+          "kind": "instruction",
+          "text": "Think of a small kindness you could offer yourself today. It can be ordinary, free, and private. There is no obligation to write it down."
+        },
+        {
+          "kind": "silence",
+          "seconds": 280
+        },
+        {
+          "kind": "completion",
+          "text": "Your pause is complete. Return when you are ready."
+        }
+      ],
+      "requiresVisualAttention": false,
+      "requiresInput": false,
+      "accessibleAlternatives": [
+        "Quiet rest is always available.",
+        "Read the text instead of using narration.",
+        "For movement, remain seated or imagine the movement without performing it."
+      ],
+      "author": "AppBreak project contributors",
+      "attribution": "Original content prepared for AppBreak",
+      "contentLicense": "CC-BY-4.0",
+      "reflectionQuestion": "What, if anything, would you like to remember?"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "quiet.minute",
+      "title": "Nothing to finish",
+      "category": "quiet",
+      "language": "en-IN",
+      "estimatedSeconds": 60,
+      "description": "Put the screen aside if you wish. There is nothing you need to answer. Let this minute be unmeasured by effort.",
+      "steps": [
+        {
+          "kind": "instruction",
+          "text": "Put the screen aside if you wish. There is nothing you need to answer. Let this minute be unmeasured by effort."
+        },
+        {
+          "kind": "silence",
+          "seconds": 40
+        },
+        {
+          "kind": "completion",
+          "text": "Your pause is complete. Return when you are ready."
+        }
+      ],
+      "requiresVisualAttention": false,
+      "requiresInput": false,
+      "accessibleAlternatives": [
+        "Quiet rest is always available.",
+        "Read the text instead of using narration.",
+        "For movement, remain seated or imagine the movement without performing it."
+      ],
+      "author": "AppBreak project contributors",
+      "attribution": "Original content prepared for AppBreak",
+      "contentLicense": "CC-BY-4.0"
+    }
+  ]
+}
