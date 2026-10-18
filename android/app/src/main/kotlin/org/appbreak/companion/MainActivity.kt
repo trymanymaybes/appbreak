@@ -41,6 +41,14 @@ open class MainActivity: FlutterActivity() {
         channel!!.setMethodCallHandler { call,result ->
             try {
                 when(call.method) {
+                    "consumeBreakOpen" -> {
+                        // Retained on the Activity until Flutter has loaded session state.
+                        // Handles both launcher creation and onNewIntent (warm notification tap).
+                        val open = intent?.action == "openBreak"
+                        val sessionId = intent?.getStringExtra("sessionId")
+                        if(open) { intent?.action = null; intent?.removeExtra("sessionId") }
+                        result.success(if(open) mapOf("sessionId" to sessionId) else null)
+                    }
                     "catalogLoad" -> result.success(ActivityCatalog.snapshot(this))
                     "catalogEnabled" -> { ActivityCatalog.setEnabled(this, call.argument<Boolean>("enabled") == true); result.success(ActivityCatalog.snapshot(this)) }
                     "catalogRefresh" -> {
@@ -112,6 +120,8 @@ open class MainActivity: FlutterActivity() {
                         else if(phase!="due") Reminders.clear(this)
                         result.success(null)
                     }
+                    "microphoneAccess" -> { if(checkSelfPermission(Manifest.permission.RECORD_AUDIO)!=PackageManager.PERMISSION_GRANTED) requestPermissions(arrayOf(Manifest.permission.RECORD_AUDIO),52);result.success(null) }
+                    "appSettings" -> { startActivity(Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,android.net.Uri.parse("package:$packageName")));result.success(null) }
                     "notifications" -> { if(Build.VERSION.SDK_INT>=33) requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS),51); result.success(getSystemService(NotificationManager::class.java).areNotificationsEnabled()) }
                     "voices" -> { check(ttsReady) { "Speech engine is still starting. Try again, or use quiet mode." }; result.success(tts!!.voices.orEmpty().filter { !it.isNetworkConnectionRequired && !it.features.orEmpty().contains("notInstalled") }.map { mapOf("name" to it.name,"language" to it.locale.toLanguageTag()) }) }
                     "installVoice" -> { startActivity(Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA)); result.success(null) }
@@ -233,6 +243,10 @@ open class MainActivity: FlutterActivity() {
             window.addFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND)
             window.attributes=window.attributes.apply { dimAmount=0.35f }
         }
+    }
+    override fun onRequestPermissionsResult(requestCode:Int, permissions:Array<out String>, grantResults:IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        channel?.invokeMethod("permissionsChanged", null)
     }
     override fun onNewIntent(intent:Intent) { super.onNewIntent(intent);setIntent(intent);configurePopup() }
     override fun onResume() { super.onResume(); configurePopup(); Reminders.visible=true; if(Store(this).use { it.read().optJSONObject("session")?.optString("phase") } in listOf(null,"idle")) Reminders.clear(this) }

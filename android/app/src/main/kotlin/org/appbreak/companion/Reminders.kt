@@ -46,7 +46,7 @@ object Reminders {
         val confirmation=phase in listOf("pending","finished") || finished
         val running=phase=="rest"
         val manager=c.getSystemService(NotificationManager::class.java)
-        val open=PendingIntent.getActivity(c,10,Intent(c,MainActivity::class.java).setAction("openBreak"),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        val open=PendingIntent.getActivity(c,10,Intent(c,MainActivity::class.java).setAction("openBreak").putExtra("sessionId",s.optString("id")).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val b=Notification.Builder(c,channel(c,p)).setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
             .setContentTitle(if(confirmation) "Did you take your break?" else if(running) "Break in progress" else p.optString("name","Time for a gentle break"))
             .setContentText(if(confirmation) "Confirm participation, or skip this break." else if(running) "Return when ready. Completion is yours to confirm." else p.optString("message","Break ready. Start when you are ready."))

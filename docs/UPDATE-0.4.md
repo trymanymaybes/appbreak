@@ -37,3 +37,26 @@ recorded in STATUS.md. Device-only tests are supplied, but are not claimed as ex
 Use DEVICE_CHECKLIST.md plus: offline cold start; first download; weekly/daily cooldown
 across restarts; ETag 304; 429 Retry-After; malformed/oversize/deep payload; cache retention;
 update toggle; delete data during download; notification Yes for a community activity.
+
+## Notification tap correction
+
+Notification content intents now carry the session ID and bring the existing app
+activity forward. Native code retains `openBreak` until Flutter loads the session,
+including onNewIntent warm launches. Flutter consumes it once and switches to the
+break page (or pending Yes/Skip confirmation), dismissing covering dialogs.
+An explicit tap can start a due break outside reminder quiet hours. Existing break
+timers are preserved and stale session IDs do not start another break.
+
+Five regression tests cover rest/pending/finished warm navigation, cold due launch
+and stale IDs. Device-level PendingIntent delivery remains to be verified.
+
+## Central permissions setup
+
+A skippable Permission checklist opens once for new/upgrading users while idle or
+working, never over an active break or notification destination. A permanent
+Permissions & setup app-bar button and Settings entry reopen the same checklist.
+It explains notification, optional overlay, active-screen Usage access, and optional
+microphone permissions. Direct controls open the Android prompts/settings, with a
+general app settings fallback after denial. Status refreshes on resume and permission
+results. No blanket permission prompts are fired on launch. Microphone remains
+requested on Speak/Record or explicit Allow microphone. Setup Back returns to the app.

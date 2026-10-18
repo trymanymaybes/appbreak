@@ -1,10 +1,11 @@
 # Current source: 0.4 community catalogue
 
-Verified for 0.4: Flutter analysis clean; 37 Dart/widget tests pass; 14 Python
+Verified for 0.4: Flutter analysis clean; 44 Dart/widget tests pass; 14 Python
 pack/catalogue tests pass; 9 existing native interval unit tests pass. FOSS debug
 APK and instrumentation APK compile successfully using the local pinned toolchain.
 Four new catalogue instrumentation tests compile but were not run: no device is
 connected. Live network/ETag/cooldown/device acceptance remains outstanding.
+Notification tap routing now has five regression tests covering warm rest/pending/finished, cold due and stale-session taps. Two additional setup tests cover first-launch guidance, direct setup access and permission requests. Physical notification taps and Android permission screens still require device acceptance.
 This is a source change, not a published production APK.
 
 Repository rulesets API returned an empty list. Legacy branch-protection access

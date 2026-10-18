@@ -57,6 +57,7 @@ class Companion extends ChangeNotifier {
 
   Session session = const Session();
   Moment moment = const Moment(0, 0, 0);
+  int breakNavigationVersion = 0;
   String? error;
   bool busy = false, visible = true;
   Timer? ticker;
@@ -229,6 +230,18 @@ class Companion extends ChangeNotifier {
       session = data['session'] == null
           ? const Session()
           : Session.fromJson(Map<String, dynamic>.from(data['session']));
+      final open = await device.call<Map>('consumeBreakOpen');
+      final requestedId = open?['sessionId'];
+      final openCurrentBreak =
+          open != null &&
+          (requestedId == null || requestedId == session.id) &&
+          [
+            Phase.due,
+            Phase.rest,
+            Phase.finished,
+            Phase.pending,
+            Phase.paused,
+          ].contains(session.phase);
       final next = session.reconcile(moment);
       if (next.phase != session.phase) {
         session = next;
@@ -239,13 +252,14 @@ class Companion extends ChangeNotifier {
         await persist();
       }
       if (session.phase == Phase.due && visible) {
-        if (await device.call<bool>('allowed') != false) {
+        if (openCurrentBreak || await device.call<bool>('allowed') != false) {
           await _breakNow();
         } else {
           session = const Session();
         }
         await persist();
       }
+      if (openCurrentBreak) breakNavigationVersion++;
       error = null;
     } catch (e) {
       error = '$e';

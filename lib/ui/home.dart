@@ -21,7 +21,9 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> with WidgetsBindingObserver {
   Companion get c => widget.controller;
   int tab = 0;
+  bool setupOpen = false;
   Phase lastPhase = Phase.idle;
+  int lastBreakNavigation = 0;
   String search = '';
   bool recording = false, includeAudio = false, dictating = false;
   String transcript = '', dictationStatus = '';
@@ -34,9 +36,9 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     c.addListener(changed);
-    c.init();
-    loadCapabilities();
+    initializeHome();
     Device.channel.setMethodCallHandler((call) async {
+      if (call.method == 'permissionsChanged') await loadCapabilities();
       if (call.method == 'dictation') {
         final args = Map<String, dynamic>.from(call.arguments as Map);
         dictating = args['listening'] == true;
@@ -55,6 +57,25 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
     });
   }
 
+  Future<void> initializeHome() async {
+    await c.init();
+    if (!mounted) return;
+    await loadCapabilities();
+    if (mounted &&
+        capabilities.isNotEmpty &&
+        c.settings['permissionSetupSeen'] != true &&
+        [Phase.idle, Phase.work].contains(c.session.phase) &&
+        c.breakNavigationVersion == 0) {
+      setState(() => setupOpen = true);
+      await c.updateSettings({'permissionSetupSeen': true});
+    }
+  }
+
+  void openSetup() {
+    setState(() => setupOpen = true);
+    loadCapabilities();
+  }
+
   Future<void> loadCapabilities() async {
     try {
       final result = await c.device.call<Map>('capabilities');
@@ -66,7 +87,19 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
   }
 
   void changed() {
-    if (c.session.phase == Phase.rest && lastPhase != Phase.rest) tab = 0;
+    if (c.breakNavigationVersion != lastBreakNavigation) {
+      lastBreakNavigation = c.breakNavigationVersion;
+      setupOpen = false;
+      tab = 0;
+      // A routine editor or activity chooser may be covering the main page.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) Navigator.of(context).popUntil((route) => route.isFirst);
+      });
+    }
+    if (c.session.phase == Phase.rest && lastPhase != Phase.rest) {
+      tab = 0;
+      setupOpen = false;
+    }
     lastPhase = c.session.phase;
     if (mounted) setState(() {});
   }
@@ -145,19 +178,32 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
     final pages = [dashboard, ideas, achievements, settings, routines];
     return PopScope(
       canPop:
+          !setupOpen &&
           ![Phase.rest, Phase.finished].contains(c.session.phase) &&
           !(c.session.phase == Phase.paused &&
               c.session.resumePhase == Phase.rest),
       onPopInvokedWithResult: (didPop, result) async {
         if (!didPop) {
+          if (setupOpen) {
+            setState(() => setupOpen = false);
+            return;
+          }
           await c.leaveBreak();
           if (c.error == null) await SystemNavigator.pop();
         }
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('AppBreak'),
+          title: Text(setupOpen ? 'Permissions & setup' : 'AppBreak'),
+          leading: setupOpen
+              ? BackButton(onPressed: () => setState(() => setupOpen = false))
+              : null,
           actions: [
+            IconButton(
+              tooltip: 'Permissions & setup',
+              icon: const Icon(Icons.fact_check_outlined),
+              onPressed: openSetup,
+            ),
             IconButton(
               tooltip: 'Stop all audio',
               icon: const Icon(Icons.volume_off_outlined),
@@ -203,7 +249,17 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                         ),
                       ),
                     ),
-                  ...pages[tab](),
+                  if (setupOpen) ...[
+                    const Text(
+                      'Set up the features you want. You can skip optional permissions and change them here anytime.',
+                    ),
+                    permissionsPanel(),
+                    button(
+                      'Continue to app',
+                      () => setState(() => setupOpen = false),
+                    ),
+                  ] else
+                    ...pages[tab](),
                 ],
               ),
             ),
@@ -211,7 +267,10 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         ),
         bottomNavigationBar: NavigationBar(
           selectedIndex: tab,
-          onDestinationSelected: (v) => setState(() => tab = v),
+          onDestinationSelected: (v) => setState(() {
+            tab = v;
+            setupOpen = false;
+          }),
           destinations: const [
             NavigationDestination(
               icon: Icon(Icons.spa_outlined),
@@ -473,7 +532,10 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       onChanged: (v) => c.updateSettings({'profile': v}),
     ),
   );
-  Widget permissionsPanel() => section('Permissions & reminders', [
+  Widget permissionsPanel() => section('Permission checklist', [
+    const Text(
+      '1. Notifications — needed for background break reminders. Tapping a notification opens the break without popup permission.',
+    ),
     Text(
       'Notifications: ${capabilities['notifications'] == true ? 'enabled' : 'disabled or unchecked'}',
     ),
@@ -496,23 +558,31 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         ),
       ],
     ),
+    const Text(
+      '2. Popups — optional. Needed only to appear automatically over other apps.',
+    ),
     SwitchListTile(
       title: const Text('Open a break popup over other apps'),
       subtitle: Text(
         'Optional. Access: ${capabilities['overlay'] == true ? 'granted' : 'not granted'}. Notifications remain the fallback.',
       ),
-      value: c.settings['popup'] != false,
+      value: c.settings['popup'] != false && capabilities['overlay'] == true,
       onChanged: (v) => run(() async {
         if (v && capabilities['overlay'] != true) {
           if (await confirm(
             'Allow break popups?',
             'Android will open Display over other apps settings. Grant AppBreak access, then return and enable this switch. Popups cannot be guaranteed over locked screens or restricted apps.',
-          ))
+          )) {
+            await c.updateSettings({'popup': true});
             await c.device.call('overlayAccess');
+          }
         } else {
           await c.updateSettings({'popup': v});
         }
       }),
+    ),
+    const Text(
+      '3. Usage access — needed for automatic active-screen routines; manual sessions work without it.',
     ),
     Text(
       'Screen-time access: ${capabilities['usage'] == true ? 'granted' : 'not granted'}. Only screen/lock events are counted; app names are not saved.',
@@ -528,7 +598,19 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       }),
     ),
     Text(
-      'Offline dictation: ${capabilities['dictation'] == true ? 'service available; language model still needs testing' : 'unavailable on this device'}. Microphone permission is requested when you tap Speak or Record.',
+      '4. Microphone — optional for Speak and Record. Access: ${capabilities['microphone'] == true ? 'granted' : 'not granted'}. Offline dictation: ${capabilities['dictation'] == true ? 'service available; language model still needs testing' : 'unavailable on this device'}. Microphone permission is requested when you tap Speak or Record.',
+    ),
+    button(
+      'Allow microphone',
+      () => run(() => c.device.call('microphoneAccess')),
+      enabled: capabilities['microphone'] != true,
+    ),
+    button(
+      'App permission settings',
+      () => run(() => c.device.call('appSettings')),
+    ),
+    const Text(
+      'If Android no longer shows a permission prompt, use App permission settings. No broad storage permission is needed: backups use the system file picker. Internet access for catalogue updates has no Android runtime prompt and can be disabled in Settings.',
     ),
     DropdownButtonFormField<String>(
       initialValue: c.settings['dictationLanguage'] ?? 'en-IN',
@@ -1344,7 +1426,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         () => run(() => c.refreshCatalog(manual: true)),
       ),
     ]),
-    permissionsPanel(),
+    button('Permissions & setup', openSetup),
     section('Timing', [
       DropdownButtonFormField<String>(
         initialValue: c.settings['timing'] ?? 'elapsed',
