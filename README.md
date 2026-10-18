@@ -2,7 +2,7 @@
 
 Android-first, local-first Flutter implementation. A separate product and source tree; no Many Maybes branding, infrastructure, account, content or repository is reused.
 
-**Status: pre-alpha source implementation, not a verified Android MVP release.** Flutter analysis, 17 Dart/widget tests and six Python pack-validator tests pass. Android SDK licence acceptance was blocked by automatic approval review, so native compilation, APK installation and hardware tests have NOT run. No APK is signed and no app-store release is published. Source repository: https://github.com/trymanymaybes/appbreak. Read `docs/STATUS.md` before evaluating readiness.
+**Status: Android pre-alpha build; device acceptance remains outstanding.** Flutter analysis, 19 Dart/widget tests and six Python pack-validator tests pass. FOSS debug/release, Play debug and native instrumentation APKs compile successfully. An ARM64 release-mode APK is available with a debug test signature; its compiled manifest has no Internet permission. Android SDK terms and Apache-2.0 / CC-BY-4.0 licences were explicitly approved on 2026-10-18. No device tests or store publication are claimed. Source repository: https://github.com/trymanymaybes/appbreak. Read `docs/STATUS.md` before evaluating readiness.
 
 ## Repository bootstrap
 
@@ -34,7 +34,7 @@ ChangeNotifier is deliberately used instead of adding Riverpod to a four-screen 
 
 Baseline actually used for Dart checks: Flutter **3.35.7**, Dart **3.9.2**, Flutter commit `adc901062556672b4138e18a4dc62a4be8f4b3c2`. This is a pinned baseline, NOT a claim that it is current stable. Upgrade validation against the current stable Flutter is a release gate.
 
-Android configuration: Java 17, SDK 36, min API 26, AGP 8.11.1, Gradle 8.13, Kotlin 2.1.0; these native versions have not been compiled together here. Install Flutter and Android command-line tools from their official distributions. Review and accept Android SDK terms yourself (or explicitly authorize that step).
+Android configuration: Java 17, SDK 36, min API 26, AGP 8.11.1, Gradle 8.13, Kotlin 2.1.0; these native versions compiled successfully together. Install Flutter and Android command-line tools from their official distributions. Review and accept Android SDK terms for your own build environment.
 
 ```bash
 export PATH="/path/to/flutter/bin:/path/to/android-sdk/cmdline-tools/latest/bin:$PATH"
@@ -66,4 +66,4 @@ Release/signing instructions, including the owner-controlled signing key and F-D
 
 ## Licensing
 
-No licence is assigned to the newly written code or original activities yet. Recommended owner decision: **Apache-2.0 for code; CC-BY-4.0 for original content**. GPL-3.0-or-later for code is an alternative if reciprocal source disclosure is preferred. Upstream third-party licences remain in force and are retained under `third_party/licenses`. The placeholder `LicenseRef-Owner-Decision-Pending` is not a FOSS content licence; F-Droid submission is blocked until resolved.
+Original application source is **Apache-2.0** (root `LICENSE`). Original bundled activities are **CC-BY-4.0** (`assets/LICENSE-CC-BY-4.0.txt`). Owner approval was received on 2026-10-18. Third-party SDK/template/dependency notices retain their own licences under `third_party/licenses`. See `NOTICE` for scope. F-Droid inclusion still requires native artifact/dependency review and successful device testing.
