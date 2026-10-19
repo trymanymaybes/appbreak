@@ -61,8 +61,9 @@ void main() {
   testWidgets('Achievements shows completed and missed without gamification', (
     tester,
   ) async {
-    final c = ReadyCompanion(FakeDevice());
-    c.data = {
+    final d = FakeDevice();
+    final c = ReadyCompanion(d);
+    d.value = {
       'settings': {'gamification': false},
       'history': [
         {'id': 'done', 'date': '2026-10-18', 'category': 'quiet'},
@@ -73,7 +74,7 @@ void main() {
     };
     await tester.pumpWidget(MaterialApp(home: Home(controller: c)));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Achievements'));
+    await tester.tap(find.text('Progress'));
     await tester.pumpAndSettle();
     expect(find.text('Break dashboard'), findsOneWidget);
     expect(find.text('1 completed • 1 missed'), findsOneWidget);
