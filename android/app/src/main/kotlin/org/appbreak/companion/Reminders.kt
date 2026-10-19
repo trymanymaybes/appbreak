@@ -20,6 +20,8 @@ object Reminders {
         val delays=mutableListOf<Long>()
         if(s?.optString("phase") in listOf("work","rest","paused")) delays.add(if(s!!.optString("timing")=="screen" && s.optString("phase")=="work") 60000L else remaining(c,s))
         if(Routines.profiles(d).any { it.optBoolean("enabled") }) delays.add(60000L)
+        val pauseUntil=d.optJSONObject("settings")?.optLong("popupPausedUntil",0) ?: 0L
+        if(pauseUntil>System.currentTimeMillis()) delays.add(pauseUntil-System.currentTimeMillis())
         if(delays.isEmpty()) return
         manager.setAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP,SystemClock.elapsedRealtime()+delays.min().coerceAtLeast(1000),alarm(c))
     }
@@ -69,7 +71,7 @@ object Reminders {
         }
         if(p.optBoolean("notifications",true)) try { manager.notify(1,b.build()) } catch(_:SecurityException) { }
         else clear(c)
-        if(popup && !visible && !confirmation && !running && p.optBoolean("popup",true) && settings.optBoolean("popup",true) && Settings.canDrawOverlays(c) && c.getSystemService(PowerManager::class.java).isInteractive && !c.getSystemService(KeyguardManager::class.java).isKeyguardLocked) {
+        if(popup && !visible && !confirmation && !running && p.optBoolean("popup",true) && PopupPolicy.allowed(settings.optBoolean("popup",true), settings.optLong("popupPausedUntil",0), System.currentTimeMillis()) && Settings.canDrawOverlays(c) && c.getSystemService(PowerManager::class.java).isInteractive && !c.getSystemService(KeyguardManager::class.java).isKeyguardLocked) {
             try { c.startActivity(Intent(c,BreakPopupActivity::class.java).putExtra("breakPopup",true).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)) } catch(_:Exception) { }
         }
     }
@@ -86,6 +88,17 @@ class ReminderReceiver: BroadcastReceiver() {
             } }; Reminders.notify(c,false);return
         }
         if(intent.action in listOf("confirm","skip")) { Routines.resolve(c,intent.getStringExtra("sessionId") ?: "",intent.action=="confirm");return }
+        // Expiry is persisted, so it resumes even after process death/reboot.
+        var resumeDue=false
+        Store(c).use { store ->
+            val d=store.read();val settings=d.optJSONObject("settings")
+            val until=settings?.optLong("popupPausedUntil",0) ?: 0L
+            if(until>0 && until<=System.currentTimeMillis()) {
+                settings!!.put("popupPausedUntil",0);store.write(d)
+                resumeDue=d.optJSONObject("session")?.optString("phase")=="due"
+            }
+        }
+        if(resumeDue) Reminders.notify(c,false)
         Routines.refresh(c)
         ScreenTime.refresh(c)
         Store(c).use { store ->

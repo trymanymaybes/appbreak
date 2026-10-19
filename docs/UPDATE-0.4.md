@@ -72,3 +72,28 @@ per-routine exclusions. They no longer shrink with remaining time or routine cat
 filters. Automatic selection still respects category, duration and exclusions. Longer
 activities show a time warning; selecting one preserves the existing timer and session
 identity. Quiet rest remains an explicit fallback. Tests exercise all 12 bundled choices.
+
+## Everyday and Advanced settings; popup-first interruption
+
+Everyday settings collect popup on/off, 15/60/120-minute popup pauses, selected
+routine work interval (entered in minutes), break duration, routine preferences,
+notification sound and permission setup. Advanced is one tap away and holds
+language, voice tuning, schedules, catalogue controls, progress, imports and backups.
+Language remains English (India) by default; existing preferences are preserved.
+Setup no longer asks users to choose a language or focus mode. Subpages start at
+the top, and Back returns to Everyday settings without leaving the app.
+
+Popups are enabled by default. Setup prominently requests Android overlay access;
+explicit global or per-routine opt-outs are preserved. A popup controls shortcut is
+available from every screen. Without overlay permission, the UI says setup is needed.
+Android can still block/delay display on locked/restricted devices.
+
+A popup pause persists an absolute device timestamp, leaving sessions/notifications
+unchanged. Native alarms include its expiry, clear the pause and can re-present a
+currently due break. Pause expiry is based on device wall time, so manually changing
+the clock changes the expiry. Turning popups off cancels the temporary pause; Resume
+clears it immediately. Already-open breaks remain open.
+
+New tests cover pause persistence/expiry and unchanged timers, normal/advanced
+navigation, and native popup enable/pause policy. Verification for this revision is
+tracked in STATUS.md; older build results do not validate these new changes.

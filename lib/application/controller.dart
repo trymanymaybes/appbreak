@@ -65,7 +65,8 @@ class Companion extends ChangeNotifier {
       Map<String, dynamic>.from(data['settings'] ?? {});
   List<dynamic> get history => data['history'] ?? [];
   List<dynamic> get ideas => data['ideas'] ?? [];
-  int get workSeconds => settings['workSeconds'] ?? 1500;
+  int get workSeconds =>
+      profile['workSeconds'] ?? settings['workSeconds'] ?? 1500;
   List<Map<String, dynamic>> get profiles =>
       ((settings['profiles'] ?? defaultProfiles) as List)
           .map((p) => Map<String, dynamic>.from(p))
@@ -399,6 +400,23 @@ class Companion extends ChangeNotifier {
     });
     await refresh();
   }
+
+  int get popupPauseRemainingMs {
+    final until = settings['popupPausedUntil'] as int? ?? 0;
+    return (until - moment.wall).clamp(0, 24 * 60 * 60 * 1000).toInt();
+  }
+
+  Future<void> setPopups(bool enabled) =>
+      updateSettings({'popup': enabled, 'popupPausedUntil': 0});
+  Future<void> pausePopups(int minutes) => act(() async {
+    if (![15, 60, 120].contains(minutes))
+      throw ArgumentError('Unsupported popup pause');
+    data['settings'] = {
+      ...settings,
+      'popup': true,
+      'popupPausedUntil': moment.wall + minutes * 60000,
+    };
+  });
 
   Future<void> updateSettings(Map<String, dynamic> value) => act(() async {
     data['settings'] = {...settings, ...value};

@@ -1,3 +1,11 @@
+# Latest revision: simpler settings and popup pauses
+
+Source parses with the Dart formatter; 14 Python tests pass. New Dart/widget and
+Kotlin policy tests have been added. The local toolchain was removed by workspace
+cleanup; online bootstrap was blocked by automatic review after an unnecessary
+cloud-metadata request. Offline dependency resolution succeeded; repository CI is
+pending for this revision. No fresh Android APK build or device tests are claimed.
+
 # Current source: 0.4 community catalogue
 
 Verified for 0.4: Flutter analysis clean; 49 Dart/widget tests pass; 14 Python

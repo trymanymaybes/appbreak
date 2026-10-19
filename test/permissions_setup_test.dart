@@ -35,6 +35,8 @@ void main() {
       expect(d.value['settings']['permissionSetupSeen'], true);
       expect(d.requests, isNot(contains('microphoneAccess')));
       expect(d.requests, isNot(contains('notifications')));
+      await tester.ensureVisible(find.text('Request notifications'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Request notifications'));
       await tester.pumpAndSettle();
       expect(d.requests, contains('notifications'));

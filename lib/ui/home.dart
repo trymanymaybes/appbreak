@@ -22,6 +22,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
   Companion get c => widget.controller;
   int tab = 0;
   bool setupOpen = false;
+  bool advancedOpen = false;
   Phase lastPhase = Phase.idle;
   int lastBreakNavigation = 0;
   String search = '';
@@ -66,13 +67,19 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         c.settings['permissionSetupSeen'] != true &&
         [Phase.idle, Phase.work].contains(c.session.phase) &&
         c.breakNavigationVersion == 0) {
-      setState(() => setupOpen = true);
+      setState(() {
+        setupOpen = true;
+        advancedOpen = false;
+      });
       await c.updateSettings({'permissionSetupSeen': true});
     }
   }
 
   void openSetup() {
-    setState(() => setupOpen = true);
+    setState(() {
+      setupOpen = true;
+      advancedOpen = false;
+    });
     loadCapabilities();
   }
 
@@ -90,6 +97,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
     if (c.breakNavigationVersion != lastBreakNavigation) {
       lastBreakNavigation = c.breakNavigationVersion;
       setupOpen = false;
+      advancedOpen = false;
       tab = 0;
       // A routine editor or activity chooser may be covering the main page.
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -99,6 +107,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
     if (c.session.phase == Phase.rest && lastPhase != Phase.rest) {
       tab = 0;
       setupOpen = false;
+      advancedOpen = false;
     }
     lastPhase = c.session.phase;
     if (mounted) setState(() {});
@@ -179,11 +188,16 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
     return PopScope(
       canPop:
           !setupOpen &&
+          !advancedOpen &&
           ![Phase.rest, Phase.finished].contains(c.session.phase) &&
           !(c.session.phase == Phase.paused &&
               c.session.resumePhase == Phase.rest),
       onPopInvokedWithResult: (didPop, result) async {
         if (!didPop) {
+          if (advancedOpen) {
+            setState(() => advancedOpen = false);
+            return;
+          }
           if (setupOpen) {
             setState(() => setupOpen = false);
             return;
@@ -194,11 +208,31 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(setupOpen ? 'Permissions & setup' : 'AppBreak'),
-          leading: setupOpen
-              ? BackButton(onPressed: () => setState(() => setupOpen = false))
+          title: Text(
+            setupOpen
+                ? 'Permissions & setup'
+                : advancedOpen
+                ? 'Advanced settings'
+                : 'AppBreak',
+          ),
+          leading: setupOpen || advancedOpen
+              ? BackButton(
+                  onPressed: () => setState(() {
+                    setupOpen = false;
+                    advancedOpen = false;
+                  }),
+                )
               : null,
           actions: [
+            IconButton(
+              tooltip: 'Popup controls',
+              icon: const Icon(Icons.notifications_paused_outlined),
+              onPressed: () => setState(() {
+                tab = 3;
+                setupOpen = false;
+                advancedOpen = false;
+              }),
+            ),
             IconButton(
               tooltip: 'Permissions & setup',
               icon: const Icon(Icons.fact_check_outlined),
@@ -217,6 +251,13 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 760),
               child: ListView(
+                key: ValueKey(
+                  setupOpen
+                      ? 'setup'
+                      : advancedOpen
+                      ? 'advanced'
+                      : 'tab-$tab',
+                ),
                 padding: const EdgeInsets.all(20),
                 children: [
                   if (c.error != null)
@@ -251,14 +292,16 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                     ),
                   if (setupOpen) ...[
                     const Text(
-                      'Set up the features you want. You can skip optional permissions and change them here anytime.',
+                      'Enable popup access to interrupt screen time reliably. Notifications are the fallback. You can switch popups off or pause them whenever needed.',
                     ),
                     permissionsPanel(),
                     button(
                       'Continue to app',
                       () => setState(() => setupOpen = false),
                     ),
-                  ] else
+                  ] else if (advancedOpen)
+                    ...advancedSettings()
+                  else
                     ...pages[tab](),
                 ],
               ),
@@ -270,6 +313,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
           onDestinationSelected: (v) => setState(() {
             tab = v;
             setupOpen = false;
+            advancedOpen = false;
           }),
           destinations: const [
             NavigationDestination(
@@ -533,8 +577,9 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
     ),
   );
   Widget permissionsPanel() => section('Permission checklist', [
+    popupControls(showPause: false),
     const Text(
-      '1. Notifications — needed for background break reminders. Tapping a notification opens the break without popup permission.',
+      'Notifications — needed for background break reminders. Tapping a notification opens the break without popup permission.',
     ),
     Text(
       'Notifications: ${capabilities['notifications'] == true ? 'enabled' : 'disabled or unchecked'}',
@@ -559,30 +604,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       ],
     ),
     const Text(
-      '2. Popups — optional. Needed only to appear automatically over other apps.',
-    ),
-    SwitchListTile(
-      title: const Text('Open a break popup over other apps'),
-      subtitle: Text(
-        'Optional. Access: ${capabilities['overlay'] == true ? 'granted' : 'not granted'}. Notifications remain the fallback.',
-      ),
-      value: c.settings['popup'] != false && capabilities['overlay'] == true,
-      onChanged: (v) => run(() async {
-        if (v && capabilities['overlay'] != true) {
-          if (await confirm(
-            'Allow break popups?',
-            'Android will open Display over other apps settings. Grant AppBreak access, then return and enable this switch. Popups cannot be guaranteed over locked screens or restricted apps.',
-          )) {
-            await c.updateSettings({'popup': true});
-            await c.device.call('overlayAccess');
-          }
-        } else {
-          await c.updateSettings({'popup': v});
-        }
-      }),
-    ),
-    const Text(
-      '3. Usage access — needed for automatic active-screen routines; manual sessions work without it.',
+      'Usage access — needed for automatic active-screen routines; manual sessions work without it.',
     ),
     Text(
       'Screen-time access: ${capabilities['usage'] == true ? 'granted' : 'not granted'}. Only screen/lock events are counted; app names are not saved.',
@@ -598,7 +620,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       }),
     ),
     Text(
-      '4. Microphone — optional for Speak and Record. Access: ${capabilities['microphone'] == true ? 'granted' : 'not granted'}. Offline dictation: ${capabilities['dictation'] == true ? 'service available; language model still needs testing' : 'unavailable on this device'}. Microphone permission is requested when you tap Speak or Record.',
+      'Microphone — optional for Speak and Record. Access: ${capabilities['microphone'] == true ? 'granted' : 'not granted'}. Offline dictation: ${capabilities['dictation'] == true ? 'service available; language model still needs testing' : 'unavailable on this device'}. Microphone permission is requested when you tap Speak or Record.',
     ),
     button(
       'Allow microphone',
@@ -611,25 +633,6 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
     ),
     const Text(
       'If Android no longer shows a permission prompt, use App permission settings. No broad storage permission is needed: backups use the system file picker. Internet access for catalogue updates has no Android runtime prompt and can be disabled in Settings.',
-    ),
-    DropdownButtonFormField<String>(
-      initialValue: c.settings['dictationLanguage'] ?? 'en-IN',
-      decoration: const InputDecoration(labelText: 'Dictation language'),
-      items: const [
-        DropdownMenuItem(value: 'en-IN', child: Text('English (India)')),
-        DropdownMenuItem(value: 'hi-IN', child: Text('Hindi')),
-        DropdownMenuItem(value: 'kn-IN', child: Text('Kannada')),
-        DropdownMenuItem(value: 'ta-IN', child: Text('Tamil')),
-      ],
-      onChanged: (v) => c.updateSettings({'dictationLanguage': v}),
-    ),
-    toggle(
-      'Focus mode: hide ordinary skip / finish-early controls',
-      'focusMode',
-      false,
-    ),
-    const Text(
-      'Emergency exit and Android navigation always remain available. Speech-to-text saves text only. Audio retention uses the separate Record control; simultaneous transcription plus retained audio is not yet supported.',
     ),
     button('Refresh permission status', () => loadCapabilities()),
   ]);
@@ -1379,9 +1382,11 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
     String label,
     int value,
     int min,
-    int max,
-  ) async {
-    final input = TextEditingController(text: '$value');
+    int max, {
+    bool routine = false,
+    int scale = 1,
+  }) async {
+    final input = TextEditingController(text: '${value ~/ scale}');
     final result = await showDialog<int>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -1390,7 +1395,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
           controller: input,
           keyboardType: TextInputType.number,
           decoration: InputDecoration(
-            helperText: '$min–$max',
+            helperText: '${min ~/ scale}–${max ~/ scale}',
             labelText: label,
           ),
         ),
@@ -1402,7 +1407,8 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
           FilledButton(
             onPressed: () {
               final n = int.tryParse(input.text);
-              if (n != null && n >= min && n <= max) Navigator.pop(ctx, n);
+              if (n != null && n >= min ~/ scale && n <= max ~/ scale)
+                Navigator.pop(ctx, n * scale);
             },
             child: const Text('Save'),
           ),
@@ -1410,7 +1416,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       ),
     );
     if (result != null) {
-      if (key == 'breakSeconds') {
+      if (routine || key == 'breakSeconds') {
         await c.updateProfile({key: result});
       } else {
         await c.updateSettings({key: result});
@@ -1418,7 +1424,127 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
     }
   }
 
+  Widget languageAndInteractionSettings() => section('Language & interaction', [
+    const Text(
+      'English (India), normal speaking speed and quiet instructions are used initially. Change these only if needed.',
+    ),
+    DropdownButtonFormField<String>(
+      initialValue: c.settings['dictationLanguage'] ?? 'en-IN',
+      decoration: const InputDecoration(labelText: 'Dictation language'),
+      items: const [
+        DropdownMenuItem(value: 'en-IN', child: Text('English (India)')),
+        DropdownMenuItem(value: 'hi-IN', child: Text('Hindi')),
+        DropdownMenuItem(value: 'kn-IN', child: Text('Kannada')),
+        DropdownMenuItem(value: 'ta-IN', child: Text('Tamil')),
+      ],
+      onChanged: (v) => c.updateSettings({'dictationLanguage': v}),
+    ),
+    toggle(
+      'Focus mode: hide ordinary skip / finish-early controls',
+      'focusMode',
+      false,
+    ),
+    const Text(
+      'Emergency exit and Android navigation always remain available. Speech-to-text saves text only. Audio retention uses the separate Record control; simultaneous transcription plus retained audio is not yet supported.',
+    ),
+  ]);
+
+  String get popupStatus {
+    if (c.settings['popup'] == false) return 'Off';
+    if (c.popupPauseRemainingMs > 0)
+      return 'Paused · ${(c.popupPauseRemainingMs / 60000).ceil()} min left';
+    if (capabilities['overlay'] != true)
+      return 'Setup needed · allow display over other apps';
+    return 'On · interrupts screen time';
+  }
+
+  Widget popupControls({bool showPause = true}) => section('Break popups', [
+    SwitchListTile(
+      contentPadding: EdgeInsets.zero,
+      title: const Text('Interrupt with a popup'),
+      subtitle: Text(popupStatus),
+      value: c.settings['popup'] != false,
+      onChanged: (enabled) => run(() async {
+        await c.setPopups(enabled);
+        if (enabled && capabilities['overlay'] != true)
+          await c.device.call('overlayAccess');
+      }),
+    ),
+    if (c.settings['popup'] != false && capabilities['overlay'] != true)
+      button(
+        'Enable popup access',
+        () => run(() => c.device.call('overlayAccess')),
+      ),
+    if (showPause && c.settings['popup'] != false)
+      Wrap(
+        children: [
+          button('Pause 15 min', () => c.pausePopups(15)),
+          button('Pause 1 hour', () => c.pausePopups(60)),
+          button('Pause 2 hours', () => c.pausePopups(120)),
+          if (c.popupPauseRemainingMs > 0)
+            button('Resume popups now', () => c.setPopups(true)),
+        ],
+      ),
+    const Text(
+      'Pauses end automatically. Notifications and timers continue; an already-open break stays open. Android may delay popups while locked or restricted.',
+    ),
+  ]);
+
   List<Widget> settings() => [
+    Text('Everyday settings', style: Theme.of(context).textTheme.headlineSmall),
+    popupControls(),
+    section('Your break routine', [
+      profilePicker(),
+      Wrap(
+        children: [
+          button(
+            'Work interval: ${(c.profile['workSeconds'] ?? c.workSeconds) ~/ 60} min',
+            () => number(
+              'workSeconds',
+              'Work interval in minutes',
+              c.profile['workSeconds'] ?? c.workSeconds,
+              60,
+              14400,
+              routine: true,
+              scale: 60,
+            ),
+          ),
+          button(
+            'Break duration: ${c.breakSeconds} sec',
+            () => number(
+              'breakSeconds',
+              'Break duration in seconds',
+              c.breakSeconds,
+              20,
+              300,
+            ),
+          ),
+        ],
+      ),
+      const Text(
+        'Configure timing for this routine. Existing break countdowns are not extended.',
+      ),
+      button('Activity & routine preferences', () => editProfile()),
+      button(
+        'Notification sound & vibration',
+        () =>
+            run(() => c.device.call('routineChannel', {'id': c.profile['id']})),
+      ),
+    ]),
+    button('Permissions & setup', openSetup),
+    ListTile(
+      contentPadding: EdgeInsets.zero,
+      title: const Text('Advanced settings'),
+      subtitle: const Text(
+        'Language, voices, schedules, activity downloads, progress and backups',
+      ),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () => setState(() => advancedOpen = true),
+    ),
+  ];
+
+  List<Widget> advancedSettings() => [
+    languageAndInteractionSettings(),
     section('Community break activities', [
       SwitchListTile(
         title: const Text('Check for community activities weekly'),
@@ -1437,8 +1563,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         () => run(() => c.refreshCatalog(manual: true)),
       ),
     ]),
-    button('Permissions & setup', openSetup),
-    section('Timing', [
+    section('Schedules & manual timing', [
       DropdownButtonFormField<String>(
         initialValue: c.settings['timing'] ?? 'elapsed',
         decoration: const InputDecoration(labelText: 'Count time by'),
@@ -1449,7 +1574,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         onChanged: (v) async {
           if (v == 'screen' && capabilities['usage'] != true) {
             message(
-              'Enable Usage access below first. Screen-time mode requires Android 9 or later.',
+              'Enable Usage access in Permissions & setup first. Screen-time mode requires Android 9 or later.',
             );
             return;
           }
@@ -1458,29 +1583,6 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       ),
       const Text(
         'Mode changes apply to the next work session. Existing counters are preserved. Screen time includes video viewing, not verified attention.',
-      ),
-      button(
-        'Work: ${c.workSeconds ~/ 60} minutes',
-        () => number(
-          'workSeconds',
-          'Work interval in seconds',
-          c.workSeconds,
-          60,
-          14400,
-        ),
-      ),
-      button(
-        'Break: ${c.breakSeconds} seconds',
-        () => number(
-          'breakSeconds',
-          'Break duration in seconds',
-          c.breakSeconds,
-          20,
-          300,
-        ),
-      ),
-      const Text(
-        'Timing changes apply to the next session. Pause automatically resumes after 15 minutes.',
       ),
       toggle('Limit reminders to active hours', 'activeEnabled', false),
       Wrap(
@@ -1541,8 +1643,6 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       ),
     ]),
     button('Import private activity pack', () => run(c.importPack)),
-    profilePicker(),
-    button('Customize this profile', () => editProfile()),
     section('Audio and accessibility', [
       const Text(
         'Narration or quiet mode is selected separately for each break profile.',
