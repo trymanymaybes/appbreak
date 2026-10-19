@@ -118,3 +118,15 @@ New Flutter regression coverage exercises historical confirmation, duplicate cre
 current timer preservation, early exit deadlines, skipping and the dashboard. Two
 native instrumentation tests cover protected unfinished breaks and once-only expiry
 archiving/routine reset; these require an Android device and have not run here.
+
+
+## Popup rotation and sizing
+
+The floating break window recalculates its size on configuration changes instead
+of retaining the opening orientation's pixel dimensions. Android 11+ uses current
+task bounds minus system bars/cutouts; older versions use the current configuration.
+Both activities explicitly support resizing. The popup has Expand/Compact controls;
+resizing does not recreate the session or extend its deadline. Orientation follows
+Android's rotation policy; this does not override the user's rotation lock or add
+freeform drag handles on phones. Physical rotation, keyboard and split-screen
+acceptance still need an Android device.

@@ -1,3 +1,11 @@
+# Latest revision: popup rotation and sizing
+
+Source commit 475ac25 passed GitHub Actions run 39246301546: Flutter analysis,
+Flutter/widget tests, both validators and 14 Python tests. The new popup regression
+covers portrait/landscape resize and Expand/Compact with an unchanged session and
+deadline. Three Kotlin sizing tests are added but have not run. A fresh Android
+build and real-device rotation/split-screen/keyboard checks remain outstanding.
+
 # Latest revision: break history and nonblocking expiry
 
 Source commit 417181b passed GitHub Actions run 39224543057: Flutter analysis,
