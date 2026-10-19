@@ -46,7 +46,7 @@ Map<String, Map<String, dynamic>> badges(List<dynamic> history) {
   evaluate('days7', 'Participation on seven days', 7, (_) => true, days: true);
   final explored = <String>{};
   final exploration = sessions
-      .where((s) => explored.add(s['category']))
+      .where((s) => s['category'] != 'unknown' && explored.add(s['category']))
       .toList();
   result['explore'] = {
     'title': 'Explore all six categories',

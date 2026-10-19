@@ -33,6 +33,7 @@ void main() {
       expect(c.session.toJson(), active.toJson());
       expect(c.history.length, 1);
       expect(c.history.single['date'], '2026-10-18');
+      expect(c.history.single['category'], 'unknown');
       expect(c.missedBreaks, isEmpty);
       c.dispose();
     },

@@ -39,7 +39,7 @@ object Backups {
             for(i in 0 until list.length()) {
                 val item=list.getJSONObject(i); require(item.get("id") is String); val id=item.getString("id"); require(id.length in 1..100 && seen.add(id)) { "Duplicate or invalid IDs" }
                 if(key=="ideas") { require(item.get("text") is String && (!item.has("title") || item.get("title") is String)); for(field in listOf("recording","activity","session")) if(!item.isNull(field)) require(item.get(field) is String); require(item.getString("text").length<=100000); require(item.optString("title").length<=200) }
-                else { require(item.get("date") is String && item.get("category") is String); require(item.getString("date").matches(Regex("\\d{4}-\\d{2}-\\d{2}"))); require(item.getString("category") in listOf("quiet","movement","breathing","hydration","quiz","imagination")) }
+                else { require(item.get("date") is String && item.get("category") is String); require(item.getString("date").matches(Regex("\\d{4}-\\d{2}-\\d{2}"))); require(item.getString("category") in listOf("quiet","movement","breathing","hydration","quiz","imagination","unknown")) }
             }
         }
         if(d.has("missedBreaks")) {
@@ -65,7 +65,7 @@ object Backups {
         if(s.has("rate")) require(s.getDouble("rate") in 0.5..1.5)
         if(s.has("volume")) require(s.getDouble("volume") in 0.0..1.0)
         if(s.has("goal")) require(s.getInt("goal") in 1..30)
-        if(s.has("categories")) { val cats=s.getJSONArray("categories"); for(i in 0 until cats.length()) { require(cats.get(i) is String); require(cats.getString(i) in listOf("quiet","movement","breathing","hydration","quiz","imagination")) } }
+        if(s.has("categories")) { val cats=s.getJSONArray("categories"); for(i in 0 until cats.length()) { require(cats.get(i) is String); require(cats.getString(i) in listOf("quiet","movement","breathing","hydration","quiz","imagination","unknown")) } }
         if(s.has("timing")) require(s.get("timing") in listOf("elapsed","screen"))
         if(s.has("profile")) require(s.get("profile") is String)
         if(s.has("dictationLanguage")) require(s.get("dictationLanguage") in listOf("en-IN","hi-IN","kn-IN","ta-IN"))

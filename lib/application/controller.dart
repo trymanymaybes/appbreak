@@ -98,7 +98,7 @@ class Companion extends ChangeNotifier {
           'id': id,
           'routine': record['routineId'] ?? '',
           'activity': record['activity'],
-          'category': activity?.category ?? 'quiet',
+          'category': activity?.category ?? 'unknown',
           'date': record['date'],
           'selfReported': true,
         },
