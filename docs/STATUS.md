@@ -1,10 +1,10 @@
 # Latest revision: simpler settings and popup pauses
 
-Source parses with the Dart formatter; 14 Python tests pass. New Dart/widget and
-Kotlin policy tests have been added. The local toolchain was removed by workspace
-cleanup; online bootstrap was blocked by automatic review after an unnecessary
-cloud-metadata request. Offline dependency resolution succeeded; repository CI is
-pending for this revision. No fresh Android APK build or device tests are claimed.
+Verified source commit b7f5172: GitHub Actions run 39194200513 passed Flutter
+analysis, all 52 Dart/widget tests, both activity validators, and 14 Python tests.
+Three new Kotlin popup-policy tests are added but have not been run. No fresh
+Android APK build or device tests are claimed for this revision. The native build
+results below apply to the preceding revision, not these popup-policy changes.
 
 # Current source: 0.4 community catalogue
 
