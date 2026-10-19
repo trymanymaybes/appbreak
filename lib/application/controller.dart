@@ -64,6 +64,51 @@ class Companion extends ChangeNotifier {
   Map<String, dynamic> get settings =>
       Map<String, dynamic>.from(data['settings'] ?? {});
   List<dynamic> get history => data['history'] ?? [];
+  List<dynamic> get missedBreaks => data['missedBreaks'] ?? [];
+  List<Map<String, dynamic>> get breakRecords => [
+    ...history.map((h) => <String, dynamic>{...h, 'status': 'Completed'}),
+    ...missedBreaks.map((h) => <String, dynamic>{...h, 'status': 'Missed'}),
+  ]..sort((a, b) => '${b['date']}'.compareTo('${a['date']}'));
+
+  void archiveBreak(String reason) {
+    if (![Phase.rest, Phase.finished, Phase.pending].contains(session.phase))
+      return;
+    data['missedBreaks'] = [
+      ...missedBreaks.where((h) => h['id'] != session.id),
+      {
+        ...session.toJson(),
+        'reason': reason,
+        'date': DateTime.fromMillisecondsSinceEpoch(
+          moment.wall,
+        ).toIso8601String().substring(0, 10),
+      },
+    ];
+  }
+
+  Future<void> confirmArchivedBreak(String id) => act(() async {
+    final record = missedBreaks.where((h) => h['id'] == id).firstOrNull;
+    if (record == null) return;
+    final activity = activities
+        .where((a) => a.id == record['activity'])
+        .firstOrNull;
+    if (!history.any((h) => h['id'] == id)) {
+      data['history'] = [
+        ...history,
+        {
+          'id': id,
+          'routine': record['routineId'] ?? '',
+          'activity': record['activity'],
+          'category': activity?.category ?? 'quiet',
+          'date': record['date'],
+          'selfReported': true,
+        },
+      ];
+    }
+    data['missedBreaks'] = missedBreaks.where((h) => h['id'] != id).toList();
+    // Historical confirmation never changes the currently running timer.
+    if (session.id == id) session = const Session();
+  });
+
   List<dynamic> get ideas => data['ideas'] ?? [];
   int get workSeconds =>
       profile['workSeconds'] ?? settings['workSeconds'] ?? 1500;
@@ -123,7 +168,14 @@ class Companion extends ChangeNotifier {
       if (![Phase.rest, Phase.finished].contains(session.phase) &&
           !(session.phase == Phase.paused && session.resumePhase == Phase.rest))
         return;
-      session = session.at(Phase.pending, 0, moment);
+      // Preserve the remaining countdown when leaving an unfinished break.
+      session = session.at(
+        Phase.pending,
+        session.phase == Phase.paused
+            ? session.remainingMs
+            : session.remaining(moment),
+        moment,
+      );
       await device.call('stopAudio');
     });
     if (error == null) await device.call('closePopup');
@@ -304,6 +356,7 @@ class Companion extends ChangeNotifier {
           'Enable Usage access in Settings for active-screen timing.',
         );
     }
+    archiveBreak('unconfirmed');
     session = Session(
       id: newId(),
       timing: timing,
@@ -350,6 +403,7 @@ class Companion extends ChangeNotifier {
   });
   Future<void> cancel() async {
     await act(() async {
+      archiveBreak('skipped');
       session = const Session();
       await device.call('stopSpeech');
     });
@@ -375,6 +429,9 @@ class Companion extends ChangeNotifier {
       });
     }
     data['history'] = h;
+    data['missedBreaks'] = missedBreaks
+        .where((h) => h['id'] != session.id)
+        .toList();
     session = const Session();
     await device.call('stopSpeech');
   });

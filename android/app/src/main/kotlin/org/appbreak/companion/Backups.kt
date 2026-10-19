@@ -42,6 +42,17 @@ object Backups {
                 else { require(item.get("date") is String && item.get("category") is String); require(item.getString("date").matches(Regex("\\d{4}-\\d{2}-\\d{2}"))); require(item.getString("category") in listOf("quiet","movement","breathing","hydration","quiz","imagination")) }
             }
         }
+        if(d.has("missedBreaks")) {
+            val list=d.getJSONArray("missedBreaks"); require(list.length()<=10000)
+            val ids=mutableSetOf<String>()
+            for(i in 0 until list.length()) {
+                val item=list.getJSONObject(i)
+                require(item.getString("id").length in 1..100 && ids.add(item.getString("id")))
+                require(item.getString("date").matches(Regex("\\d{4}-\\d{2}-\\d{2}")))
+                require(item.getString("reason") in listOf("unconfirmed","skipped"))
+                for(field in listOf("activity","routineId")) if(!item.isNull(field)) require(item.get(field) is String)
+            }
+        }
         if(d.has("ideaDraft")) { val draft=d.getJSONObject("ideaDraft");require(draft.get("text") is String && draft.getString("text").length<=100000 && draft.get("title") is String && draft.getString("title").length<=200) }
         require(!d.has("settings") || d.get("settings") is JSONObject); val s=d.optJSONObject("settings") ?: JSONObject()
         for(key in listOf("workSeconds","breakSeconds","activeStart","activeEnd","quietStart","quietEnd","goal","popupPausedUntil")) if(s.has(key)) require(s.get(key) is Int || s.get(key) is Long)

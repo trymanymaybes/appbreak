@@ -19,6 +19,7 @@ object Reminders {
         val d=Store(c).use { it.read() };val s=d.optJSONObject("session")
         val delays=mutableListOf<Long>()
         if(s?.optString("phase") in listOf("work","rest","paused")) delays.add(if(s!!.optString("timing")=="screen" && s.optString("phase")=="work") 60000L else remaining(c,s))
+        if(s?.optString("phase")=="pending" && remaining(c,s)>0) delays.add(remaining(c,s))
         if(Routines.profiles(d).any { it.optBoolean("enabled") }) delays.add(60000L)
         val pauseUntil=d.optJSONObject("settings")?.optLong("popupPausedUntil",0) ?: 0L
         if(pauseUntil>System.currentTimeMillis()) delays.add(pauseUntil-System.currentTimeMillis())

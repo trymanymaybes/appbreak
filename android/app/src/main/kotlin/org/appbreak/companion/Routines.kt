@@ -53,12 +53,16 @@ object Routines {
             val before=d.toString();val states=state(d);val settings=d.optJSONObject("settings") ?: JSONObject()
             val now=System.currentTimeMillis();val cal=Calendar.getInstance()
             val day="${cal.get(Calendar.YEAR)}-${cal.get(Calendar.DAY_OF_YEAR)}"
-            var occupied=d.optJSONObject("session")?.optString("phase") !in listOf(null,"idle")
+            val active=d.optJSONObject("session")
+            val expired=active!=null && (active.optString("phase")=="finished" ||
+                (active.optString("phase") in listOf("rest","pending") && Reminders.remaining(c,active)<=0))
+            if(expired && archive(d,active!!,"unconfirmed")) reset(c,d,active.optString("routineId"))
+            var occupied=active?.optString("phase") !in listOf(null,"idle") && !expired
             for(p in ps) {
                 val id=p.getString("id");if(!p.optBoolean("enabled",false)) { states.remove(id);continue }
                 var s=states.optJSONObject(id)
                 if(s==null) { if(p.optString("trigger")=="manual") continue; s=fresh(c,p);states.put(id,s) }
-                if(d.optJSONObject("session")?.optString("routineId")==id && d.optJSONObject("session")?.optString("phase")!="idle") { s.put("phase","presented");continue }
+                if(!expired && d.optJSONObject("session")?.optString("routineId")==id && d.optJSONObject("session")?.optString("phase")!="idle") { s.put("phase","presented");continue }
                 if(s.optBoolean("stopped")) continue
                 if(!allowed(p) || !Reminders.allowed(settings)) { val n=fresh(c,p);if(s.has("lastDay")) n.put("lastDay",s.optString("lastDay"));states.put(id,n);continue }
                 if(s.optString("phase")=="presented") continue
@@ -89,11 +93,26 @@ object Routines {
         }
         if(notify) Reminders.notify(c,false)
     }
+    /** Missed means unconfirmed, not evidence that the person stayed on screen. */
+    fun archive(d:JSONObject,s:JSONObject,reason:String):Boolean {
+        val list=d.optJSONArray("missedBreaks") ?: JSONArray().also { d.put("missedBreaks",it) }
+        if((0 until list.length()).any { list.getJSONObject(it).optString("id")==s.optString("id") }) return false
+        val record=JSONObject(s.toString()).put("reason",reason)
+            .put("date",java.text.SimpleDateFormat("yyyy-MM-dd",java.util.Locale.US).format(java.util.Date()))
+        list.put(record)
+        return true
+    }
+    fun removeMissed(d:JSONObject,id:String) {
+        val list=d.optJSONArray("missedBreaks") ?: return
+        d.put("missedBreaks",JSONArray((0 until list.length()).map { list.getJSONObject(it) }.filter { it.optString("id")!=id }))
+    }
     fun resolve(c:Context,id:String,yes:Boolean) {
         Store(c).use { store ->
             val d=store.read();val s=d.optJSONObject("session") ?: return
             if(s.optString("id")!=id || s.optString("phase") !in listOf("pending","rest","finished")) return
+            if(!yes) { removeMissed(d,id); archive(d,s,"skipped") }
             if(yes) {
+                removeMissed(d,id)
                 val history=d.optJSONArray("history") ?: JSONArray().also { d.put("history",it) }
                 if((0 until history.length()).none { history.getJSONObject(it).optString("id")==id }) {
                     val activities=JSONObject(c.assets.open("flutter_assets/assets/activities.json").bufferedReader().use { it.readText() }).getJSONArray("activities")

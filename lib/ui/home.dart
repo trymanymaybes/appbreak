@@ -1334,6 +1334,38 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         }),
   ];
   List<Widget> achievements() => [
+    Text('Break dashboard', style: Theme.of(context).textTheme.headlineMedium),
+    Text('${c.history.length} completed • ${c.missedBreaks.length} missed'),
+    const Text(
+      'Missed includes skipped and unconfirmed breaks. You can confirm an earlier break without changing your current timer.',
+    ),
+    if (c.breakRecords.isEmpty)
+      const ListTile(title: Text('No breaks recorded yet')),
+    ...c.breakRecords.map(
+      (record) => Card(
+        child: ListTile(
+          leading: Icon(
+            record['status'] == 'Completed'
+                ? Icons.check_circle_outline
+                : Icons.history,
+          ),
+          title: Text(
+            '${record['status']} • ${c.activities.where((a) => a.id == record['activity']).firstOrNull?.title ?? 'Break'}',
+          ),
+          subtitle: Text(
+            '${record['date']} • ${c.profiles.where((p) => p['id'] == (record['routine'] ?? record['routineId'])).firstOrNull?['name'] ?? 'Routine'}${record['status'] == 'Missed' ? ' • ${record['reason'] ?? 'unconfirmed'}' : ''}',
+          ),
+          trailing: record['status'] == 'Missed'
+              ? TextButton(
+                  onPressed: () =>
+                      run(() => c.confirmArchivedBreak(record['id'])),
+                  child: const Text('I took it'),
+                )
+              : null,
+        ),
+      ),
+    ),
+    const Divider(),
     Text(
       'Participation, at your pace.',
       style: Theme.of(context).textTheme.headlineMedium,
@@ -1767,6 +1799,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
           ))
             await c.act(() async {
               c.data['history'] = [];
+              c.data['missedBreaks'] = [];
             });
         }),
       ),
