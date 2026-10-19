@@ -42,6 +42,13 @@ open class MainActivity: FlutterActivity() {
             try {
                 when(call.method) {
                     "isBreakPopup" -> result.success(this is BreakPopupActivity)
+                    "resizeBreakPopup" -> {
+                        check(this is BreakPopupActivity) { "Not a break popup" }
+                        val expanded=call.argument<Boolean>("expanded") == true
+                        intent.putExtra("popupExpanded",expanded)
+                        configurePopup()
+                        result.success(expanded)
+                    }
                     "consumeBreakOpen" -> {
                         // Retained on the Activity until Flutter has loaded session state.
                         // Handles both launcher creation and onNewIntent (warm notification tap).
@@ -237,13 +244,35 @@ open class MainActivity: FlutterActivity() {
             else { val bytes=contentResolver.openInputStream(uri)!!.use { input -> val out=java.io.ByteArrayOutputStream(); val buffer=ByteArray(8192); while(out.size()<=Backups.MAX) { val count=input.read(buffer); if(count<0) break; out.write(buffer,0,count) }; out.toByteArray() }; if(requestCode==62) { require(bytes.size<=1024*1024); result.success(ActivityPacks.validate(JSONObject(String(bytes,Charsets.UTF_8))).toString()); return }; val p=Backups.validate(bytes); restorePreview=p; val d=p.getJSONObject("data"); result.success(mapOf("ideas" to (d.optJSONArray("ideas")?.length() ?: 0),"sessions" to (d.optJSONArray("history")?.length() ?: 0),"provider" to uri.authority)) }
         } catch(e:Exception) { restorePreview=null; result.error("file",e.message,null) } finally { fileBytes=null }
     }
-    private fun configurePopup() {
-        if(intent?.getBooleanExtra("breakPopup",false)==true) {
-            val metrics=resources.displayMetrics
-            window.setLayout((metrics.widthPixels*0.96).toInt(),(metrics.heightPixels*0.90).toInt())
-            window.addFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND)
-            window.attributes=window.attributes.apply { dimAmount=0.35f }
+    protected fun configurePopup() {
+        if(this !is BreakPopupActivity) return
+        // Use the current task bounds, not the physical display: split-screen and
+        // freeform windows may occupy only part of it. Never force orientation.
+        val width:Int
+        val height:Int
+        if(Build.VERSION.SDK_INT>=30) {
+            val metrics=windowManager.currentWindowMetrics
+            val insets=metrics.windowInsets.getInsetsIgnoringVisibility(
+                android.view.WindowInsets.Type.systemBars() or android.view.WindowInsets.Type.displayCutout())
+            width=(metrics.bounds.width()-insets.left-insets.right).coerceAtLeast(1)
+            height=(metrics.bounds.height()-insets.top-insets.bottom).coerceAtLeast(1)
+        } else {
+            val config=resources.configuration
+            val density=resources.displayMetrics.density
+            width=(config.screenWidthDp*density).toInt().coerceAtLeast(1)
+            height=(config.screenHeightDp*density).toInt().coerceAtLeast(1)
         }
+        val expanded=intent?.getBooleanExtra("popupExpanded",false)==true
+        val size=PopupSize.calculate(width,height,expanded)
+        if(window.attributes.width!=size.first || window.attributes.height!=size.second)
+            window.setLayout(size.first,size.second)
+        window.addFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+        window.setDimAmount(0.35f)
+    }
+    override fun onConfigurationChanged(newConfig:android.content.res.Configuration) {
+        super.onConfigurationChanged(newConfig)
+        configurePopup()
+        window.decorView.post { if(!isFinishing && !isDestroyed) configurePopup() }
     }
     override fun onRequestPermissionsResult(requestCode:Int, permissions:Array<out String>, grantResults:IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
@@ -261,9 +290,6 @@ class BreakPopupActivity: MainActivity() {
     override fun onCreate(state:Bundle?) {
         super.onCreate(state)
         setFinishOnTouchOutside(false)
-        val metrics=resources.displayMetrics
-        window.setLayout((metrics.widthPixels*0.96).toInt(),(metrics.heightPixels*0.90).toInt())
-        window.addFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND)
-        window.setDimAmount(0.35f)
+        configurePopup()
     }
 }

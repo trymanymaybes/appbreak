@@ -13,7 +13,8 @@ import '../platform/device.dart';
 
 class Home extends StatefulWidget {
   final Companion controller;
-  const Home({super.key, required this.controller});
+  final bool popup;
+  const Home({super.key, required this.controller, this.popup = false});
   @override
   State<Home> createState() => _HomeState();
 }
@@ -22,6 +23,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
   Companion get c => widget.controller;
   int tab = 0;
   bool setupOpen = false;
+  bool popupExpanded = false;
   bool advancedOpen = false;
   Phase lastPhase = Phase.idle;
   int lastBreakNavigation = 0;
@@ -260,6 +262,28 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                 ),
                 padding: const EdgeInsets.all(20),
                 children: [
+                  if (widget.popup)
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton.icon(
+                        icon: Icon(
+                          popupExpanded
+                              ? Icons.fullscreen_exit
+                              : Icons.fullscreen,
+                        ),
+                        label: Text(
+                          popupExpanded ? 'Compact popup' : 'Expand popup',
+                        ),
+                        onPressed: () => run(() async {
+                          final expanded = await c.device.call<bool>(
+                            'resizeBreakPopup',
+                            {'expanded': !popupExpanded},
+                          );
+                          if (mounted && expanded != null)
+                            setState(() => popupExpanded = expanded);
+                        }),
+                      ),
+                    ),
                   if (c.error != null)
                     Card(
                       child: Padding(

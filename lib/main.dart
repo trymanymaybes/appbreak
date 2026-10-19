@@ -53,7 +53,7 @@ class _AppBreakState extends State<AppBreak> {
       themeMode: darkBreakSurface(widget.popup, controller.session)
           ? ThemeMode.dark
           : ThemeMode.light,
-      home: Home(controller: controller),
+      home: Home(controller: controller, popup: widget.popup),
     ),
   );
 }
