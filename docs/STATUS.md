@@ -1,3 +1,12 @@
+# Latest revision: break history and nonblocking expiry
+
+Source commit 417181b passed GitHub Actions run 39224543057: Flutter analysis,
+Flutter tests, both activity validators and 14 Python tests. Expired unanswered
+breaks are archived without completion credit; routines resume independently.
+Progress/Achievements lists completed and missed breaks with late confirmation.
+Two new native instrumentation tests were added but not run. A fresh Android build
+and physical notification/popup acceptance remain pending.
+
 # Latest revision: simpler settings and popup pauses
 
 Verified source commit b7f5172: GitHub Actions run 39194200513 passed Flutter

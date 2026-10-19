@@ -97,3 +97,24 @@ clears it immediately. Already-open breaks remain open.
 New tests cover pause persistence/expiry and unchanged timers, normal/advanced
 navigation, and native popup enable/pause policy. Verification for this revision is
 tracked in STATUS.md; older build results do not validate these new changes.
+
+
+## Unanswered breaks and the break dashboard
+
+An expired rest/pending break is archived as missed (unconfirmed), without awarding
+completion credit. Its routine starts its next interval once, and another due
+routine may use the presentation slot. Unexpired and paused breaks remain protected.
+The old confirmation stays usable until replacement; history retains an “I took it”
+action afterwards. Confirming a historical break never changes a different current
+session. Explicit skips are recorded separately from unconfirmed expiry.
+
+Progress (Achievements) now shows completed/missed totals and dated records with
+routine/activity labels. History remains available with gamification disabled.
+Late confirmations keep the original recorded date and count once. Removed activity
+categories stay unknown rather than earning an unrelated category badge. History is
+local, included in backups, and removed by Delete session history.
+
+New Flutter regression coverage exercises historical confirmation, duplicate credit,
+current timer preservation, early exit deadlines, skipping and the dashboard. Two
+native instrumentation tests cover protected unfinished breaks and once-only expiry
+archiving/routine reset; these require an Android device and have not run here.
