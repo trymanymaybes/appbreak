@@ -1,0 +1,38 @@
+name: Source checks
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  flutter:
+    runs-on: ubuntu-latest
+    env:
+      CI: 'true'
+      FLUTTER_SUPPRESS_ANALYTICS: 'true'
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Install pinned Flutter source
+        run: |
+          git clone --depth 1 --branch 3.35.7 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
+          test "$(git -C "$RUNNER_TEMP/flutter" rev-parse HEAD)" = adc901062556672b4138e18a4dc62a4be8f4b3c2
+          echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
+      - run: flutter pub get --enforce-lockfile
+      - run: python3 tools/validate_packs.py
+      - run: python3 tools/validate_catalog.py
+      - run: python3 -m unittest discover -s tools
+      - run: flutter analyze
+      - run: flutter test --reporter expanded
+      - name: Use Java 17 for Android
+        run: echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
+      - name: Build ARM64 release APK
+        run: flutter build apk --release --flavor foss --target-platform android-arm64
+      - name: Native unit tests and instrumentation compilation
+        working-directory: android
+        run: ./gradlew :app:testFossDebugUnitTest :app:assembleFossDebugAndroidTest --no-daemon
+      - name: Retain unsigned release candidate
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: appbreak-0.4.0-unsigned-arm64
+          path: build/app/outputs/flutter-apk/app-foss-release.apk
+          if-no-files-found: error
+          retention-days: 14
+

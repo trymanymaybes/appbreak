@@ -1,0 +1,12 @@
+.dart_tool/
+.flutter-plugins*
+build/
+android/.gradle/
+android/local.properties
+android/key.properties
+*.jks
+*.keystore
+__pycache__/
+*.pyc
+android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
+android/.kotlin/

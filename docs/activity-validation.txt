@@ -1,0 +1,3 @@
+assets/activities.json: 12 valid activities
+Android XML and schema JSON syntax parsed successfully.
+Full JSON Schema engine not run: Python jsonschema package unavailable.

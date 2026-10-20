@@ -1,0 +1,179 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.13/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :gradle:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle:compileKotlin UP-TO-DATE
+> Task :gradle:compileJava NO-SOURCE
+> Task :gradle:compileGroovy NO-SOURCE
+> Task :gradle:pluginDescriptors UP-TO-DATE
+> Task :gradle:processResources UP-TO-DATE
+> Task :gradle:classes UP-TO-DATE
+> Task :gradle:jar UP-TO-DATE
+> Task :app:FossReleaseMinSdkCheck
+> Task :app:compileFlutterBuildPlayRelease
+> Task :app:packJniLibsflutterBuildPlayRelease
+> Task :app:preBuild UP-TO-DATE
+> Task :app:prePlayReleaseBuild UP-TO-DATE
+> Task :app:configureCMakeRelease[arm64-v8a]
+> Task :app:buildCMakeRelease[arm64-v8a]
+> Task :app:configureCMakeRelease[armeabi-v7a]
+> Task :app:buildCMakeRelease[armeabi-v7a]
+> Task :app:configureCMakeRelease[x86_64]
+> Task :app:buildCMakeRelease[x86_64]
+> Task :app:preFossReleaseBuild UP-TO-DATE
+> Task :app:mergeFossReleaseJniLibFolders UP-TO-DATE
+> Task :app:compileFlutterBuildFossRelease
+> Task :app:packJniLibsflutterBuildFossRelease
+> Task :app:buildKotlinToolingMetadata UP-TO-DATE
+> Task :app:checkFossReleaseDuplicateClasses UP-TO-DATE
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:checkFossReleaseAarMetadata UP-TO-DATE
+> Task :app:cleanMergeFossReleaseAssets
+> Task :app:mergeFossReleaseShaders UP-TO-DATE
+> Task :app:compileFossReleaseShaders NO-SOURCE
+> Task :app:generateFossReleaseAssets UP-TO-DATE
+> Task :app:mergeFossReleaseAssets
+> Task :app:copyFlutterAssetsFossRelease
+> Task :app:generateFossReleaseResValues UP-TO-DATE
+> Task :app:mapFossReleaseSourceSetPaths
+> Task :app:generateFossReleaseResources
+> Task :app:packageFossReleaseResources
+> Task :app:createFossReleaseCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksFossRelease UP-TO-DATE
+> Task :app:parseFossReleaseLocalResources
+> Task :app:mergeFossReleaseResources
+> Task :app:mergeFossReleaseNativeLibs
+> Task :app:processFossReleaseMainManifest
+> Task :app:stripFossReleaseDebugSymbols
+> Task :app:processFossReleaseManifest
+> Task :app:javaPreCompileFossRelease UP-TO-DATE
+> Task :app:mergeFossReleaseArtProfile UP-TO-DATE
+> Task :app:extractProguardFiles UP-TO-DATE
+> Task :app:mergeFossReleaseStartupProfile UP-TO-DATE
+> Task :app:compressFossReleaseAssets UP-TO-DATE
+> Task :app:extractFossReleaseVersionControlInfo UP-TO-DATE
+> Task :app:extractFossReleaseNativeSymbolTables
+> Task :app:collectFossReleaseDependencies
+> Task :app:mergeFossReleaseNativeDebugMetadata UP-TO-DATE
+> Task :app:sdkFossReleaseDependencyData
+> Task :app:writeFossReleaseAppMetadata UP-TO-DATE
+> Task :app:writeFossReleaseSigningConfigVersions UP-TO-DATE
+> Task :app:compileFlutterBuildFossDebug
+> Task :app:packJniLibsflutterBuildFossDebug UP-TO-DATE
+> Task :app:preFossDebugBuild UP-TO-DATE
+> Task :app:checkFossDebugAarMetadata UP-TO-DATE
+> Task :app:mergeFossDebugShaders UP-TO-DATE
+> Task :app:compileFossDebugShaders NO-SOURCE
+> Task :app:generateFossDebugAssets UP-TO-DATE
+> Task :app:generateFossDebugResValues UP-TO-DATE
+> Task :app:mapFossDebugSourceSetPaths
+> Task :app:generateFossDebugResources
+> Task :app:mergeFossDebugResources
+> Task :app:packageFossDebugResources
+> Task :app:createFossDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksFossDebug UP-TO-DATE
+> Task :app:parseFossDebugLocalResources
+> Task :app:processFossDebugMainManifest
+> Task :app:processFossDebugManifest
+> Task :app:javaPreCompileFossDebug UP-TO-DATE
+> Task :app:preFossDebugUnitTestBuild UP-TO-DATE
+> Task :app:javaPreCompileFossDebugUnitTest UP-TO-DATE
+> Task :app:prePlayDebugBuild UP-TO-DATE
+> Task :app:processFossDebugManifestForPackage
+> Task :app:processFossReleaseManifestForPackage
+> Task :app:processFossReleaseResources
+
+> Task :app:compileFossReleaseKotlin
+w: file:///workspace/scratch/fdee7b15fc41/appbreak/android/app/src/main/kotlin/org/appbreak/companion/MainActivity.kt:170:69 'fun announceForAccessibility(p0: CharSequence!): Unit' is deprecated. Deprecated in Java.
+w: file:///workspace/scratch/fdee7b15fc41/appbreak/android/app/src/main/kotlin/org/appbreak/companion/MainActivity.kt:180:86 'fun announceForAccessibility(p0: CharSequence!): Unit' is deprecated. Deprecated in Java.
+
+> Task :app:compileFossReleaseJavaWithJavac UP-TO-DATE
+> Task :app:mergeFossReleaseGeneratedProguardFiles UP-TO-DATE
+> Task :app:processFossReleaseJavaRes UP-TO-DATE
+> Task :app:expandFossReleaseArtProfileWildcards
+> Task :app:generateFossReleaseLintVitalReportModel
+> Task :app:mergeFossReleaseJavaResource
+> Task :app:lintVitalAnalyzeFossRelease
+> Task :app:lintVitalReportFossRelease
+> Task :app:lintVitalFossRelease
+> Task :app:minifyFossReleaseWithR8
+> Task :app:convertShrunkResourcesToBinaryFossRelease
+> Task :app:compileFossReleaseArtProfile
+> Task :app:optimizeFossReleaseResources
+
+> Task :app:packageFossRelease
+There are no .so files available to package in the APK for armeabi-v7a, x86_64.
+
+> Task :app:createFossReleaseApkListingFileRedirect UP-TO-DATE
+> Task :app:assembleFossRelease
+> Task :app:cleanMergeFossDebugAssets
+> Task :app:mergeFossDebugAssets
+> Task :app:copyFlutterAssetsFossDebug
+> Task :app:preFossDebugAndroidTestBuild SKIPPED
+> Task :app:checkFossDebugAndroidTestAarMetadata UP-TO-DATE
+> Task :app:generateFossDebugAndroidTestResValues UP-TO-DATE
+> Task :app:mapFossDebugAndroidTestSourceSetPaths UP-TO-DATE
+> Task :app:generateFossDebugAndroidTestResources UP-TO-DATE
+> Task :app:mergeFossDebugAndroidTestResources UP-TO-DATE
+> Task :app:processFossDebugAndroidTestManifest UP-TO-DATE
+> Task :app:processFossDebugAndroidTestResources UP-TO-DATE
+> Task :app:javaPreCompileFossDebugAndroidTest UP-TO-DATE
+> Task :app:mergeFossDebugAndroidTestShaders UP-TO-DATE
+> Task :app:compileFossDebugAndroidTestShaders NO-SOURCE
+> Task :app:generateFossDebugAndroidTestAssets UP-TO-DATE
+> Task :app:mergeFossDebugAndroidTestAssets UP-TO-DATE
+> Task :app:compressFossDebugAndroidTestAssets UP-TO-DATE
+> Task :app:checkFossDebugAndroidTestDuplicateClasses UP-TO-DATE
+> Task :app:desugarFossDebugAndroidTestFileDependencies UP-TO-DATE
+> Task :app:mergeExtDexFossDebugAndroidTest UP-TO-DATE
+> Task :app:mergeLibDexFossDebugAndroidTest UP-TO-DATE
+> Task :app:mergeFossDebugAndroidTestJniLibFolders UP-TO-DATE
+> Task :app:processFossDebugResources
+> Task :app:compileFlutterBuildPlayDebug
+> Task :app:packJniLibsflutterBuildPlayDebug UP-TO-DATE
+> Task :app:configureCMakeDebug[arm64-v8a]
+> Task :app:buildCMakeDebug[arm64-v8a]
+> Task :app:configureCMakeDebug[armeabi-v7a]
+> Task :app:buildCMakeDebug[armeabi-v7a]
+> Task :app:configureCMakeDebug[x86_64]
+> Task :app:buildCMakeDebug[x86_64]
+> Task :app:mergeFossDebugJniLibFolders UP-TO-DATE
+> Task :app:validateSigningFossDebugAndroidTest UP-TO-DATE
+> Task :app:writeFossDebugAndroidTestSigningConfigVersions UP-TO-DATE
+
+> Task :app:compileFossDebugKotlin
+w: file:///workspace/scratch/fdee7b15fc41/appbreak/android/app/src/main/kotlin/org/appbreak/companion/MainActivity.kt:170:69 'fun announceForAccessibility(p0: CharSequence!): Unit' is deprecated. Deprecated in Java.
+w: file:///workspace/scratch/fdee7b15fc41/appbreak/android/app/src/main/kotlin/org/appbreak/companion/MainActivity.kt:180:86 'fun announceForAccessibility(p0: CharSequence!): Unit' is deprecated. Deprecated in Java.
+
+> Task :app:compileFossDebugJavaWithJavac UP-TO-DATE
+> Task :app:bundleFossDebugClassesToCompileJar
+> Task :app:bundleFossDebugClassesToRuntimeJar
+> Task :app:processFossDebugJavaRes UP-TO-DATE
+> Task :app:compileFossDebugUnitTestKotlin
+> Task :app:compileFossDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:processFossDebugUnitTestJavaRes UP-TO-DATE
+> Task :app:compileFossDebugAndroidTestKotlin
+> Task :app:testFossDebugUnitTest
+> Task :app:compileFossDebugAndroidTestJavaWithJavac NO-SOURCE
+> Task :app:dexBuilderFossDebugAndroidTest UP-TO-DATE
+> Task :app:mergeFossDebugAndroidTestGlobalSynthetics UP-TO-DATE
+> Task :app:processFossDebugAndroidTestJavaRes UP-TO-DATE
+> Task :app:mergeFossDebugAndroidTestJavaResource UP-TO-DATE
+> Task :app:mergeProjectDexFossDebugAndroidTest UP-TO-DATE
+> Task :app:mergeFossDebugNativeLibs
+> Task :app:mergeFossDebugAndroidTestNativeLibs NO-SOURCE
+> Task :app:stripFossDebugAndroidTestDebugSymbols NO-SOURCE
+> Task :app:packageFossDebugAndroidTest UP-TO-DATE
+> Task :app:createFossDebugAndroidTestApkListingFileRedirect UP-TO-DATE
+> Task :app:assembleFossDebugAndroidTest UP-TO-DATE
+w: Detected multiple Kotlin daemon sessions at 
+
+[Incubating] Problems report is available at: file:///workspace/scratch/fdee7b15fc41/appbreak/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.13/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 2m 7s
+131 actionable tasks: 68 executed, 63 up-to-date

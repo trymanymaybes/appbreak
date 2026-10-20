@@ -1,0 +1,33 @@
+Verifies
+Verified using v1 scheme (JAR signing): false
+Verified using v2 scheme (APK Signature Scheme v2): true
+Verified using v3 scheme (APK Signature Scheme v3): true
+Verified using v3.1 scheme (APK Signature Scheme v3.1): false
+Verified using v4 scheme (APK Signature Scheme v4): false
+Verified for SourceStamp: false
+Number of signers: 1
+Signer #1 certificate DN: C=US, O=Android, CN=Android Debug
+Signer #1 certificate SHA-256 digest: 476df0a0f9774e562ab7be0da2a3cbfe5fe4071330496cbd5b0203ff8ea93078
+Signer #1 certificate SHA-1 digest: 923d78161b533bfc6089e3645aaf3825a89d324b
+Signer #1 certificate MD5 digest: 33f7c82ba7282d807e9dd346e08d3354
+Signer #1 key algorithm: RSA
+Signer #1 key size (bits): 2048
+Signer #1 public key SHA-256 digest: 2712d4028baad16babb81523903f150278e9c298d626807285e17ddd8e99bb4e
+Signer #1 public key SHA-1 digest: ee32965f3ff33f19db7e7e58e4fa07c4ee121467
+Signer #1 public key MD5 digest: 4546ec065de0b3df737e93ac98febf37
+
+package: name='org.appbreak.companion' versionCode='3' versionName='0.3.0' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
+sdkVersion:'26'
+targetSdkVersion:'36'
+package: org.appbreak.companion
+uses-permission: name='android.permission.POST_NOTIFICATIONS'
+uses-permission: name='android.permission.VIBRATE'
+uses-permission: name='android.permission.RECEIVE_BOOT_COMPLETED'
+uses-permission: name='android.permission.RECORD_AUDIO'
+uses-permission: name='android.permission.PACKAGE_USAGE_STATS'
+uses-permission: name='android.permission.SYSTEM_ALERT_WINDOW'
+permission: org.appbreak.companion.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+uses-permission: name='org.appbreak.companion.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION'
+
+['lib/arm64-v8a/libapp.so', 'lib/arm64-v8a/libflutter.so']
+SHA256 d8b89b686e798530b12512f1eab72473d2c3581e85555981368a257274b818a2

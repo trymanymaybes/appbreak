@@ -2,7 +2,18 @@
 
 Android-first, local-first Flutter implementation. A separate product and source tree; no Many Maybes branding, infrastructure, account, content or repository is reused.
 
-**Status: Android pre-alpha build; device acceptance remains outstanding.** Flutter analysis, 34 Dart/widget tests and six Python pack-validator tests pass. FOSS release and native instrumentation APKs compile successfully; nine native interval-accounting unit tests pass. An ARM64 release-mode APK is available with a debug test signature; its compiled manifest has no Internet permission. Android SDK terms and Apache-2.0 / CC-BY-4.0 licences were explicitly approved on 2026-10-18. No device tests or store publication are claimed. Source repository: https://github.com/trymanymaybes/appbreak. Read `docs/STATUS.md` before evaluating readiness.
+**Status: 0.4 source update.** Optional community catalogue downloads now require
+Internet permission. Notes, history and recordings remain local. See
+`docs/UPDATE-0.4.md` for controls, limits and residual risks, and `docs/STATUS.md`
+for verification. Device acceptance remains outstanding.
+
+## Version 0.4 update
+
+Reviewed break activities live in [`activity-catalog/`](activity-catalog/README.md).
+The app caches them for offline use and checks weekly while open and idle.
+Settings includes an update toggle and a manual check with a daily cooldown.
+Source files in this repository are authoritative; `appbreak-source.zip` is the
+historical 0.3 bootstrap snapshot and must not be used to build the current version.
 
 ## Version 0.3 update
 
@@ -11,10 +22,6 @@ See `docs/UPDATE-0.3.md` for the Routines page: automatic screen-use, manual ses
 ## Version 0.2 update
 
 See `docs/UPDATE-0.2.md` for break profiles and activity switching, optional popup launch, permission setup/test notification, active-screen timing and offline dictation. Popup, usage-event availability and speech/language support are explicitly device-dependent. Speak saves text; retaining audio is a separate explicit recording action. Install the new test APK as an update to preserve notes.
-
-## Repository bootstrap
-
-The initial browser upload contains this README and `appbreak-source.zip`. Extract the archive to obtain the complete project tree, documentation, tests and build scripts. A normal tracked-source push is pending GitHub connector write access; its create-file request returned HTTP 403 for this new repository.
 
 ## First runnable milestone
 
@@ -60,7 +67,7 @@ flutter run --flavor foss
 flutter build apk --debug --flavor foss
 ```
 
-The SDK's normal CI mode avoids its Azure instance-metadata autodetection. On container filesystems that reject tar ownership changes, additionally set `TAR_OPTIONS=--no-same-owner` during SDK bootstrapping. Core application runtime has no Internet permission; initial build tooling downloads dependencies.
+The SDK's normal CI mode avoids its Azure instance-metadata autodetection. On container filesystems that reject tar ownership changes, additionally set `TAR_OPTIONS=--no-same-owner` during SDK bootstrapping. Community catalogue updates use Internet permission; initial build tooling downloads dependencies.
 
 Device instrumentation, after installing the SDK and connecting a dedicated test device:
 
