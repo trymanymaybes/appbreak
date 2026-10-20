@@ -21,4 +21,18 @@ jobs:
       - run: python3 -m unittest discover -s tools
       - run: flutter analyze
       - run: flutter test --reporter expanded
-# Android compilation/device jobs will be added after toolchain terms are authorized.
+      - name: Use Java 17 for Android
+        run: echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
+      - name: Build ARM64 release APK
+        run: flutter build apk --release --flavor foss --target-platform android-arm64
+      - name: Native unit tests and instrumentation compilation
+        working-directory: android
+        run: ./gradlew :app:testFossDebugUnitTest :app:assembleFossDebugAndroidTest --no-daemon
+      - name: Retain unsigned release candidate
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: appbreak-0.4.0-unsigned-arm64
+          path: build/app/outputs/flutter-apk/app-foss-release.apk
+          if-no-files-found: error
+          retention-days: 14
+
