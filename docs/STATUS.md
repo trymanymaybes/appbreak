@@ -1,3 +1,12 @@
+# Latest revision: activity illustrations and top toolbar
+
+Source commit dcdec9b passed GitHub Actions run 39384746629: Flutter analysis,
+Flutter tests, both validators and 14 Python tests. GIF play/pause and reduced
+motion are covered, alongside existing scroll/large-text/popup resize checks.
+Bundled visuals work offline and are category illustrations, not instructional
+animations for every individual activity. Fresh Android build/device checks remain
+pending; this update is not a published APK.
+
 # Latest revision: popup rotation and sizing
 
 Source commit 475ac25 passed GitHub Actions run 39246301546: Flutter analysis,

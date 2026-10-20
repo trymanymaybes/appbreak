@@ -130,3 +130,17 @@ resizing does not recreate the session or extend its deadline. Orientation follo
 Android's rotation policy; this does not override the user's rotation lock or add
 freeform drag handles on phones. Physical rotation, keyboard and split-screen
 acceptance still need an Android device.
+
+
+## Illustrations and pinned activity toolbar
+
+Break activity pages and popup players now show bundled category illustrations
+with optional GIF playback. Four original GIFs and matching stills cover all six
+categories, including private/community activities. Illustrations are decorative;
+written instructions remain authoritative. Reduced-motion mode uses stills.
+No external media requests or arbitrary catalogue media paths are accepted.
+
+Narration, stop, previous, next and choose controls are pinned in the top toolbar.
+The body, including the illustration and instructions, scrolls independently in
+both normal and popup views. Icons have accessible labels/tooltips and remain
+compact in landscape. Activity changes continue to preserve the break deadline.
