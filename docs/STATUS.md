@@ -1,3 +1,15 @@
+# 0.4.0 release candidate: Android build verified
+
+Commit b1eff80 passed GitHub Actions run 39464989552: 58 Flutter tests,
+clean Flutter analysis, both validators, 14 Python tests, ARM64 FOSS release APK
+compilation, native unit tests, and instrumentation APK compilation. Device
+instrumentation was not executed. The unsigned 17.2 MB release candidate is
+retained in that workflow for 14 days.
+
+APK publication is blocked by the unavailable previous test signing key. See
+RELEASE-0.4.md for the expected certificate fingerprint and upgrade implications.
+No installable 0.4 APK or production signing is claimed.
+
 # Latest revision: activity illustrations and top toolbar
 
 Source commit dcdec9b passed GitHub Actions run 39384746629: Flutter analysis,
