@@ -1,3 +1,4 @@
+import 'activity_visual.dart';
 // SPDX-License-Identifier: Apache-2.0
 // ignore_for_file: deprecated_member_use
 import 'dart:async';
@@ -152,6 +153,10 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         builder: (ctx) => AlertDialog(
           title: Text(title),
           content: Text(detail),
+          bottom: !setupOpen && !advancedOpen && tab == 0 && c.current != null &&
+              [Phase.rest, Phase.finished].contains(c.session.phase)
+              ? PreferredSize(preferredSize: const Size.fromHeight(56), child: breakToolbar())
+              : null,
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
@@ -660,6 +665,20 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
     ),
     button('Refresh permission status', () => loadCapabilities()),
   ]);
+  Widget breakToolbar() => Material(
+    color: Theme.of(context).colorScheme.surfaceContainer,
+    child: SizedBox(height: 56, child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        IconButton(tooltip: 'Start / replay narration', icon: const Icon(Icons.volume_up_outlined), onPressed: () => run(c.narrate)),
+        IconButton(tooltip: 'Stop narration', icon: const Icon(Icons.stop_circle_outlined), onPressed: () => run(() => c.device.call('stopSpeech'))),
+        IconButton(tooltip: 'Previous activity', icon: const Icon(Icons.skip_previous), onPressed: c.session.phase == Phase.rest ? () => c.cycleActivity(-1) : null),
+        IconButton(tooltip: 'Next activity', icon: const Icon(Icons.skip_next), onPressed: c.session.phase == Phase.rest ? () => c.cycleActivity(1) : null),
+        IconButton(tooltip: 'Choose activity', icon: const Icon(Icons.view_list_outlined), onPressed: c.session.phase == Phase.rest ? chooseActivityDialog : null),
+      ],
+    )),
+  );
+
   List<Widget> breakPlayer() {
     final a = c.current!;
     final s = c.session;
@@ -698,14 +717,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Icon(
-                a.category == 'quiz'
-                    ? Icons.question_mark
-                    : a.category == 'imagination'
-                    ? Icons.lightbulb_outline
-                    : Icons.spa_outlined,
-                size: 48,
-              ),
+              ActivityVisual(key: ValueKey(a.id), category: a.category),
               const SizedBox(height: 16),
               Text(
                 a.title,
@@ -767,25 +779,10 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         Text(
           'Suggested duration: ${a.seconds} seconds; $seconds seconds remain. Try part of this activity or choose another.',
         ),
-      if (s.phase == Phase.rest)
-        Wrap(
-          children: [
-            button('Previous activity', () => c.cycleActivity(-1)),
-            button('Next activity', () => c.cycleActivity(1)),
-            button('Choose activity', () => chooseActivityDialog()),
-            button('Quiet rest', () => c.switchActivity('quiet.soft')),
-          ],
-        ),
-      Wrap(
-        children: [
-          button('Play / replay', () => run(c.narrate)),
-          button(
-            'Stop narration',
-            () => run(() => c.device.call('stopSpeech')),
-          ),
-          if (s.phase == Phase.rest) button('Pause break', () => c.pause()),
-        ],
-      ),
+      Wrap(children: [
+        if (s.phase == Phase.rest) button('Quiet rest', () => c.switchActivity('quiet.soft')),
+        if (s.phase == Phase.rest) button('Pause break', () => c.pause()),
+      ]),
       const Text(
         'Switching activities does not extend the break. Participation is self-reported.',
       ),

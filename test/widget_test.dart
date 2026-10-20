@@ -82,12 +82,7 @@ void main() {
       scrollable: find.byType(Scrollable).first,
     );
     expect(find.text('Quiet break'), findsOneWidget);
-    await tester.scrollUntilVisible(
-      find.text('Next activity'),
-      200,
-      scrollable: find.byType(Scrollable).first,
-    );
-    expect(find.text('Next activity'), findsOneWidget);
+    expect(find.byTooltip('Next activity'), findsOneWidget);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox());
   });
