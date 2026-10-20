@@ -153,10 +153,6 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         builder: (ctx) => AlertDialog(
           title: Text(title),
           content: Text(detail),
-          bottom: !setupOpen && !advancedOpen && tab == 0 && c.current != null &&
-              [Phase.rest, Phase.finished].contains(c.session.phase)
-              ? PreferredSize(preferredSize: const Size.fromHeight(56), child: breakToolbar())
-              : null,
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
@@ -229,6 +225,10 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                     advancedOpen = false;
                   }),
                 )
+              : null,
+          bottom: !setupOpen && !advancedOpen && tab == 0 && c.current != null &&
+              [Phase.rest, Phase.finished].contains(c.session.phase)
+              ? PreferredSize(preferredSize: const Size.fromHeight(56), child: breakToolbar())
               : null,
           actions: [
             IconButton(
