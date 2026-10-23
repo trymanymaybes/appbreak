@@ -7,12 +7,13 @@ List<Map<String, dynamic>> breakRecords(
   List<dynamic> missed,
   List<Activity> activities,
 ) {
+  final completedIds = completed.map((h) => h['id']).toSet();
   final unique = <String, Map<String, dynamic>>{};
   for (final raw in [...missed, ...completed]) {
     final r = Map<String, dynamic>.from(raw);
     final id = r['id'] as String?;
     if (id == null || id.isEmpty) continue;
-    final done = completed.any((h) => h['id'] == id);
+    final done = completedIds.contains(id);
     final a = activities.where((a) => a.id == r['activity']).firstOrNull;
     unique[id] = {
       ...r,
@@ -25,8 +26,14 @@ List<Map<String, dynamic>> breakRecords(
           : 'Missed',
     };
   }
-  return unique.values.toList()
-    ..sort((a, b) => '${b['date']}'.compareTo('${a['date']}'));
+  return unique.values.toList()..sort((a, b) {
+    final date = '${b['date']}'.compareTo('${a['date']}');
+    if (date != 0) return date;
+    final time = ((b['recordedAt'] as int?) ?? -1).compareTo(
+      (a['recordedAt'] as int?) ?? -1,
+    );
+    return time != 0 ? time : '${a['id']}'.compareTo('${b['id']}');
+  });
 }
 
 List<Map<String, dynamic>> inPeriod(

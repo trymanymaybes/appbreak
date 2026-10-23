@@ -10,7 +10,148 @@ class DayPlanner extends StatefulWidget {
 
 class _DayPlannerState extends State<DayPlanner> {
   DateTime day = DateUtils.dateOnly(DateTime.now());
+  late bool calendar;
+  @override
+  void initState() {
+    super.initState();
+    calendar = widget.controller.settings['plannerView'] != 'list';
+  }
+
   Companion get c => widget.controller;
+  List<Map<String, dynamic>> plansFor(DateTime value) {
+    final key = value.toIso8601String().substring(0, 10);
+    return c.plans
+        .where(
+          (p) => (p['days'] as List).isEmpty
+              ? p['date'] == key
+              : key.compareTo(p['date']) >= 0 &&
+                    (p['days'] as List).contains(value.weekday),
+        )
+        .toList()
+      ..sort((a, b) => (a['minute'] as int).compareTo(b['minute'] as int));
+  }
+
+  void move(int direction) => setState(() {
+    day = calendar
+        ? DateTime(day.year, day.month + direction, 1)
+        : DateTime(day.year, day.month, day.day + direction);
+  });
+  Widget monthGrid() {
+    final first = DateTime(day.year, day.month, 1);
+    final length = DateTime(day.year, day.month + 1, 0).day;
+    final leading = first.weekday - 1;
+    final cells = ((leading + length + 6) ~/ 7) * 7;
+    final theme = Theme.of(context);
+    final today = DateUtils.dateOnly(DateTime.now());
+    final local = MaterialLocalizations.of(context);
+    return Column(
+      children: [
+        Row(
+          children: [
+            for (final name in [
+              'Mon',
+              'Tue',
+              'Wed',
+              'Thu',
+              'Fri',
+              'Sat',
+              'Sun',
+            ])
+              Expanded(
+                child: Center(
+                  child: Text(name, style: theme.textTheme.labelSmall),
+                ),
+              ),
+          ],
+        ),
+        GridView.builder(
+          key: const ValueKey('planner-calendar'),
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 7,
+            mainAxisExtent: 48 + MediaQuery.textScalerOf(context).scale(16),
+            crossAxisSpacing: 2,
+            mainAxisSpacing: 2,
+          ),
+          itemCount: cells,
+          itemBuilder: (context, index) {
+            final number = index - leading + 1;
+            if (number < 1 || number > length) return const SizedBox();
+            final value = DateTime(day.year, day.month, number);
+            final count = plansFor(value).length;
+            final selected = DateUtils.isSameDay(day, value);
+            final isToday = DateUtils.isSameDay(today, value);
+            return Semantics(
+              button: true,
+              onTap: () => setState(() => day = value),
+              selected: selected,
+              label:
+                  '${local.formatFullDate(value)}, $count planned activities${isToday ? ', today' : ''}',
+              child: ExcludeSemantics(
+                child: Material(
+                  color: selected
+                      ? theme.colorScheme.primaryContainer
+                      : theme.colorScheme.surfaceContainerLow,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    side: isToday
+                        ? BorderSide(color: theme.colorScheme.primary, width: 2)
+                        : BorderSide.none,
+                  ),
+                  child: InkWell(
+                    key: ValueKey(
+                      'calendar-${value.toIso8601String().substring(0, 10)}',
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: () => setState(() => day = value),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 3),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              '$number',
+                              style: TextStyle(
+                                fontWeight: selected || isToday
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                                color: selected
+                                    ? theme.colorScheme.onPrimaryContainer
+                                    : theme.colorScheme.onSurface,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        if (count > 0)
+                          Icon(
+                            Icons.circle,
+                            size: 6,
+                            color: theme.colorScheme.primary,
+                          )
+                        else
+                          const SizedBox(height: 6),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 8),
+          child: Text(
+            'A dot marks a day with planned activities. Tap a date to view or add plans.',
+          ),
+        ),
+      ],
+    );
+  }
+
   String get date => day.toIso8601String().substring(0, 10);
   Future<void> edit([Map<String, dynamic>? p]) async {
     final title = TextEditingController(text: p?['title'] ?? '');
@@ -132,16 +273,7 @@ class _DayPlannerState extends State<DayPlanner> {
 
   @override
   Widget build(BuildContext context) {
-    final plans =
-        c.plans
-            .where(
-              (p) => (p['days'] as List).isEmpty
-                  ? p['date'] == date
-                  : date.compareTo(p['date']) >= 0 &&
-                        (p['days'] as List).contains(day.weekday),
-            )
-            .toList()
-          ..sort((a, b) => (a['minute'] as int).compareTo(b['minute'] as int));
+    final plans = plansFor(day);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -149,21 +281,50 @@ class _DayPlannerState extends State<DayPlanner> {
           'My Day',
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: SegmentedButton<bool>(
+            segments: const [
+              ButtonSegment(
+                value: true,
+                icon: Icon(Icons.calendar_month),
+                label: Text('Calendar'),
+              ),
+              ButtonSegment(
+                value: false,
+                icon: Icon(Icons.view_list),
+                label: Text('List'),
+              ),
+            ],
+            selected: {calendar},
+            onSelectionChanged: (values) {
+              setState(() => calendar = values.single);
+              c.updateSettings({'plannerView': calendar ? 'calendar' : 'list'});
+            },
+          ),
+        ),
         Wrap(
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             IconButton(
-              tooltip: 'Previous day',
-              onPressed: () =>
-                  setState(() => day = day.subtract(const Duration(days: 1))),
+              tooltip: calendar ? 'Previous month' : 'Previous day',
+              onPressed: () => move(-1),
               icon: const Icon(Icons.chevron_left),
             ),
-            Text(date),
+            Text(
+              calendar
+                  ? MaterialLocalizations.of(context).formatMonthYear(day)
+                  : date,
+            ),
             IconButton(
-              tooltip: 'Next day',
-              onPressed: () =>
-                  setState(() => day = day.add(const Duration(days: 1))),
+              tooltip: calendar ? 'Next month' : 'Next day',
+              onPressed: () => move(1),
               icon: const Icon(Icons.chevron_right),
+            ),
+            TextButton(
+              onPressed: () =>
+                  setState(() => day = DateUtils.dateOnly(DateTime.now())),
+              child: const Text('Today'),
             ),
             TextButton(
               onPressed: () => edit(),
@@ -173,6 +334,11 @@ class _DayPlannerState extends State<DayPlanner> {
         ),
         const Text(
           'Plans invite you to start; time passing never earns completion. Background alerts may be delayed by Android.',
+        ),
+        if (calendar) monthGrid(),
+        Text(
+          MaterialLocalizations.of(context).formatFullDate(day),
+          style: Theme.of(context).textTheme.titleMedium,
         ),
         if (plans.isEmpty) const Text('No activities planned.'),
         for (final p in plans)

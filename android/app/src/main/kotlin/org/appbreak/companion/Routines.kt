@@ -105,7 +105,7 @@ object Routines {
     fun archive(d:JSONObject,s:JSONObject,reason:String):Boolean {
         val list=d.optJSONArray("missedBreaks") ?: JSONArray().also { d.put("missedBreaks",it) }
         if((0 until list.length()).any { list.getJSONObject(it).optString("id")==s.optString("id") }) return false
-        val record=JSONObject(s.toString()).put("reason",reason)
+        val record=BreakStats.stamp(JSONObject(s.toString())).put("reason",reason)
             .put("date",java.text.SimpleDateFormat("yyyy-MM-dd",java.util.Locale.US).format(java.util.Date()))
         list.put(record)
         return true
@@ -130,7 +130,7 @@ object Routines {
                     val remote=ActivityCatalog.cached(c)
                     val withCatalog=all+(0 until remote.length()).map { remote.getJSONObject(it) }
                     val a=withCatalog.firstOrNull {it.optString("id")==s.optString("activity")}
-                    if(a!=null) history.put(JSONObject().put("id",id).put("routine",s.optString("routineId")).put("activity",a.getString("id")).put("category",a.getString("category"))
+                    if(a!=null) history.put(BreakStats.stamp(JSONObject()).put("id",id).put("routine",s.optString("routineId")).put("activity",a.getString("id")).put("title",a.getString("title")).put("category",a.getString("category"))
                         .put("date",java.text.SimpleDateFormat("yyyy-MM-dd",java.util.Locale.US).format(java.util.Date())).put("selfReported",true))
                 }
             }

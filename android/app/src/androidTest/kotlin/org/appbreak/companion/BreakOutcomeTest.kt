@@ -3,6 +3,14 @@ import android.test.AndroidTestCase
 import org.json.*
 @Suppress("DEPRECATION")
 class BreakOutcomeTest:AndroidTestCase(){
+ fun testArchivedOutcomesKeepTimestamp(){
+  val d=JSONObject();val s=JSONObject().put("id","timed")
+  assertTrue(Routines.archive(d,s,"skipped"))
+  val r=d.getJSONArray("missedBreaks").getJSONObject(0)
+  assertTrue(r.getLong("recordedAt")>0);assertTrue(r.has("utcOffsetMinutes"))
+  val first=r.getLong("recordedAt");assertFalse(Routines.archive(d,s,"skipped"));assertEquals(first,r.getLong("recordedAt"))
+ }
+
  fun testSkipCountsDeduplicateAndSeparateMissed(){
   val d=JSONObject().put("history",JSONArray().put(JSONObject().put("id","done")))
   val rows=JSONArray();for(id in listOf("one","one","done"))rows.put(JSONObject().put("id",id).put("category","imagination").put("reason","skipped").put("date","2026-10-23"))

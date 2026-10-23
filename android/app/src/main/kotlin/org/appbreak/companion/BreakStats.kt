@@ -4,6 +4,9 @@ import org.json.*
 import java.text.SimpleDateFormat
 import java.util.*
 object BreakStats {
+    fun stamp(record:JSONObject, now:Long=System.currentTimeMillis()):JSONObject = record
+        .put("recordedAt",now).put("utcOffsetMinutes",TimeZone.getDefault().getOffset(now)/60000)
+
     fun metadata(c:Context,d:JSONObject,s:JSONObject):JSONObject {
         val bundled=JSONObject(c.assets.open("flutter_assets/assets/activities.json").bufferedReader().use{it.readText()}).getJSONArray("activities")
         val custom=d.optJSONArray("customActivities") ?: JSONArray();val remote=ActivityCatalog.cached(c)

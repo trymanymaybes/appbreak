@@ -46,4 +46,14 @@ class StorageTest: AndroidTestCase() {
         Store(context).use {it.write(JSONObject().put("schemaVersion",1).put("settings",JSONObject().put("profiles",JSONArray().put(profile))))}
         try {Backups.validate(Backups.make(context,false));fail("Accepted zero reset interval")} catch(_:IllegalArgumentException) {}
     }
+
+    fun testHistoryTimesSurviveBackupAndRejectInvalidOffsets() {
+        val record=BreakStats.stamp(JSONObject().put("id","timed").put("date","2026-10-23").put("category","quiet"),1234567L)
+        val d=JSONObject().put("schemaVersion",1).put("history",JSONArray().put(record))
+        Store(context).use {it.write(d)}
+        val restored=Backups.validate(Backups.make(context,false)).getJSONObject("data").getJSONArray("history").getJSONObject(0)
+        assertEquals(1234567L,restored.getLong("recordedAt"))
+        Store(context).use {val state=it.read();state.getJSONArray("history").getJSONObject(0).put("utcOffsetMinutes",9999);it.write(state)}
+        try {Backups.validate(Backups.make(context,false));fail("Accepted invalid offset")} catch(_:IllegalArgumentException) {}
+    }
 }

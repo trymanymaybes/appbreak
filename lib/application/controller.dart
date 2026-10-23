@@ -84,6 +84,10 @@ class Companion extends ChangeNotifier {
       {
         ...session.toJson(),
         'reason': reason,
+        'recordedAt': moment.wall,
+        'utcOffsetMinutes': DateTime.fromMillisecondsSinceEpoch(
+          moment.wall,
+        ).timeZoneOffset.inMinutes,
         'category':
             current?.category ??
             ((profile['categories'] as List?)?.length == 1
@@ -113,6 +117,10 @@ class Companion extends ChangeNotifier {
           'category': record['category'] ?? activity?.category ?? 'unknown',
           'title': record['title'] ?? activity?.title ?? 'Break',
           'date': record['date'],
+          if (record['recordedAt'] != null) 'recordedAt': record['recordedAt'],
+          if (record['utcOffsetMinutes'] != null)
+            'utcOffsetMinutes': record['utcOffsetMinutes'],
+          'confirmedAt': moment.wall,
           'selfReported': true,
         },
       ];
@@ -483,6 +491,10 @@ class Companion extends ChangeNotifier {
           'activity': a.id,
           'category': a.category,
           'title': a.title,
+          'recordedAt': moment.wall,
+          'utcOffsetMinutes': DateTime.fromMillisecondsSinceEpoch(
+            moment.wall,
+          ).timeZoneOffset.inMinutes,
           'date': DateTime.fromMillisecondsSinceEpoch(
             moment.wall,
           ).toIso8601String().substring(0, 10),
