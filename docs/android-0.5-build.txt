@@ -1,0 +1,146 @@
+Starting a Gradle Daemon, 2 incompatible and 1 stopped Daemons could not be reused, use --status for details
+> Task :gradle:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle:compileKotlin UP-TO-DATE
+> Task :gradle:compileJava NO-SOURCE
+> Task :gradle:compileGroovy NO-SOURCE
+> Task :gradle:pluginDescriptors UP-TO-DATE
+> Task :gradle:processResources UP-TO-DATE
+> Task :gradle:classes UP-TO-DATE
+> Task :gradle:jar UP-TO-DATE
+> Task :app:FossDebugMinSdkCheck
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preFossDebugBuild UP-TO-DATE
+> Task :app:mergeFossDebugNativeDebugMetadata NO-SOURCE
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:compileFlutterBuildFossDebug
+> Task :app:packJniLibsflutterBuildFossDebug UP-TO-DATE
+> Task :app:checkFossDebugAarMetadata UP-TO-DATE
+> Task :app:cleanMergeFossDebugAssets
+> Task :app:mergeFossDebugShaders UP-TO-DATE
+> Task :app:compileFossDebugShaders NO-SOURCE
+> Task :app:generateFossDebugAssets UP-TO-DATE
+> Task :app:mergeFossDebugAssets
+> Task :app:copyFlutterAssetsFossDebug
+> Task :app:generateFossDebugResValues UP-TO-DATE
+> Task :app:mapFossDebugSourceSetPaths UP-TO-DATE
+> Task :app:generateFossDebugResources UP-TO-DATE
+> Task :app:mergeFossDebugResources UP-TO-DATE
+> Task :app:packageFossDebugResources UP-TO-DATE
+> Task :app:parseFossDebugLocalResources UP-TO-DATE
+> Task :app:createFossDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksFossDebug UP-TO-DATE
+> Task :app:processFossDebugMainManifest UP-TO-DATE
+> Task :app:processFossDebugManifest UP-TO-DATE
+> Task :app:processFossDebugManifestForPackage UP-TO-DATE
+> Task :app:javaPreCompileFossDebug UP-TO-DATE
+> Task :app:processFossDebugResources
+> Task :app:checkFossDebugDuplicateClasses UP-TO-DATE
+> Task :app:compressFossDebugAssets
+> Task :app:desugarFossDebugFileDependencies UP-TO-DATE
+> Task :app:compileFossDebugKotlin
+> Task :app:mergeLibDexFossDebug
+> Task :app:mergeExtDexFossDebug
+> Task :app:compileFlutterBuildPlayDebug
+> Task :app:packJniLibsflutterBuildPlayDebug
+> Task :app:prePlayDebugBuild UP-TO-DATE
+
+> Task :app:compileFossDebugKotlin
+w: file:///workspace/scratch/2f17d77d537a/appbreak/android/app/src/main/kotlin/org/appbreak/companion/BreakCues.kt:24:22 'fun vibrate(p0: VibrationEffect!, p1: AudioAttributes!): Unit' is deprecated. Deprecated in Java.
+w: file:///workspace/scratch/2f17d77d537a/appbreak/android/app/src/main/kotlin/org/appbreak/companion/MainActivity.kt:247:69 'fun announceForAccessibility(p0: CharSequence!): Unit' is deprecated. Deprecated in Java.
+w: file:///workspace/scratch/2f17d77d537a/appbreak/android/app/src/main/kotlin/org/appbreak/companion/MainActivity.kt:257:86 'fun announceForAccessibility(p0: CharSequence!): Unit' is deprecated. Deprecated in Java.
+w: file:///workspace/scratch/2f17d77d537a/appbreak/android/app/src/main/kotlin/org/appbreak/companion/Routines.kt:62:27 Condition is always 'true'.
+
+> Task :app:configureCMakeDebug[arm64-v8a]
+Checking the license for package CMake 3.22.1 in /tmp/appbreak-android/licenses
+License for package CMake 3.22.1 accepted.
+Preparing "Install CMake 3.22.1 v.3.22.1".
+"Install CMake 3.22.1 v.3.22.1" ready.
+Installing CMake 3.22.1 in /tmp/appbreak-android/cmake/3.22.1
+"Install CMake 3.22.1 v.3.22.1" complete.
+"Install CMake 3.22.1 v.3.22.1" finished.
+
+> Task :app:compileFossDebugJavaWithJavac
+> Task :app:dexBuilderFossDebug
+> Task :app:mergeFossDebugGlobalSynthetics
+> Task :app:processFossDebugJavaRes
+> Task :app:buildCMakeDebug[arm64-v8a]
+> Task :app:mergeProjectDexFossDebug
+> Task :app:configureCMakeDebug[armeabi-v7a]
+> Task :app:buildCMakeDebug[armeabi-v7a]
+> Task :app:configureCMakeDebug[x86_64]
+> Task :app:buildCMakeDebug[x86_64]
+> Task :app:mergeFossDebugJniLibFolders
+> Task :app:mergeFossDebugJavaResource
+> Task :app:validateSigningFossDebug
+> Task :app:writeFossDebugAppMetadata
+> Task :app:writeFossDebugSigningConfigVersions
+> Task :app:preFossDebugUnitTestBuild UP-TO-DATE
+> Task :app:bundleFossDebugClassesToRuntimeJar
+> Task :app:bundleFossDebugClassesToCompileJar
+> Task :app:javaPreCompileFossDebugUnitTest
+> Task :app:mergeFossDebugNativeLibs
+> Task :app:preFossDebugAndroidTestBuild SKIPPED
+> Task :app:checkFossDebugAndroidTestAarMetadata
+> Task :app:generateFossDebugAndroidTestResValues
+> Task :app:mapFossDebugAndroidTestSourceSetPaths
+> Task :app:generateFossDebugAndroidTestResources
+> Task :app:mergeFossDebugAndroidTestResources
+> Task :app:stripFossDebugDebugSymbols
+> Task :app:processFossDebugAndroidTestManifest
+> Task :app:javaPreCompileFossDebugAndroidTest
+> Task :app:mergeFossDebugAndroidTestShaders
+> Task :app:compileFossDebugAndroidTestShaders NO-SOURCE
+> Task :app:generateFossDebugAndroidTestAssets UP-TO-DATE
+> Task :app:mergeFossDebugAndroidTestAssets
+> Task :app:compressFossDebugAndroidTestAssets
+> Task :app:checkFossDebugAndroidTestDuplicateClasses
+> Task :app:desugarFossDebugAndroidTestFileDependencies
+> Task :app:mergeExtDexFossDebugAndroidTest
+> Task :app:mergeLibDexFossDebugAndroidTest
+> Task :app:mergeFossDebugAndroidTestJniLibFolders
+> Task :app:mergeFossDebugAndroidTestNativeLibs NO-SOURCE
+> Task :app:stripFossDebugAndroidTestDebugSymbols NO-SOURCE
+> Task :app:validateSigningFossDebugAndroidTest
+> Task :app:writeFossDebugAndroidTestSigningConfigVersions
+> Task :app:processFossDebugAndroidTestResources
+> Task :app:compileFossDebugUnitTestKotlin
+
+> Task :app:packageFossDebug
+There are no .so files available to package in the APK for armeabi-v7a, x86_64.
+
+> Task :app:compileFossDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:processFossDebugUnitTestJavaRes
+
+> Task :app:compileFossDebugAndroidTestKotlin
+w: file:///workspace/scratch/2f17d77d537a/appbreak/android/app/src/androidTest/kotlin/org/appbreak/companion/BreakHistoryTest.kt:2:8 'class AndroidTestCase : TestCase' is deprecated. Deprecated in Java.
+w: file:///workspace/scratch/2f17d77d537a/appbreak/android/app/src/androidTest/kotlin/org/appbreak/companion/BreakHistoryTest.kt:8:18 This declaration overrides a deprecated member but is not marked as deprecated itself. Please add the '@Deprecated' annotation or suppress the diagnostic.
+w: file:///workspace/scratch/2f17d77d537a/appbreak/android/app/src/androidTest/kotlin/org/appbreak/companion/BreakHistoryTest.kt:9:18 This declaration overrides a deprecated member but is not marked as deprecated itself. Please add the '@Deprecated' annotation or suppress the diagnostic.
+w: file:///workspace/scratch/2f17d77d537a/appbreak/android/app/src/androidTest/kotlin/org/appbreak/companion/BreakOutcomeTest.kt:2:8 'class AndroidTestCase : TestCase' is deprecated. Deprecated in Java.
+w: file:///workspace/scratch/2f17d77d537a/appbreak/android/app/src/androidTest/kotlin/org/appbreak/companion/CatalogTest.kt:2:8 'class AndroidTestCase : TestCase' is deprecated. Deprecated in Java.
+w: file:///workspace/scratch/2f17d77d537a/appbreak/android/app/src/androidTest/kotlin/org/appbreak/companion/StorageTest.kt:3:8 'class AndroidTestCase : TestCase' is deprecated. Deprecated in Java.
+w: file:///workspace/scratch/2f17d77d537a/appbreak/android/app/src/androidTest/kotlin/org/appbreak/companion/StorageTest.kt:8:18 This declaration overrides a deprecated member but is not marked as deprecated itself. Please add the '@Deprecated' annotation or suppress the diagnostic.
+w: file:///workspace/scratch/2f17d77d537a/appbreak/android/app/src/androidTest/kotlin/org/appbreak/companion/StorageTest.kt:9:18 This declaration overrides a deprecated member but is not marked as deprecated itself. Please add the '@Deprecated' annotation or suppress the diagnostic.
+
+> Task :app:testFossDebugUnitTest
+> Task :app:compileFossDebugAndroidTestJavaWithJavac NO-SOURCE
+> Task :app:dexBuilderFossDebugAndroidTest
+> Task :app:mergeFossDebugAndroidTestGlobalSynthetics
+> Task :app:processFossDebugAndroidTestJavaRes
+> Task :app:mergeFossDebugAndroidTestJavaResource
+> Task :app:mergeProjectDexFossDebugAndroidTest
+> Task :app:createFossDebugApkListingFileRedirect
+> Task :app:assembleFossDebug
+> Task :app:packageFossDebugAndroidTest
+> Task :app:createFossDebugAndroidTestApkListingFileRedirect
+> Task :app:assembleFossDebugAndroidTest
+
+[Incubating] Problems report is available at: file:///workspace/scratch/2f17d77d537a/appbreak/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.13/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 1m 32s
+86 actionable tasks: 65 executed, 21 up-to-date

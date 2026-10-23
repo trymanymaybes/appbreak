@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.appbreak.companion.PopupSizeTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-23T10:22:37.035Z" hostname="bda400cd19a4" time="0.002">
+  <properties/>
+  <testcase name="rotationUsesNewBounds" classname="org.appbreak.companion.PopupSizeTest" time="0.002"/>
+  <testcase name="transientEmptyBoundsNeverProduceZeroWindow" classname="org.appbreak.companion.PopupSizeTest" time="0.0"/>
+  <testcase name="expandedStaysInsideTask" classname="org.appbreak.companion.PopupSizeTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

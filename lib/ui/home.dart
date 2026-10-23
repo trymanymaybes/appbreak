@@ -1,3 +1,7 @@
+import 'day_planner.dart';
+import 'voice_setup.dart';
+import 'many_maybes.dart';
+import 'break_progress.dart';
 import 'activity_visual.dart';
 // SPDX-License-Identifier: Apache-2.0
 // ignore_for_file: deprecated_member_use
@@ -28,6 +32,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
   bool advancedOpen = false;
   Phase lastPhase = Phase.idle;
   int lastBreakNavigation = 0;
+  int lastProgressNavigation = 0;
   String search = '';
   bool recording = false, includeAudio = false, dictating = false;
   String transcript = '', dictationStatus = '';
@@ -97,6 +102,12 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
   }
 
   void changed() {
+    if (c.progressNavigationVersion != lastProgressNavigation) {
+      lastProgressNavigation = c.progressNavigationVersion;
+      tab = 2;
+      setupOpen = false;
+      advancedOpen = false;
+    }
     if (c.breakNavigationVersion != lastBreakNavigation) {
       lastBreakNavigation = c.breakNavigationVersion;
       setupOpen = false;
@@ -226,9 +237,16 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                   }),
                 )
               : null,
-          bottom: !setupOpen && !advancedOpen && tab == 0 && c.current != null &&
-              [Phase.rest, Phase.finished].contains(c.session.phase)
-              ? PreferredSize(preferredSize: const Size.fromHeight(56), child: breakToolbar())
+          bottom:
+              !setupOpen &&
+                  !advancedOpen &&
+                  tab == 0 &&
+                  c.current != null &&
+                  [Phase.rest, Phase.finished].contains(c.session.phase)
+              ? PreferredSize(
+                  preferredSize: const Size.fromHeight(56),
+                  child: breakToolbar(),
+                )
               : null,
           actions: [
             IconButton(
@@ -253,88 +271,107 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
           ],
         ),
         body: SafeArea(
-          child: Align(
-            alignment: Alignment.topCenter,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 760),
-              child: ListView(
-                key: ValueKey(
-                  setupOpen
-                      ? 'setup'
-                      : advancedOpen
-                      ? 'advanced'
-                      : 'tab-$tab',
+          child: Column(
+            children: [
+              if (!setupOpen && !advancedOpen && tab == 0) statusIndicator(),
+              if (!setupOpen &&
+                  !advancedOpen &&
+                  tab == 0 &&
+                  [
+                    Phase.rest,
+                    Phase.finished,
+                    Phase.pending,
+                    Phase.paused,
+                  ].contains(c.session.phase))
+                breakActions(),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 760),
+                    child: ListView(
+                      key: ValueKey(
+                        setupOpen
+                            ? 'setup'
+                            : advancedOpen
+                            ? 'advanced'
+                            : 'tab-$tab',
+                      ),
+                      padding: const EdgeInsets.all(20),
+                      children: [
+                        if (widget.popup)
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton.icon(
+                              icon: Icon(
+                                popupExpanded
+                                    ? Icons.fullscreen_exit
+                                    : Icons.fullscreen,
+                              ),
+                              label: Text(
+                                popupExpanded
+                                    ? 'Compact popup'
+                                    : 'Expand popup',
+                              ),
+                              onPressed: () => run(() async {
+                                final expanded = await c.device.call<bool>(
+                                  'resizeBreakPopup',
+                                  {'expanded': !popupExpanded},
+                                );
+                                if (mounted && expanded != null)
+                                  setState(() => popupExpanded = expanded);
+                              }),
+                            ),
+                          ),
+                        if (c.error != null)
+                          Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Text(c.error!),
+                            ),
+                          ),
+                        if (dictating)
+                          Card(
+                            child: ListTile(
+                              title: const Text(
+                                'Microphone active — on-device dictation',
+                              ),
+                              subtitle: Text(dictationStatus),
+                              trailing: IconButton(
+                                tooltip: 'Stop dictation',
+                                icon: const Icon(Icons.stop),
+                                onPressed: () => dictate(),
+                              ),
+                            ),
+                          ),
+                        if (recording)
+                          const Card(
+                            child: Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Text(
+                                '● Recording microphone — stops after 5 minutes, on lock, or when you leave this app.',
+                              ),
+                            ),
+                          ),
+                        if (setupOpen) ...[
+                          const Text(
+                            'Enable popup access to interrupt screen time reliably. Notifications are the fallback. You can switch popups off or pause them whenever needed.',
+                          ),
+                          permissionsPanel(),
+                          button(
+                            'Continue to app',
+                            () => setState(() => setupOpen = false),
+                          ),
+                        ] else if (advancedOpen)
+                          ...advancedSettings()
+                        else
+                          ...pages[tab](),
+                      ],
+                    ),
+                  ),
                 ),
-                padding: const EdgeInsets.all(20),
-                children: [
-                  if (widget.popup)
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton.icon(
-                        icon: Icon(
-                          popupExpanded
-                              ? Icons.fullscreen_exit
-                              : Icons.fullscreen,
-                        ),
-                        label: Text(
-                          popupExpanded ? 'Compact popup' : 'Expand popup',
-                        ),
-                        onPressed: () => run(() async {
-                          final expanded = await c.device.call<bool>(
-                            'resizeBreakPopup',
-                            {'expanded': !popupExpanded},
-                          );
-                          if (mounted && expanded != null)
-                            setState(() => popupExpanded = expanded);
-                        }),
-                      ),
-                    ),
-                  if (c.error != null)
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Text(c.error!),
-                      ),
-                    ),
-                  if (dictating)
-                    Card(
-                      child: ListTile(
-                        title: const Text(
-                          'Microphone active — on-device dictation',
-                        ),
-                        subtitle: Text(dictationStatus),
-                        trailing: IconButton(
-                          tooltip: 'Stop dictation',
-                          icon: const Icon(Icons.stop),
-                          onPressed: () => dictate(),
-                        ),
-                      ),
-                    ),
-                  if (recording)
-                    const Card(
-                      child: Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Text(
-                          '● Recording microphone — stops after 5 minutes, on lock, or when you leave this app.',
-                        ),
-                      ),
-                    ),
-                  if (setupOpen) ...[
-                    const Text(
-                      'Enable popup access to interrupt screen time reliably. Notifications are the fallback. You can switch popups off or pause them whenever needed.',
-                    ),
-                    permissionsPanel(),
-                    button(
-                      'Continue to app',
-                      () => setState(() => setupOpen = false),
-                    ),
-                  ] else if (advancedOpen)
-                    ...advancedSettings()
-                  else
-                    ...pages[tab](),
-                ],
               ),
-            ),
+            ],
           ),
         ),
         bottomNavigationBar: NavigationBar(
@@ -561,6 +598,8 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         'Next work session: ${c.settings['timing'] == 'screen' ? 'active screen time' : 'elapsed time'}',
       ),
       profilePicker(),
+      DayPlanner(controller: c),
+      ManyMaybes(controller: c),
       section('Today', [
         Text('$completed completed breaks'),
         const Text(
@@ -606,6 +645,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
     ),
   );
   Widget permissionsPanel() => section('Permission checklist', [
+    VoiceSetup(controller: c),
     popupControls(showPause: false),
     const Text(
       'Notifications — needed for background break reminders. Tapping a notification opens the break without popup permission.',
@@ -665,18 +705,105 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
     ),
     button('Refresh permission status', () => loadCapabilities()),
   ]);
+  Widget statusIndicator() {
+    final phase = c.session.phase;
+    final (color, label) = switch (phase) {
+      Phase.work => (Colors.blue, 'Work session'),
+      Phase.due => (Colors.amber, 'Break ready'),
+      Phase.rest => (Colors.green, 'Break in progress'),
+      Phase.finished => (Colors.purple, 'Break ended'),
+      Phase.pending => (Colors.amber, 'Break awaiting confirmation'),
+      Phase.paused => (Colors.grey, 'Paused'),
+      _ => (Colors.grey, 'Ready when you are'),
+    };
+    return Semantics(
+      label: label,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        child: Row(
+          children: [
+            Icon(Icons.circle, color: color, size: 14),
+            const SizedBox(width: 8),
+            Expanded(child: Text(label)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget breakActions() => Material(
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 4,
+        children: [
+          FilledButton.icon(
+            icon: const Icon(Icons.check),
+            label: const Text('Complete'),
+            onPressed: c.busy || c.session.phase == Phase.paused
+                ? null
+                : () => run(c.complete),
+          ),
+          TextButton.icon(
+            icon: const Icon(Icons.skip_next),
+            label: const Text('Skip'),
+            onPressed: c.busy ? null : () => run(c.cancel),
+          ),
+          Tooltip(
+            message: 'Postpone for 5 minutes',
+            child: TextButton.icon(
+              icon: const Icon(Icons.snooze),
+              label: const Text('Postpone'),
+              onPressed: c.busy ? null : () => run(c.postpone),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+
   Widget breakToolbar() => Material(
     color: Theme.of(context).colorScheme.surfaceContainer,
-    child: SizedBox(height: 56, child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        IconButton(tooltip: 'Start / replay narration', icon: const Icon(Icons.volume_up_outlined), onPressed: () => run(c.narrate)),
-        IconButton(tooltip: 'Stop narration', icon: const Icon(Icons.stop_circle_outlined), onPressed: () => run(() => c.device.call('stopSpeech'))),
-        IconButton(tooltip: 'Previous activity', icon: const Icon(Icons.skip_previous), onPressed: c.session.phase == Phase.rest ? () => c.cycleActivity(-1) : null),
-        IconButton(tooltip: 'Next activity', icon: const Icon(Icons.skip_next), onPressed: c.session.phase == Phase.rest ? () => c.cycleActivity(1) : null),
-        IconButton(tooltip: 'Choose activity', icon: const Icon(Icons.view_list_outlined), onPressed: c.session.phase == Phase.rest ? chooseActivityDialog : null),
-      ],
-    )),
+    child: SizedBox(
+      height: 56,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          IconButton(
+            tooltip: 'Start / replay narration',
+            icon: const Icon(Icons.volume_up_outlined),
+            onPressed: () => run(c.narrate),
+          ),
+          IconButton(
+            tooltip: 'Stop narration',
+            icon: const Icon(Icons.stop_circle_outlined),
+            onPressed: () => run(() => c.device.call('stopSpeech')),
+          ),
+          IconButton(
+            tooltip: 'Previous activity',
+            icon: const Icon(Icons.skip_previous),
+            onPressed: c.session.phase == Phase.rest
+                ? () => c.cycleActivity(-1)
+                : null,
+          ),
+          IconButton(
+            tooltip: 'Next activity',
+            icon: const Icon(Icons.skip_next),
+            onPressed: c.session.phase == Phase.rest
+                ? () => c.cycleActivity(1)
+                : null,
+          ),
+          IconButton(
+            tooltip: 'Choose activity',
+            icon: const Icon(Icons.view_list_outlined),
+            onPressed: c.session.phase == Phase.rest
+                ? chooseActivityDialog
+                : null,
+          ),
+        ],
+      ),
+    ),
   );
 
   List<Widget> breakPlayer() {
@@ -779,10 +906,13 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         Text(
           'Suggested duration: ${a.seconds} seconds; $seconds seconds remain. Try part of this activity or choose another.',
         ),
-      Wrap(children: [
-        if (s.phase == Phase.rest) button('Quiet rest', () => c.switchActivity('quiet.soft')),
-        if (s.phase == Phase.rest) button('Pause break', () => c.pause()),
-      ]),
+      Wrap(
+        children: [
+          if (s.phase == Phase.rest)
+            button('Quiet rest', () => c.switchActivity('quiet.soft')),
+          if (s.phase == Phase.rest) button('Pause break', () => c.pause()),
+        ],
+      ),
       const Text(
         'Switching activities does not extend the break. Participation is self-reported.',
       ),
@@ -835,6 +965,13 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
           ),
         ],
       ),
+      if (challengeFor(a.id) != null) ...[
+        const Text(
+          'Have an idea you like? Talk it through and record it, or use Speak to text above. Find it in Ideas to review and submit a written idea card.',
+        ),
+        button('Review saved ideas', () => setState(() => tab = 1)),
+        ManyMaybes(controller: c, challenge: challengeFor(a.id)),
+      ],
     ];
   }
 
@@ -1304,6 +1441,11 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                   Wrap(
                     children: [
                       button('Edit / rename', () => editIdea(n)),
+                      if (challengeFor(n['activity']) != null)
+                        button(
+                          'Submit this idea',
+                          () => submitIdea(context, c, n),
+                        ),
                       button(
                         'Share selected text',
                         () => sharePreview(shareIdea(n)),
@@ -1356,10 +1498,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
   ];
   List<Widget> achievements() => [
     Text('Break dashboard', style: Theme.of(context).textTheme.headlineMedium),
-    Text('${c.history.length} completed • ${c.missedBreaks.length} missed'),
-    const Text(
-      'Missed includes skipped and unconfirmed breaks. You can confirm an earlier break without changing your current timer.',
-    ),
+    BreakProgress(controller: c),
     if (c.breakRecords.isEmpty)
       const ListTile(title: Text('No breaks recorded yet')),
     ...c.breakRecords.map(
@@ -1376,7 +1515,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
           subtitle: Text(
             '${record['date']} • ${c.profiles.where((p) => p['id'] == (record['routine'] ?? record['routineId'])).firstOrNull?['name'] ?? 'Routine'}${record['status'] == 'Missed' ? ' • ${record['reason'] ?? 'unconfirmed'}' : ''}',
           ),
-          trailing: record['status'] == 'Missed'
+          trailing: record['status'] != 'Completed'
               ? TextButton(
                   onPressed: () =>
                       run(() => c.confirmArchivedBreak(record['id'])),
@@ -1585,6 +1724,21 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       ),
     ]),
     button('Permissions & setup', openSetup),
+    section('Break signals', [
+      toggle('Soft start/end sound', 'cueSound', c.settings['cues'] ?? false),
+      toggle('Start/end vibration', 'cueVibration', true),
+      const Text(
+        'One pulse to start; two pulses when the timer ends. Android silent and Do Not Disturb settings apply.',
+      ),
+      button(
+        'Preview start cue',
+        () => run(() => c.device.call('previewCue', {'event': 'start'})),
+      ),
+      button(
+        'Preview end cue',
+        () => run(() => c.device.call('previewCue', {'event': 'end'})),
+      ),
+    ]),
     ListTile(
       contentPadding: EdgeInsets.zero,
       title: const Text('Advanced settings'),
@@ -1594,6 +1748,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       trailing: const Icon(Icons.chevron_right),
       onTap: () => setState(() => advancedOpen = true),
     ),
+    VoiceSetup(controller: c),
   ];
 
   List<Widget> advancedSettings() => [
@@ -1700,7 +1855,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       const Text(
         'Narration or quiet mode is selected separately for each break profile.',
       ),
-      toggle('Start cue sound and haptic', 'cues', false),
+      const Text('Start and end signals are configured in Everyday settings.'),
       button(
         'Find installed offline voices',
         () => run(() async {

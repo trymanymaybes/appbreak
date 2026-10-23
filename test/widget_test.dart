@@ -40,6 +40,16 @@ void main() {
       ),
     );
     await tester.pump(const Duration(seconds: 1));
+    await tester.scrollUntilVisible(
+      find.text('Start work session'),
+      200,
+      scrollable: find
+          .descendant(
+            of: find.byKey(const ValueKey('tab-0')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
     expect(find.text('Start work session'), findsOneWidget);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox());
@@ -78,8 +88,13 @@ void main() {
     expect(find.text('Take a little space'), findsOneWidget);
     await tester.scrollUntilVisible(
       find.text('Quiet break'),
-      300,
-      scrollable: find.byType(Scrollable).first,
+      100,
+      scrollable: find
+          .descendant(
+            of: find.byKey(const ValueKey('tab-0')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
     );
     expect(find.text('Quiet break'), findsOneWidget);
     expect(find.byTooltip('Next activity'), findsOneWidget);

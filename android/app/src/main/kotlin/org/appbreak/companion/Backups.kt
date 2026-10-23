@@ -13,7 +13,7 @@ object Backups {
     private fun hash(s: String) = MessageDigest.getInstance("SHA-256").digest(s.toByteArray(Charsets.UTF_8)).joinToString("") { "%02x".format(it) }
     fun make(c:Context, includeAudio:Boolean): ByteArray {
         val data=Store(c).use { it.read() }
-        data.remove("routineState"); data.remove("session"); data.remove("pendingDelete"); data.remove("revision")
+        data.remove("cueEvents");data.remove("routineState"); data.remove("session"); data.remove("pendingDelete"); data.remove("revision")
         val audio=JSONObject(); val notes=data.optJSONArray("ideas") ?: JSONArray()
         for(i in 0 until notes.length()) {
             val note=notes.getJSONObject(i); val name=note.optString("recording")
@@ -53,6 +53,25 @@ object Backups {
                 for(field in listOf("activity","routineId")) if(!item.isNull(field)) require(item.get(field) is String)
             }
         }
+        if(d.has("plans")) {
+            val plans=d.getJSONArray("plans");require(plans.length()<=100);val ids=mutableSetOf<String>()
+            for(i in 0 until plans.length()) {val p=plans.getJSONObject(i)
+                require(p.getString("id").matches(Regex("[a-z0-9._-]{1,80}")) && ids.add(p.getString("id")))
+                require(p.getString("title").length in 1..80 && p.getString("routine").length in 1..80)
+                require(p.get("minute") is Int && p.getInt("minute") in 0..1439 && p.get("minutes") is Int && p.getInt("minutes") in 1..720)
+                require(p.getString("date").matches(Regex("\\d{4}-\\d{2}-\\d{2}")))
+                val days=p.getJSONArray("days");require(days.length()<=7);for(j in 0 until days.length())require(days.get(j) is Int && days.getInt(j) in 1..7)
+            }
+        }
+        if(d.has("planRecords")) {
+            val records=d.getJSONObject("planRecords");require(records.length()<=10000)
+            for(key in records.keys()) {require(key.length<=100);val r=records.getJSONObject(key)
+                require(r.getString("status") in listOf("planned","prompted","delayed","active","ended","completed","skipped","missed"))
+                for(field in listOf("end","remindAt"))if(r.has(field))require(r.get(field) is Number && r.getLong(field)>=0)
+                if(r.optString("status")=="active")r.put("status","ended")
+            }
+        }
+        d.remove("cueEvents")
         if(d.has("ideaDraft")) { val draft=d.getJSONObject("ideaDraft");require(draft.get("text") is String && draft.getString("text").length<=100000 && draft.get("title") is String && draft.getString("title").length<=200) }
         require(!d.has("settings") || d.get("settings") is JSONObject); val s=d.optJSONObject("settings") ?: JSONObject()
         for(key in listOf("workSeconds","breakSeconds","activeStart","activeEnd","quietStart","quietEnd","goal","popupPausedUntil")) if(s.has(key)) require(s.get(key) is Int || s.get(key) is Long)
@@ -61,7 +80,7 @@ object Backups {
         if(s.has("voice")) require(s.get("voice") is String)
         require(s.optInt("workSeconds",1500) in 60..14400 && s.optInt("breakSeconds",60) in 20..300)
         for(key in listOf("activeStart","activeEnd","quietStart","quietEnd")) if(s.has(key)) require(s.getInt(key) in 0..23)
-        for(key in listOf("quiet","cues","gamification","activeEnabled","quietHours","popup","focusMode")) if(s.has(key)) require(s.get(key) is Boolean)
+        for(key in listOf("quiet","cues","gamification","activeEnabled","quietHours","popup","focusMode","cueSound","cueVibration")) if(s.has(key)) require(s.get(key) is Boolean)
         if(s.has("rate")) require(s.getDouble("rate") in 0.5..1.5)
         if(s.has("volume")) require(s.getDouble("volume") in 0.0..1.0)
         if(s.has("goal")) require(s.getInt("goal") in 1..30)

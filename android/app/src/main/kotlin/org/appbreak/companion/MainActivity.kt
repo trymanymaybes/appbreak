@@ -20,6 +20,7 @@ open class MainActivity: FlutterActivity() {
     private var dictation: Dictation?=null
     private var tts: TextToSpeech?=null
     private var ttsReady=false
+    private var recordingActivity:String?=null
     private val screenReaderListener=AccessibilityManager.TouchExplorationStateChangeListener { enabled -> if(enabled) tts?.stop() }
     private var recorder: MediaRecorder?=null
     private var recordingName: String?=null
@@ -41,6 +42,19 @@ open class MainActivity: FlutterActivity() {
         channel!!.setMethodCallHandler { call,result ->
             try {
                 when(call.method) {
+                    "planAction" -> {Planner.action(this,call.argument<String>("id")!!,call.argument<String>("date")!!,call.argument<String>("action")!!);result.success(null)}
+                    "openExternal" -> {
+                        val uri=android.net.Uri.parse(call.argument<String>("url")!!)
+                        require(uri.scheme=="https" && uri.host in listOf("trymanymaybes.github.io","youtube.com","www.youtube.com","youtu.be","www.instagram.com") && uri.userInfo==null)
+                        tts?.stop(); startActivity(Intent(Intent.ACTION_VIEW,uri));result.success(null)
+                    }
+                    "saveIdeaCard" -> {
+                        val text=call.argument<String>("text")!!.trim();val challenge=call.argument<String>("challenge")!!
+                        require(text.length in 1..2000 && challenge.matches(Regex("0[1-6]")))
+                        fileBytes=IdeaCard.render("Many Maybes · Challenge $challenge",text)
+                        beginFile(result,Intent(Intent.ACTION_CREATE_DOCUMENT).setType("image/png").putExtra(Intent.EXTRA_TITLE,"many-maybes-idea-$challenge.png"),60)
+                    }
+                    "consumeProgressOpen" -> { val open=intent?.action=="openProgress";if(open) intent?.action=null;result.success(open) }
                     "isBreakPopup" -> result.success(this is BreakPopupActivity)
                     "resizeBreakPopup" -> {
                         check(this is BreakPopupActivity) { "Not a break popup" }
@@ -112,8 +126,13 @@ open class MainActivity: FlutterActivity() {
                         val doomed=d.optString("pendingDelete"); d.remove("pendingDelete")
                         val active=d.optJSONObject("session")
                         if(active?.optString("timing")=="screen" && active.optString("phase")=="work" && !active.has("activeCursor")) ScreenTime.initialize(this,active)
+                        var cueEvent:String?=null
+                        var skippedNow=false
                         Store(this).use {
                             val previous=it.read().optJSONObject("session")
+                            cueEvent=BreakCues.transition(d,previous,active)
+                            val missed=d.optJSONArray("missedBreaks")
+                            skippedNow=previous!=null && missed!=null && (0 until missed.length()).any { n -> missed.getJSONObject(n).optString("id")==previous.optString("id") && missed.getJSONObject(n).optString("reason")=="skipped" } && active?.optString("phase")=="idle"
                             if(previous!=null && previous.optString("phase")!="idle" && active?.optString("phase") in listOf(null,"idle")) {
                                 Routines.reset(this,d,previous.optString("routineId"))
                                 val history=d.optJSONArray("history")
@@ -121,6 +140,8 @@ open class MainActivity: FlutterActivity() {
                             }
                             it.write(d)
                         }
+                        cueEvent?.let { BreakCues.play(this,it,d.optJSONObject("settings") ?: JSONObject()) }
+                        if(skippedNow) Reminders.skippedSummary(this)
                         if(doomed.matches(Regex("[a-f0-9-]{36}\\.m4a"))) File(filesDir,"recordings/$doomed").delete()
                         Reminders.schedule(this)
                         val phase=d.optJSONObject("session")?.optString("phase")
@@ -132,15 +153,21 @@ open class MainActivity: FlutterActivity() {
                     "appSettings" -> { startActivity(Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,android.net.Uri.parse("package:$packageName")));result.success(null) }
                     "notifications" -> { if(Build.VERSION.SDK_INT>=33) requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS),51); result.success(getSystemService(NotificationManager::class.java).areNotificationsEnabled()) }
                     "voices" -> { check(ttsReady) { "Speech engine is still starting. Try again, or use quiet mode." }; result.success(tts!!.voices.orEmpty().filter { !it.isNetworkConnectionRequired && !it.features.orEmpty().contains("notInstalled") }.map { mapOf("name" to it.name,"language" to it.locale.toLanguageTag()) }) }
-                    "installVoice" -> { startActivity(Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA)); result.success(null) }
+                    "installVoice" -> {
+                        val install=Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA).apply { tts?.defaultEngine?.let {setPackage(it)} }
+                        try {startActivity(install)} catch(_:android.content.ActivityNotFoundException) {startActivity(Intent("com.android.settings.TTS_SETTINGS"))}
+                        result.success(null)
+                    }
+                    "refreshVoices" -> {ttsReady=false;tts?.shutdown();tts=TextToSpeech(this) {status -> ttsReady=status==TextToSpeech.SUCCESS};result.success(null)}
                     "speak" -> {
                         check(recorder==null && dictation?.running!=true) { "Stop recording or dictation before narration" }
                         check(ttsReady) { "No local speech engine ready. Use text or quiet mode." }
                         check(!getSystemService(AccessibilityManager::class.java).isTouchExplorationEnabled) { "TalkBack is active. Use its reading controls to avoid competing speech." }
                         val voiceName=call.argument<String>("voice")
-                        val voice=tts!!.voices.orEmpty().firstOrNull { it.name==voiceName && !it.isNetworkConnectionRequired && !it.features.orEmpty().contains("notInstalled") }
-                            ?: throw IllegalStateException("Select an installed offline voice in Settings. Text and quiet mode remain available.")
                         val language=java.util.Locale.forLanguageTag(call.argument<String>("language") ?: "en-IN").language
+                        val voice=tts!!.voices.orEmpty().firstOrNull { it.name==voiceName && !it.isNetworkConnectionRequired && !it.features.orEmpty().contains("notInstalled") }
+                            ?: tts!!.voices.orEmpty().filter {it.locale.language==language && !it.isNetworkConnectionRequired && !it.features.orEmpty().contains("notInstalled")}.sortedBy {if(it.locale.toLanguageTag()=="en-IN") 0 else 1}.firstOrNull()
+                            ?: throw IllegalStateException("Use English voice setup to install an offline voice, then check again.")
                         check(voice.locale.language==language) { "Select an offline voice matching the activity language ($language)" }
                         check(requestFocus()) { "Audio is in use; try later" }
                         tts!!.stop(); tts!!.voice=voice
@@ -156,6 +183,7 @@ open class MainActivity: FlutterActivity() {
                         result.success(null)
                     }
                     "stopSpeech" -> { tts?.stop(); result.success(null) }
+                    "previewCue" -> { val event=call.argument<String>("event") ?: "start"; require(event in listOf("start","end")); BreakCues.play(this,event,Store(this).use { it.read().optJSONObject("settings") ?: JSONObject() }); result.success(null) }
                     "cue" -> { if(call.argument<Boolean>("enabled")==true) { window.decorView.performHapticFeedback(android.view.HapticFeedbackConstants.CONFIRM); val tone=ToneGenerator(AudioManager.STREAM_NOTIFICATION,35); tone.startTone(ToneGenerator.TONE_PROP_ACK,120); handler.postDelayed({tone.release()},250) }; result.success(null) }
                     "record" -> {
                         check(recorder==null && dictation?.running!=true) { "Stop dictation or the current recording first" }
@@ -207,6 +235,7 @@ open class MainActivity: FlutterActivity() {
         val dir=File(filesDir,"recordings").apply { mkdirs() }
         check(dir.usableSpace>10*1024*1024 && dir.walk().filter { it.isFile }.sumOf { it.length() }<100*1024*1024) { "Not enough recording storage (100 MiB limit)" }
         tts?.stop(); player?.release(); player=null; check(requestFocus()) { "Audio is in use" }
+        recordingActivity=Store(this).use { it.read().optJSONObject("session")?.optString("activity") }
         val name=UUID.randomUUID().toString()+".m4a"; val file=File(dir,name)
         @Suppress("DEPRECATION") val r=MediaRecorder()
         try {
@@ -224,7 +253,7 @@ open class MainActivity: FlutterActivity() {
         try { r.stop() } catch(_:Exception) { good=false } finally { r.release() }
         if(!good || SystemClock.elapsedRealtime()-recordStarted<400) { File(filesDir,"recordings/$name").delete(); channel?.invokeMethod("recordEnded",mapOf("error" to "Recording was too short or interrupted")); return null }
         // Persist immediately, including when lifecycle or audio interruption stops it.
-        try { Store(this).use { store -> val d=store.read(); val notes=d.optJSONArray("ideas") ?: org.json.JSONArray(); notes.put(JSONObject().put("id",UUID.randomUUID().toString()).put("title","Voice idea").put("text","").put("recording",name).put("activity",d.optJSONObject("session")?.opt("activity"))); d.put("ideas",notes); store.write(d) } } catch(e:Exception) { channel?.invokeMethod("recordEnded",mapOf("error" to "Recording file retained, but note could not be saved: ${e.message}")); return null }
+        try { Store(this).use { store -> val d=store.read(); val notes=d.optJSONArray("ideas") ?: org.json.JSONArray(); notes.put(JSONObject().put("id",UUID.randomUUID().toString()).put("title","Voice idea").put("text","").put("recording",name).put("activity",recordingActivity)); d.put("ideas",notes); store.write(d) } } catch(e:Exception) { channel?.invokeMethod("recordEnded",mapOf("error" to "Recording file retained, but note could not be saved: ${e.message}")); return null }
         channel?.invokeMethod("recordEnded",mapOf("name" to name)); window.decorView.announceForAccessibility("Recording stopped and saved")
         return name
     }

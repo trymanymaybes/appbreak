@@ -400,6 +400,222 @@
       "author": "AppBreak project contributors",
       "attribution": "Original content prepared for AppBreak",
       "contentLicense": "CC-BY-4.0"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "manymaybes.challenge-01",
+      "title": "Many Maybes 01: A few marks, many possibilities",
+      "category": "imagination",
+      "language": "en-IN",
+      "estimatedSeconds": 120,
+      "description": "Imagine a few circles and a line. Think of three scenes these marks could belong to. Choose one and describe what you would add.",
+      "steps": [
+        {
+          "kind": "instruction",
+          "text": "Imagine a few circles and a line. Think of three scenes these marks could belong to. Choose one and describe what you would add."
+        },
+        {
+          "kind": "thinking",
+          "seconds": 50
+        },
+        {
+          "kind": "narration",
+          "text": "Have an idea you like? You can talk it through and record it, or dictate a written note. Review your idea before choosing to submit it to Many Maybes. Sharing is optional."
+        },
+        {
+          "kind": "completion",
+          "text": "Keep your possibility, or try another."
+        }
+      ],
+      "requiresVisualAttention": false,
+      "requiresInput": false,
+      "accessibleAlternatives": [
+        "Imagine or describe the scene; drawing and recording are optional.",
+        "Read instead of narration. Quiet rest is always available."
+      ],
+      "author": "Many Maybes",
+      "attribution": "AppBreak imagination adaptation of https://trymanymaybes.github.io/challenge-01.html",
+      "contentLicense": "CC-BY-4.0"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "manymaybes.challenge-02",
+      "title": "Many Maybes 02: The gap does the work",
+      "category": "imagination",
+      "language": "en-IN",
+      "estimatedSeconds": 120,
+      "description": "Imagine two shapes with a gap between them. Keep the gap empty. Invent a scene where that empty space matters most.",
+      "steps": [
+        {
+          "kind": "instruction",
+          "text": "Imagine two shapes with a gap between them. Keep the gap empty. Invent a scene where that empty space matters most."
+        },
+        {
+          "kind": "thinking",
+          "seconds": 50
+        },
+        {
+          "kind": "narration",
+          "text": "Have an idea you like? You can talk it through and record it, or dictate a written note. Review your idea before choosing to submit it to Many Maybes. Sharing is optional."
+        },
+        {
+          "kind": "completion",
+          "text": "Keep your possibility, or try another."
+        }
+      ],
+      "requiresVisualAttention": false,
+      "requiresInput": false,
+      "accessibleAlternatives": [
+        "Imagine or describe the scene; drawing and recording are optional.",
+        "Read instead of narration. Quiet rest is always available."
+      ],
+      "author": "Many Maybes",
+      "attribution": "AppBreak imagination adaptation of https://trymanymaybes.github.io/challenge-02.html",
+      "contentLicense": "CC-BY-4.0"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "manymaybes.challenge-03",
+      "title": "Many Maybes 03: How big is this, really?",
+      "category": "imagination",
+      "language": "en-IN",
+      "estimatedSeconds": 120,
+      "description": "Imagine four circles. Picture them first as something tiny, then as something enormous. What detail would make each scale believable?",
+      "steps": [
+        {
+          "kind": "instruction",
+          "text": "Imagine four circles. Picture them first as something tiny, then as something enormous. What detail would make each scale believable?"
+        },
+        {
+          "kind": "thinking",
+          "seconds": 50
+        },
+        {
+          "kind": "narration",
+          "text": "Have an idea you like? You can talk it through and record it, or dictate a written note. Review your idea before choosing to submit it to Many Maybes. Sharing is optional."
+        },
+        {
+          "kind": "completion",
+          "text": "Keep your possibility, or try another."
+        }
+      ],
+      "requiresVisualAttention": false,
+      "requiresInput": false,
+      "accessibleAlternatives": [
+        "Imagine or describe the scene; drawing and recording are optional.",
+        "Read instead of narration. Quiet rest is always available."
+      ],
+      "author": "Many Maybes",
+      "attribution": "AppBreak imagination adaptation of https://trymanymaybes.github.io/challenge-03.html",
+      "contentLicense": "CC-BY-4.0"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "manymaybes.challenge-04",
+      "title": "Many Maybes 04: What happened here?",
+      "category": "imagination",
+      "language": "en-IN",
+      "estimatedSeconds": 120,
+      "description": "Imagine a circle and a broken trail. Invent what happened just before this moment, then a different event that could happen next.",
+      "steps": [
+        {
+          "kind": "instruction",
+          "text": "Imagine a circle and a broken trail. Invent what happened just before this moment, then a different event that could happen next."
+        },
+        {
+          "kind": "thinking",
+          "seconds": 50
+        },
+        {
+          "kind": "narration",
+          "text": "Have an idea you like? You can talk it through and record it, or dictate a written note. Review your idea before choosing to submit it to Many Maybes. Sharing is optional."
+        },
+        {
+          "kind": "completion",
+          "text": "Keep your possibility, or try another."
+        }
+      ],
+      "requiresVisualAttention": false,
+      "requiresInput": false,
+      "accessibleAlternatives": [
+        "Imagine or describe the scene; drawing and recording are optional.",
+        "Read instead of narration. Quiet rest is always available."
+      ],
+      "author": "Many Maybes",
+      "attribution": "AppBreak imagination adaptation of https://trymanymaybes.github.io/challenge-04.html",
+      "contentLicense": "CC-BY-4.0"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "manymaybes.challenge-05",
+      "title": "Many Maybes 05: What connects them?",
+      "category": "imagination",
+      "language": "en-IN",
+      "estimatedSeconds": 120,
+      "description": "Imagine two squares. Think of three relationships they could have. Make the relationship more important than either square alone.",
+      "steps": [
+        {
+          "kind": "instruction",
+          "text": "Imagine two squares. Think of three relationships they could have. Make the relationship more important than either square alone."
+        },
+        {
+          "kind": "thinking",
+          "seconds": 50
+        },
+        {
+          "kind": "narration",
+          "text": "Have an idea you like? You can talk it through and record it, or dictate a written note. Review your idea before choosing to submit it to Many Maybes. Sharing is optional."
+        },
+        {
+          "kind": "completion",
+          "text": "Keep your possibility, or try another."
+        }
+      ],
+      "requiresVisualAttention": false,
+      "requiresInput": false,
+      "accessibleAlternatives": [
+        "Imagine or describe the scene; drawing and recording are optional.",
+        "Read instead of narration. Quiet rest is always available."
+      ],
+      "author": "Many Maybes",
+      "attribution": "AppBreak imagination adaptation of https://trymanymaybes.github.io/challenge-05.html",
+      "contentLicense": "CC-BY-4.0"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "manymaybes.challenge-06",
+      "title": "Many Maybes 06: What is this made of?",
+      "category": "imagination",
+      "language": "en-IN",
+      "estimatedSeconds": 120,
+      "description": "Imagine three wavy lines as fabric, water or wood. Choose a material and imagine two clues that suggest it without naming it.",
+      "steps": [
+        {
+          "kind": "instruction",
+          "text": "Imagine three wavy lines as fabric, water or wood. Choose a material and imagine two clues that suggest it without naming it."
+        },
+        {
+          "kind": "thinking",
+          "seconds": 50
+        },
+        {
+          "kind": "narration",
+          "text": "Have an idea you like? You can talk it through and record it, or dictate a written note. Review your idea before choosing to submit it to Many Maybes. Sharing is optional."
+        },
+        {
+          "kind": "completion",
+          "text": "Keep your possibility, or try another."
+        }
+      ],
+      "requiresVisualAttention": false,
+      "requiresInput": false,
+      "accessibleAlternatives": [
+        "Imagine or describe the scene; drawing and recording are optional.",
+        "Read instead of narration. Quiet rest is always available."
+      ],
+      "author": "Many Maybes",
+      "attribution": "AppBreak imagination adaptation of https://trymanymaybes.github.io/challenge-06.html",
+      "contentLicense": "CC-BY-4.0"
     }
   ]
 }

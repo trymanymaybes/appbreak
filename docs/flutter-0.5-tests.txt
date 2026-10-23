@@ -1,0 +1,70 @@
+00:00 +0: loading /workspace/scratch/2f17d77d537a/appbreak/test/popup_resize_test.dart
+00:00 +0: /workspace/scratch/2f17d77d537a/appbreak/test/popup_resize_test.dart: popup rotates and expands without resetting the break
+00:00 +1: /workspace/scratch/2f17d77d537a/appbreak/test/popup_resize_test.dart: popup rotates and expands without resetting the break
+00:00 +2: /workspace/scratch/2f17d77d537a/appbreak/test/popup_resize_test.dart: popup rotates and expands without resetting the break
+00:00 +3: /workspace/scratch/2f17d77d537a/appbreak/test/popup_resize_test.dart: popup rotates and expands without resetting the break
+00:00 +4: /workspace/scratch/2f17d77d537a/appbreak/test/popup_resize_test.dart: popup rotates and expands without resetting the break
+00:00 +5: /workspace/scratch/2f17d77d537a/appbreak/test/popup_resize_test.dart: popup rotates and expands without resetting the break
+00:00 +6: /workspace/scratch/2f17d77d537a/appbreak/test/popup_resize_test.dart: popup rotates and expands without resetting the break
+00:00 +7: /workspace/scratch/2f17d77d537a/appbreak/test/popup_resize_test.dart: popup rotates and expands without resetting the break
+00:00 +8: /workspace/scratch/2f17d77d537a/appbreak/test/popup_resize_test.dart: popup rotates and expands without resetting the break
+00:00 +9: /workspace/scratch/2f17d77d537a/appbreak/test/popup_resize_test.dart: popup rotates and expands without resetting the break
+00:00 +10: /workspace/scratch/2f17d77d537a/appbreak/test/popup_resize_test.dart: popup rotates and expands without resetting the break
+00:00 +11: /workspace/scratch/2f17d77d537a/appbreak/test/popup_resize_test.dart: popup rotates and expands without resetting the break
+00:00 +12: /workspace/scratch/2f17d77d537a/appbreak/test/popup_resize_test.dart: popup rotates and expands without resetting the break
+00:00 +13: /workspace/scratch/2f17d77d537a/appbreak/test/popup_resize_test.dart: popup rotates and expands without resetting the break
+00:00 +14: /workspace/scratch/2f17d77d537a/appbreak/test/popup_resize_test.dart: popup rotates and expands without resetting the break
+00:00 +15: /workspace/scratch/2f17d77d537a/appbreak/test/popup_resize_test.dart: popup rotates and expands without resetting the break
+00:00 +16: /workspace/scratch/2f17d77d537a/appbreak/test/popup_resize_test.dart: popup rotates and expands without resetting the break
+00:00 +17: /workspace/scratch/2f17d77d537a/appbreak/test/popup_resize_test.dart: popup rotates and expands without resetting the break
+00:00 +18: /workspace/scratch/2f17d77d537a/appbreak/test/popup_resize_test.dart: popup rotates and expands without resetting the break
+00:00 +19: /workspace/scratch/2f17d77d537a/appbreak/test/popup_resize_test.dart: popup rotates and expands without resetting the break
+00:00 +20: /workspace/scratch/2f17d77d537a/appbreak/test/popup_resize_test.dart: popup rotates and expands without resetting the break
+00:00 +21: /workspace/scratch/2f17d77d537a/appbreak/test/popup_resize_test.dart: popup rotates and expands without resetting the break
+00:00 +22: /workspace/scratch/2f17d77d537a/appbreak/test/popup_resize_test.dart: popup rotates and expands without resetting the break
+00:01 +23: /workspace/scratch/2f17d77d537a/appbreak/test/popup_resize_test.dart: popup rotates and expands without resetting the break
+00:01 +24: /workspace/scratch/2f17d77d537a/appbreak/test/popup_resize_test.dart: popup rotates and expands without resetting the break
+00:01 +25: /workspace/scratch/2f17d77d537a/appbreak/test/popup_resize_test.dart: popup rotates and expands without resetting the break
+00:01 +26: /workspace/scratch/2f17d77d537a/appbreak/test/popup_resize_test.dart: popup rotates and expands without resetting the break
+00:01 +27: /workspace/scratch/2f17d77d537a/appbreak/test/popup_resize_test.dart: popup rotates and expands without resetting the break
+00:01 +28: /workspace/scratch/2f17d77d537a/appbreak/test/popup_resize_test.dart: popup rotates and expands without resetting the break
+00:01 +29: /workspace/scratch/2f17d77d537a/appbreak/test/notification_navigation_test.dart: warm notification routes from Settings for rest
+00:01 +30: /workspace/scratch/2f17d77d537a/appbreak/test/notification_navigation_test.dart: warm notification routes from Settings for pending
+00:01 +31: /workspace/scratch/2f17d77d537a/appbreak/test/notification_navigation_test.dart: warm notification routes from Settings for pending
+00:01 +32: /workspace/scratch/2f17d77d537a/appbreak/test/notification_navigation_test.dart: warm notification routes from Settings for pending
+00:01 +33: /workspace/scratch/2f17d77d537a/appbreak/test/notification_navigation_test.dart: warm notification routes from Settings for pending
+00:02 +34: /workspace/scratch/2f17d77d537a/appbreak/test/notification_navigation_test.dart: warm notification routes from Settings for finished
+00:02 +35: /workspace/scratch/2f17d77d537a/appbreak/test/notification_navigation_test.dart: warm notification routes from Settings for finished
+00:02 +36: /workspace/scratch/2f17d77d537a/appbreak/test/notification_navigation_test.dart: warm notification routes from Settings for finished
+00:02 +37: /workspace/scratch/2f17d77d537a/appbreak/test/notification_navigation_test.dart: warm notification routes from Settings for finished
+00:02 +38: /workspace/scratch/2f17d77d537a/appbreak/test/notification_navigation_test.dart: warm notification routes from Settings for finished
+00:02 +39: /workspace/scratch/2f17d77d537a/appbreak/test/break_history_test.dart: Achievements shows completed and missed without gamification
+00:02 +40: /workspace/scratch/2f17d77d537a/appbreak/test/break_history_test.dart: Achievements shows completed and missed without gamification
+00:02 +41: /workspace/scratch/2f17d77d537a/appbreak/test/break_history_test.dart: Achievements shows completed and missed without gamification
+00:02 +42: /workspace/scratch/2f17d77d537a/appbreak/test/break_history_test.dart: Achievements shows completed and missed without gamification
+00:02 +43: /workspace/scratch/2f17d77d537a/appbreak/test/break_history_test.dart: Achievements shows completed and missed without gamification
+00:02 +44: /workspace/scratch/2f17d77d537a/appbreak/test/break_history_test.dart: Achievements shows completed and missed without gamification
+00:02 +45: /workspace/scratch/2f17d77d537a/appbreak/test/break_history_test.dart: Achievements shows completed and missed without gamification
+00:02 +46: /workspace/scratch/2f17d77d537a/appbreak/test/break_history_test.dart: Achievements shows completed and missed without gamification
+00:02 +47: /workspace/scratch/2f17d77d537a/appbreak/test/break_history_test.dart: Achievements shows completed and missed without gamification
+00:02 +48: /workspace/scratch/2f17d77d537a/appbreak/test/break_history_test.dart: Achievements shows completed and missed without gamification
+00:03 +49: /workspace/scratch/2f17d77d537a/appbreak/test/break_history_test.dart: Achievements shows completed and missed without gamification
+00:03 +50: /workspace/scratch/2f17d77d537a/appbreak/test/break_history_test.dart: Achievements shows completed and missed without gamification
+00:03 +51: /workspace/scratch/2f17d77d537a/appbreak/test/break_history_test.dart: Achievements shows completed and missed without gamification
+00:03 +52: /workspace/scratch/2f17d77d537a/appbreak/test/break_history_test.dart: Achievements shows completed and missed without gamification
+00:03 +53: /workspace/scratch/2f17d77d537a/appbreak/test/break_history_test.dart: Achievements shows completed and missed without gamification
+00:03 +54: /workspace/scratch/2f17d77d537a/appbreak/test/break_history_test.dart: Achievements shows completed and missed without gamification
+00:03 +55: /workspace/scratch/2f17d77d537a/appbreak/test/break_history_test.dart: Achievements shows completed and missed without gamification
+00:03 +56: /workspace/scratch/2f17d77d537a/appbreak/test/break_history_test.dart: Achievements shows completed and missed without gamification
+00:03 +57: /workspace/scratch/2f17d77d537a/appbreak/test/break_actions_test.dart: action row stays visible after scrolling and rotating popup
+00:04 +58: /workspace/scratch/2f17d77d537a/appbreak/test/break_actions_test.dart: action row stays visible after scrolling and rotating popup
+00:04 +59: /workspace/scratch/2f17d77d537a/appbreak/test/break_actions_test.dart: action row stays visible after scrolling and rotating popup
+00:04 +60: /workspace/scratch/2f17d77d537a/appbreak/test/popup_theme_test.dart: real popup app stays dark through session load and disposes cleanly
+00:04 +61: /workspace/scratch/2f17d77d537a/appbreak/test/popup_theme_test.dart: real popup app stays dark through session load and disposes cleanly
+00:04 +62: /workspace/scratch/2f17d77d537a/appbreak/test/settings_ux_test.dart: everyday settings hide language and expose Advanced in one tap
+00:05 +63: /workspace/scratch/2f17d77d537a/appbreak/test/settings_ux_test.dart: everyday settings hide language and expose Advanced in one tap
+00:05 +64: /workspace/scratch/2f17d77d537a/appbreak/test/widget_test.dart: break player fits large text and exposes activity switching
+00:05 +65: /workspace/scratch/2f17d77d537a/appbreak/test/permissions_setup_test.dart: first launch shows skippable checklist without unsolicited permission prompts
+00:06 +66: /workspace/scratch/2f17d77d537a/appbreak/test/permissions_setup_test.dart: first launch shows skippable checklist without unsolicited permission prompts
+00:06 +67: /workspace/scratch/2f17d77d537a/appbreak/test/permissions_setup_test.dart: returning users keep dashboard and can open setup directly
+00:06 +68: All tests passed!

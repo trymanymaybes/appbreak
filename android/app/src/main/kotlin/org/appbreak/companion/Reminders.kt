@@ -20,6 +20,7 @@ object Reminders {
         val delays=mutableListOf<Long>()
         if(s?.optString("phase") in listOf("work","rest","paused")) delays.add(if(s!!.optString("timing")=="screen" && s.optString("phase")=="work") 60000L else remaining(c,s))
         if(s?.optString("phase")=="pending" && remaining(c,s)>0) delays.add(remaining(c,s))
+        Planner.nextDelay(d)?.let{delays.add(it)}
         if(Routines.profiles(d).any { it.optBoolean("enabled") }) delays.add(60000L)
         val pauseUntil=d.optJSONObject("settings")?.optLong("popupPausedUntil",0) ?: 0L
         if(pauseUntil>System.currentTimeMillis()) delays.add(pauseUntil-System.currentTimeMillis())
@@ -42,6 +43,12 @@ object Reminders {
         c.getSystemService(NotificationManager::class.java).createNotificationChannel(ch)
         return id
     }
+    fun skippedSummary(c:Context) {
+        val d=Store(c).use {it.read()};val manager=c.getSystemService(NotificationManager::class.java)
+        manager.createNotificationChannel(NotificationChannel("skip_summary","Skipped break totals",NotificationManager.IMPORTANCE_LOW))
+        val open=PendingIntent.getActivity(c,31,Intent(c,MainActivity::class.java).setAction("openProgress").addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        try {manager.notify(3,Notification.Builder(c,"skip_summary").setSmallIcon(android.R.drawable.ic_lock_idle_alarm).setContentTitle("${BreakStats.skipped(d)} breaks skipped today").setContentText("Open Progress to see counts by activity type.").setContentIntent(open).setOnlyAlertOnce(true).setAutoCancel(true).setVisibility(Notification.VISIBILITY_PRIVATE).build())} catch(_:SecurityException){}
+    }
     fun notify(c: Context, finished: Boolean, popup:Boolean=true) {
         val d=Store(c).use { it.read() };val s=d.optJSONObject("session") ?: return
         val phase=s.optString("phase");val p=Routines.profile(d,s.optString("routineId"));val settings=d.optJSONObject("settings") ?: JSONObject()
@@ -53,6 +60,7 @@ object Reminders {
         val b=Notification.Builder(c,channel(c,p)).setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
             .setContentTitle(if(confirmation) "Did you take your break?" else if(running) "Break in progress" else p.optString("name","Time for a gentle break"))
             .setContentText(if(confirmation) "Confirm participation, or skip this break." else if(running) "Return when ready. Completion is yours to confirm." else p.optString("message","Break ready. Start when you are ready."))
+            .setSubText(BreakStats.summary(c,d,s))
             .setColor(p.optLong("color",0xff356859).toInt()).setVisibility(Notification.VISIBILITY_PRIVATE)
             .setContentIntent(open).setOnlyAlertOnce(true).setAutoCancel(false)
         val dismiss=Intent(c,ReminderReceiver::class.java).setAction("dismissed").putExtra("sessionId",s.optString("id")).putExtra("phase",phase)
@@ -112,15 +120,18 @@ class ReminderReceiver: BroadcastReceiver() {
                 "postpone" -> { if(phase !in listOf("work","due")) return; s.put("phase","work").put("activeRemaining",300000); ScreenTime.initialize(c,s); deadline(300000); Reminders.clear(c) }
                 "pause" -> { if(phase !in listOf("work","due")) return; s.put("phase","paused").put("resumePhase","work").put("remainingMs",savedRemaining); deadline(900000); Reminders.clear(c) }
                 else -> {
-                    if(phase !in listOf("work","rest","paused")) { Reminders.schedule(c);return }
+                    if(phase !in listOf("work","rest","pending","paused")) { Reminders.schedule(c);return }
                     if(Reminders.remaining(c,s)< -43200000L) { d.remove("session"); store.write(d); Reminders.schedule(c); return }
                     if(Reminders.remaining(c,s)>0) { Reminders.schedule(c); return }
                     if(phase=="paused") { s.put("phase",s.optString("resumePhase","work")); deadline(s.optLong("remainingMs")); s.put("activeRemaining",s.optLong("remainingMs")); ScreenTime.initialize(c,s) }
                     else {
                         val permitted=Reminders.allowed(d.optJSONObject("settings") ?: JSONObject())
-                        s.put("phase",if(phase=="rest") "finished" else if(permitted) "due" else "idle")
+                        val breakEnded=phase in listOf("rest","pending")
+                        s.put("phase",if(breakEnded) "finished" else if(permitted) "due" else "idle")
+                        val endCue=breakEnded && BreakCues.prepare(d,s,"end")
                         store.write(d) // Persist before posting: repeat delivery cannot notify twice.
-                        if(permitted) Reminders.notify(c,phase=="rest")
+                        if(endCue) BreakCues.play(c,"end",d.optJSONObject("settings") ?: JSONObject())
+                        if(permitted) Reminders.notify(c,breakEnded)
                         Reminders.schedule(c); return
                     }
                 }
