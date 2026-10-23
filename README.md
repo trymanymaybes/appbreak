@@ -1,11 +1,10 @@
 # AppBreak — Smart Break & Activity Companion
 
-Android-first, local-first Flutter implementation. A separate product and source tree; no Many Maybes branding, infrastructure, account, content or repository is reused.
+Android-first, local-first Flutter app with optional Many Maybes imagination challenges and external submission links. Ideas, recordings and progress stay on the device unless the user explicitly exports or submits them.
 
-**Status: 0.4 source update.** Optional community catalogue downloads now require
-Internet permission. Notes, history and recordings remain local. See
-`docs/UPDATE-0.4.md` for controls, limits and residual risks, and `docs/STATUS.md`
-for verification. Device acceptance remains outstanding.
+**Version 0.5.0.** Adds daily planning, activity-type outcome counts, skip notifications, look-away cues, pinned break actions, Many Maybes idea submission and English voice setup. See [`docs/UPDATE-0.5.md`](docs/UPDATE-0.5.md) and [`docs/STATUS.md`](docs/STATUS.md) for behavior and verification. Physical-device acceptance remains outstanding.
+
+Download the APK from [GitHub Releases](https://github.com/trymanymaybes/appbreak/releases/latest). Version 0.5.0 reuses the 0.4.0 signing certificate for in-place updates; back up ideas and recordings before updating.
 
 ## Version 0.4 update
 

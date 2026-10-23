@@ -1,3 +1,15 @@
+# 0.5.0 signed release (2026-10-23)
+
+Merged through PR #2 at b132b54590c56d08fc1abce6ff7a858e656f7392.
+The ARM64 FOSS release APK is published at
+https://github.com/trymanymaybes/appbreak/releases/tag/v0.5.0.
+Version code 5; Android 8.0+. APK v2/v3 signatures and 16 KiB zip alignment
+verify successfully. The certificate matches 0.4.0 for in-place upgrades.
+APK SHA-256: 8e219f0649fa017de29cff5dcb92f40af0a7cd868fe28ba1d73aa925e6bb0aab.
+Physical-device acceptance remains outstanding.
+
+Earlier source and debug-build reports follow.
+
 # 0.5 source update (2026-10-23)
 
 Planner, six Many Maybes imagination activities, reviewed idea-card submission,
