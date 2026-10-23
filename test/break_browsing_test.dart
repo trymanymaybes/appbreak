@@ -19,10 +19,10 @@ void main() {
           .map((a) => Activity(a))
           .toList();
   test(
-    'manual browsing exposes all twelve while auto suggestions retain profile filters',
+    'manual browsing exposes all eighteen while auto suggestions retain profile filters',
     () {
-      expect(all.length, 12);
-      expect(browsableActivities(all, defaultProfiles.first).length, 12);
+      expect(all.length, 18);
+      expect(browsableActivities(all, defaultProfiles.first).length, 18);
       expect(
         fittingActivities(
           all,
@@ -35,7 +35,7 @@ void main() {
         browsableActivities(all, {
           'disabledActivities': [all.last.id],
         }).length,
-        11,
+        17,
       );
     },
   );
@@ -52,13 +52,13 @@ void main() {
       expect(c.session.id, id);
       expect(c.session.elapsedDue, deadline);
     }
-    expect(seen.length, 12);
+    expect(seen.length, 18);
     c.moment = Moment(
       c.moment.wall + 25000,
       c.moment.elapsed + 25000,
       c.moment.boot,
     );
-    expect(c.alternatives.length, 12);
+    expect(c.alternatives.length, 18);
     c.dispose();
   });
   test('disabled activities stay excluded from explicit switching', () async {

@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import '../domain/activity.dart';
+import '../domain/break_counts.dart' as counts;
 import '../domain/session.dart';
 import '../domain/profile.dart';
 import '../platform/device.dart';
@@ -58,6 +59,7 @@ class Companion extends ChangeNotifier {
   Session session = const Session();
   Moment moment = const Moment(0, 0, 0);
   int breakNavigationVersion = 0;
+  int progressNavigationVersion = 0;
   String? error;
   bool busy = false, visible = true;
   Timer? ticker;
@@ -65,19 +67,29 @@ class Companion extends ChangeNotifier {
       Map<String, dynamic>.from(data['settings'] ?? {});
   List<dynamic> get history => data['history'] ?? [];
   List<dynamic> get missedBreaks => data['missedBreaks'] ?? [];
-  List<Map<String, dynamic>> get breakRecords => [
-    ...history.map((h) => <String, dynamic>{...h, 'status': 'Completed'}),
-    ...missedBreaks.map((h) => <String, dynamic>{...h, 'status': 'Missed'}),
-  ]..sort((a, b) => '${b['date']}'.compareTo('${a['date']}'));
+  List<Map<String, dynamic>> get breakRecords =>
+      counts.breakRecords(history, missedBreaks, activities);
 
   void archiveBreak(String reason) {
-    if (![Phase.rest, Phase.finished, Phase.pending].contains(session.phase))
+    if (![
+          Phase.rest,
+          Phase.finished,
+          Phase.pending,
+          Phase.due,
+        ].contains(session.phase) &&
+        !(session.phase == Phase.paused && session.resumePhase == Phase.rest))
       return;
     data['missedBreaks'] = [
       ...missedBreaks.where((h) => h['id'] != session.id),
       {
         ...session.toJson(),
         'reason': reason,
+        'category':
+            current?.category ??
+            ((profile['categories'] as List?)?.length == 1
+                ? (profile['categories'] as List).first
+                : 'unknown'),
+        'title': current?.title ?? 'Break',
         'date': DateTime.fromMillisecondsSinceEpoch(
           moment.wall,
         ).toIso8601String().substring(0, 10),
@@ -98,7 +110,8 @@ class Companion extends ChangeNotifier {
           'id': id,
           'routine': record['routineId'] ?? '',
           'activity': record['activity'],
-          'category': activity?.category ?? 'unknown',
+          'category': record['category'] ?? activity?.category ?? 'unknown',
+          'title': record['title'] ?? activity?.title ?? 'Break',
           'date': record['date'],
           'selfReported': true,
         },
@@ -161,6 +174,30 @@ class Companion extends ChangeNotifier {
   Future<void> startRoutine(String id) async {
     await device.call('startRoutine', {'id': id});
     await refresh();
+  }
+
+  List<Map<String, dynamic>> get plans => ((data['plans'] ?? []) as List)
+      .map((p) => Map<String, dynamic>.from(p))
+      .toList();
+  Future<void> savePlan(Map<String, dynamic> plan) => act(() async {
+    if ((plan['title'] as String).trim().isEmpty)
+      throw StateError('Enter an activity name');
+    if (plans.length >= 100 && !plans.any((p) => p['id'] == plan['id']))
+      throw StateError('At most 100 plans');
+    data['plans'] = [...plans.where((p) => p['id'] != plan['id']), plan];
+  });
+  Future<void> planAction(String id, String date, String action) async {
+    try {
+      await device.call('planAction', {
+        'id': id,
+        'date': date,
+        'action': action,
+      });
+      await refresh();
+    } catch (e) {
+      error = '$e';
+      notifyListeners();
+    }
   }
 
   Future<void> leaveBreak() async {
@@ -279,6 +316,8 @@ class Companion extends ChangeNotifier {
       session = data['session'] == null
           ? const Session()
           : Session.fromJson(Map<String, dynamic>.from(data['session']));
+      if (await device.call<bool>('consumeProgressOpen') == true)
+        progressNavigationVersion++;
       final open = await device.call<Map>('consumeBreakOpen');
       final requestedId = open?['sessionId'];
       final openCurrentBreak =
@@ -296,7 +335,7 @@ class Companion extends ChangeNotifier {
         session = next;
         if (session.phase == Phase.finished) {
           await device.call('stopSpeech');
-          await device.call('cue', {'enabled': settings['cues'] == true});
+          // Native persistence owns deduplicated timer cues.
         }
         await persist();
       }
@@ -324,10 +363,17 @@ class Companion extends ChangeNotifier {
     data['revision'] = (data['revision'] ?? 0) + 1;
   }
 
-  Future<void> act(Future<void> Function() action) async {
+  Future<void> act(
+    Future<void> Function() action, {
+    bool stopCapture = false,
+  }) async {
     if (busy) return;
     busy = true;
     try {
+      if (stopCapture) {
+        await device.call('stopRecord');
+        await device.call('stopAudio');
+      }
       data = await device.load();
       moment = await device.now();
       session = data['session'] == null
@@ -375,7 +421,7 @@ class Companion extends ChangeNotifier {
     ).at(Phase.rest, breakSeconds * 1000, moment, activityId: activity.id);
     data['lastActivity'] = activity.id;
     // Instructions are opt-in via Play: TalkBack never competes with auto speech.
-    await device.call('cue', {'enabled': settings['cues'] == true});
+    // Native persistence owns the start cue.
   }
 
   Future<void> breakNow() => act(_breakNow);
@@ -386,55 +432,73 @@ class Companion extends ChangeNotifier {
   Future<void> resume() => act(() async {
     session = session.resume(moment);
   });
-  Future<void> postpone() => act(() async {
-    if (![
-      Phase.work,
-      Phase.due,
-      Phase.rest,
-      Phase.finished,
-    ].contains(session.phase))
-      throw StateError('No session');
-    session = Session(
-      id: newId(),
-      timing: session.timing,
-      routineId: session.routineId,
-    ).at(Phase.work, 5 * 60000, moment);
-    await device.call('stopSpeech');
-  });
-  Future<void> cancel() async {
+  Future<void> postpone() async {
     await act(() async {
-      archiveBreak('skipped');
-      session = const Session();
-      await device.call('stopSpeech');
-    });
+      if (![
+        Phase.work,
+        Phase.due,
+        Phase.rest,
+        Phase.finished,
+        Phase.pending,
+        Phase.paused,
+      ].contains(session.phase))
+        throw StateError('No session');
+      session = Session(
+        id: newId(),
+        routineId: session.routineId,
+      ).at(Phase.work, 5 * 60000, moment);
+      await device.call('stopAudio');
+    }, stopCapture: true);
     if (error == null) await device.call('closePopup');
   }
 
-  Future<void> complete() => act(() async {
-    if (![Phase.rest, Phase.finished, Phase.pending].contains(session.phase))
-      return;
-    final a = current;
-    if (a == null) return;
-    final h = [...history];
-    if (!h.any((x) => x['id'] == session.id)) {
-      h.add({
-        'id': session.id,
-        'routine': session.routineId,
-        'activity': a.id,
-        'category': a.category,
-        'date': DateTime.fromMillisecondsSinceEpoch(
-          moment.wall,
-        ).toIso8601String().substring(0, 10),
-        'selfReported': true,
-      });
-    }
-    data['history'] = h;
-    data['missedBreaks'] = missedBreaks
-        .where((h) => h['id'] != session.id)
-        .toList();
-    session = const Session();
-    await device.call('stopSpeech');
-  });
+  Future<void> cancel() async {
+    await act(() async {
+      archiveBreak('skipped');
+      if (session.phase == Phase.work ||
+          session.phase == Phase.due ||
+          (session.phase == Phase.paused &&
+              session.resumePhase == Phase.work)) {
+        for (final r in (data['planRecords'] as Map? ?? {}).values) {
+          if (r['status'] == 'active') r['status'] = 'skipped';
+        }
+      }
+      session = const Session();
+      await device.call('stopSpeech');
+    }, stopCapture: true);
+    if (error == null) await device.call('closePopup');
+  }
+
+  Future<void> complete() async {
+    await act(() async {
+      if (![Phase.rest, Phase.finished, Phase.pending].contains(session.phase))
+        return;
+      final a = current;
+      if (a == null) return;
+      final h = [...history];
+      if (!h.any((x) => x['id'] == session.id)) {
+        h.add({
+          'id': session.id,
+          'routine': session.routineId,
+          'activity': a.id,
+          'category': a.category,
+          'title': a.title,
+          'date': DateTime.fromMillisecondsSinceEpoch(
+            moment.wall,
+          ).toIso8601String().substring(0, 10),
+          'selfReported': true,
+        });
+      }
+      data['history'] = h;
+      data['missedBreaks'] = missedBreaks
+          .where((h) => h['id'] != session.id)
+          .toList();
+      session = const Session();
+      await device.call('stopSpeech');
+    }, stopCapture: true);
+    if (error == null) await device.call('closePopup');
+  }
+
   Future<void> importPack() async {
     final json = await device.call<String>('importPack');
     if (json == null) return;
@@ -491,8 +555,8 @@ class Companion extends ChangeNotifier {
       'title': title ?? 'Idea',
       'text': text,
       'recording': recording,
-      'activity': session.activity,
-      'session': session.id,
+      'activity': index < 0 ? session.activity : list[index]['activity'],
+      'session': index < 0 ? session.id : list[index]['session'],
     };
     if (index < 0) {
       list.add(note);

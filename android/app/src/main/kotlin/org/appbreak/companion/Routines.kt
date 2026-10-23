@@ -47,7 +47,10 @@ object Routines {
         Reminders.schedule(c)
     }
     fun refresh(c:Context) {
+        Planner.refresh(c)
+        if(Store(c).use{Planner.active(it.read())})return
         var notify=false
+        var endCueSettings:JSONObject?=null
         Store(c).use { store ->
             val d=store.read();val ps=profiles(d);if(ps.isEmpty()) return
             val before=d.toString();val states=state(d);val settings=d.optJSONObject("settings") ?: JSONObject()
@@ -56,6 +59,10 @@ object Routines {
             val active=d.optJSONObject("session")
             val expired=active!=null && (active.optString("phase")=="finished" ||
                 (active.optString("phase") in listOf("rest","pending") && Reminders.remaining(c,active)<=0))
+            if(expired && active!=null) {
+                BreakStats.snapshot(c,d,active)
+                if(Reminders.remaining(c,active)> -120000 && BreakCues.prepare(d,active,"end")) endCueSettings=settings
+            }
             if(expired && archive(d,active!!,"unconfirmed")) reset(c,d,active.optString("routineId"))
             var occupied=active?.optString("phase") !in listOf(null,"idle") && !expired
             for(p in ps) {
@@ -91,6 +98,7 @@ object Routines {
             }
             if(before!=d.toString()) store.write(d)
         }
+        endCueSettings?.let { BreakCues.play(c,"end",it) }
         if(notify) Reminders.notify(c,false)
     }
     /** Missed means unconfirmed, not evidence that the person stayed on screen. */
@@ -110,6 +118,7 @@ object Routines {
         Store(c).use { store ->
             val d=store.read();val s=d.optJSONObject("session") ?: return
             if(s.optString("id")!=id || s.optString("phase") !in listOf("pending","rest","finished")) return
+            BreakStats.snapshot(c,d,s)
             if(!yes) { removeMissed(d,id); archive(d,s,"skipped") }
             if(yes) {
                 removeMissed(d,id)
@@ -127,6 +136,6 @@ object Routines {
             }
             reset(c,d,s.optString("routineId"));if(yes) resetScreenRoutines(c,d);d.remove("session");store.write(d)
         }
-        Reminders.clear(c);Reminders.schedule(c)
+        Reminders.clear(c);if(!yes) Reminders.skippedSummary(c);Reminders.schedule(c)
     }
 }

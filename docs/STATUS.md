@@ -1,3 +1,18 @@
+# 0.5 source update (2026-10-23)
+
+Planner, six Many Maybes imagination activities, reviewed idea-card submission,
+English voice setup, category outcome counts, skip notifications, look-away cues,
+and pinned break actions are implemented. See UPDATE-0.5.md.
+
+Flutter analysis is clean; 68 Flutter tests and 14 Python tests pass. Both content
+validators pass (18 bundled activities). The popup action regression also passes
+at 200% text scale in portrait and landscape. FOSS ARM64 debug APK and instrumentation APK compile successfully; all 15
+native JVM tests pass. Instrumentation tests were compiled but not run. No
+physical-device acceptance or published 0.5 APK is claimed. The local debug APK
+is not signed with the owner release key and is not an upgrade release.
+
+Older results below apply only to their stated versions.
+
 # 0.4.0 release candidate: Android build verified
 
 Commit b1eff80 passed GitHub Actions run 39464989552: 58 Flutter tests,

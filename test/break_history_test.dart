@@ -78,7 +78,19 @@ void main() {
     await tester.tap(find.text('Progress'));
     await tester.pumpAndSettle();
     expect(find.text('Break dashboard'), findsOneWidget);
-    expect(find.text('1 completed • 1 missed'), findsOneWidget);
+    await tester.tap(find.text('All time'));
+    await tester.pumpAndSettle();
+    expect(find.text('1 completed · 0 skipped · 1 missed'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('I took it'),
+      200,
+      scrollable: find
+          .descendant(
+            of: find.byKey(const ValueKey('tab-2')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
     expect(find.text('I took it'), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
   });
