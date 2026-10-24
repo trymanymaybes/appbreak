@@ -86,7 +86,7 @@ object Backups {
         for(key in listOf("workSeconds","breakSeconds","activeStart","activeEnd","quietStart","quietEnd","goal","popupPausedUntil")) if(s.has(key)) require(s.get(key) is Int || s.get(key) is Long)
         for(key in listOf("rate","volume")) if(s.has(key)) require(s.get(key) is Number)
         if(s.has("popupPausedUntil")) require(s.getLong("popupPausedUntil")>=0)
-        if(s.has("plannerView")) require(s.getString("plannerView") in listOf("calendar","list"))
+        if(s.has("plannerView")) require(s.getString("plannerView") in listOf("calendar","day","list"))
         if(s.has("voice")) require(s.get("voice") is String)
         require(s.optInt("workSeconds",1500) in 60..14400 && s.optInt("breakSeconds",60) in 20..300)
         for(key in listOf("activeStart","activeEnd","quietStart","quietEnd")) if(s.has(key)) require(s.getInt(key) in 0..23)
