@@ -9,7 +9,7 @@ class StorageTest: AndroidTestCase() {
     override fun tearDown() { context.deleteDatabase("companion.db"); super.tearDown() }
     fun testPlannerViewsSurviveBackup() {
         for(view in listOf("calendar","day","list")) {
-            Store(context).use { it.write(JSONObject().put("schemaVersion",1).put("settings",JSONObject().put("plannerView",view))) }
+            Store(context).use { store -> val state=store.read();state.put("schemaVersion",1).put("settings",JSONObject().put("plannerView",view));store.write(state) }
             val backup=Backups.validate(Backups.make(context,false));Backups.restore(context,backup)
             assertEquals(view,Store(context).use{it.read()}.getJSONObject("settings").getString("plannerView"))
         }
