@@ -33,12 +33,23 @@ class Companion extends ChangeNotifier {
     catalogStatus = snapshot['status'] as String;
   }
 
-  Future<void> refreshCatalog({bool manual = false}) async {
-    if (catalogBusy || !visible || session.phase != Phase.idle) return;
+  Future<void> refreshCatalog({
+    bool manual = false,
+    bool downloadOnly = false,
+  }) async {
+    if (catalogBusy || !visible || session.phase != Phase.idle) {
+      if (downloadOnly) {
+        catalogStatus =
+            'Finish or skip the current session, then retry the download.';
+        notifyListeners();
+      }
+      return;
+    }
     catalogBusy = true;
     try {
       final result = await device.call<String>('catalogRefresh', {
         'manual': manual,
+        'download': downloadOnly,
       });
       if (disposed) return;
       readCatalog(result);
@@ -96,8 +107,9 @@ class Companion extends ChangeNotifier {
 
   Future<void> installBundle(
     RoutineBundle input,
-    Map<String, dynamic> overrides,
-  ) async {
+    Map<String, dynamic> overrides, {
+    String? updateRoutineId,
+  }) async {
     if (busy) {
       error = 'App is saving. Please retry shortly.';
       notifyListeners();
@@ -105,13 +117,38 @@ class Companion extends ChangeNotifier {
     }
     await act(() async {
       final bundle = RoutineBundle(Map<String, dynamic>.from(input.data));
-      if (profiles.any((p) => p['bundleId'] == bundle.id)) {
+      final installed = profiles
+          .where((p) => p['bundleId'] == bundle.id)
+          .firstOrNull;
+      final updating = updateRoutineId != null;
+      if (updating && (installed == null || installed['id'] != updateRoutineId))
+        throw StateError('Installed routine changed. Reopen the preview.');
+      if (updating && bundle.version <= (installed!['bundleVersion'] ?? 1))
+        throw StateError('This version is already installed.');
+      if (updating &&
+          session.routineId == updateRoutineId &&
+          session.phase != Phase.idle)
+        throw StateError('Finish or skip the current routine before updating.');
+      if (!updating && installed != null) {
         throw StateError(
           'Already installed. Edit or remove the existing routine; updates never replace your customisations.',
         );
       }
-      if (profiles.length >= 20) throw StateError('At most 20 routines');
-      final options = bundle.settings(overrides);
+      if (!updating && profiles.length >= 20)
+        throw StateError('At most 20 routines');
+      final options = updating
+          ? <String, dynamic>{
+              for (final k in RoutineBundle.settingKeys)
+                k: installed![k] ?? bundle.data['defaults'][k],
+            }
+          : bundle.settings(overrides);
+      if (updating) {
+        bundle.settings(
+          overrides,
+        ); // Verify only advertised customisations were requested.
+        options.addAll(overrides);
+        RoutineBundle.validateSettings(options);
+      }
       final available = [
         ...((data['customActivities'] ?? []) as List).map(
           (a) => Activity(Map<String, dynamic>.from(a)),
@@ -142,10 +179,44 @@ class Companion extends ChangeNotifier {
         'notifications': false,
         'bundleId': bundle.id,
         'bundleVersion': bundle.version,
+        'bundleActivityIds': bundle.activityIds,
         'activityIds': bundle.activityIds,
         'categories': dependencies.map((a) => a.category).toSet().toList(),
         if (options['selection'] == 'fixed') 'favourite': dependencies.first.id,
       };
+      if (updating) {
+        // Preserve every local setting and identity. Only untouched bundle activity
+        // selections follow new dependencies; older installs stay conservative.
+        final next = {
+          ...installed!,
+          ...options,
+          'bundleVersion': bundle.version,
+          'bundleActivityIds': bundle.activityIds,
+        };
+        if (installed['bundleActivityIds'] != null &&
+            listEquals(
+              installed['activityIds'] as List?,
+              installed['bundleActivityIds'] as List?,
+            )) {
+          next['activityIds'] = bundle.activityIds;
+          next['categories'] = dependencies
+              .map((a) => a.category)
+              .toSet()
+              .toList();
+          if (options['selection'] == 'fixed' &&
+              installed['favourite'] ==
+                  (installed['bundleActivityIds'] as List).first)
+            next['favourite'] = dependencies.first.id;
+        }
+        data['settings'] = {
+          ...settings,
+          'profiles': profiles
+              .map((p) => p['id'] == updateRoutineId ? next : p)
+              .toList(),
+        };
+        data['customActivities'] = custom.values.toList();
+        return;
+      }
       data['customActivities'] = custom.values.toList();
       data['settings'] = {
         ...settings,

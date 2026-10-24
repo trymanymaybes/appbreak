@@ -71,13 +71,20 @@ open class MainActivity: FlutterActivity() {
                         if(open) { intent?.action = null; intent?.removeExtra("sessionId") }
                         result.success(if(open) mapOf("sessionId" to sessionId) else null)
                     }
+                    "contentImage" -> {
+                        val url=call.argument<String>("url") ?: ""
+                        Thread {
+                            try { val bytes=ContentMediaCache.load(applicationContext,url);handler.post {result.success(bytes)} }
+                            catch(_:Exception) {handler.post {result.error("media","Image unavailable; use the text alternative.",null)}}
+                        }.start()
+                    }
                     "catalogLoad" -> result.success(ActivityCatalog.snapshot(this))
                     "catalogEnabled" -> { ActivityCatalog.setEnabled(this, call.argument<Boolean>("enabled") == true); result.success(ActivityCatalog.snapshot(this)) }
                     "catalogRefresh" -> {
                         if(this is BreakPopupActivity) result.success(ActivityCatalog.snapshot(this))
                         else Thread {
                             try {
-                                val value = ActivityCatalog.refresh(applicationContext, call.argument<Boolean>("manual") == true)
+                                val value = ActivityCatalog.refresh(applicationContext, call.argument<Boolean>("manual") == true, call.argument<Boolean>("download") == true)
                                 handler.post { result.success(value) }
                             } catch (_: Exception) {
                                 handler.post { result.error("catalog", "Catalogue unavailable; local activities remain available.", null) }

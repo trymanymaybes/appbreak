@@ -1,3 +1,4 @@
+import 'content_media.dart';
 import 'package:flutter/material.dart';
 import '../application/controller.dart';
 import '../domain/many_maybes.dart';
@@ -151,11 +152,11 @@ class _ManyMaybesChallengeViewState extends State<ManyMaybesChallengeView> {
                         const Center(child: CircularProgressIndicator()),
                     errorBuilder: (_, _, _) => fallback(),
                   )
-                : Image.network(
-                    challenge.imageUrl,
-                    fit: BoxFit.contain,
-                    semanticLabel: challenge.alt,
-                    errorBuilder: (_, _, _) => fallback(),
+                : CachedContentImage(
+                    url: challenge.imageUrl,
+                    alt: challenge.alt,
+                    fallback: 'Image unavailable. ${challenge.alt}',
+                    height: 240,
                   ),
           ),
         if (challenge != null)

@@ -61,17 +61,17 @@ object ActivityCatalog {
     }
 
     /** Worker thread only. Refreshes are independent of session persistence. */
-    fun refresh(c: Context, manual: Boolean): String {
+    fun refresh(c: Context, manual: Boolean, explicitDownload: Boolean = false): String {
         if (!running.compareAndSet(false, true)) return snapshot(c)
         try {
             val p = prefs(c)
             val now = System.currentTimeMillis()
             synchronized(this) {
-                if (!enabled(c)) return snapshot(c)
+                if (!enabled(c) && !explicitDownload) return snapshot(c)
                 val last = p.getLong("attempt", 0)
                 val next = p.getLong("next", 0)
-                // Manual refresh also respects a one-day floor and server cooldown.
-                if (last > now || now < p.getLong("retryAfter", 0) || now - last < DAY || (!manual && now < next)) return snapshot(c)
+                // Explicit user refresh has a one-minute floor; background checks wait a day.
+                if (last > now || now < p.getLong("retryAfter", 0) || now - last < (if(manual) 60000L else DAY) || (!manual && now < next)) return snapshot(c)
                 check(p.edit().putLong("attempt", now).putLong("next", now + DAY).commit())
             }
             var connection: HttpsURLConnection? = null
@@ -117,12 +117,12 @@ object ActivityCatalog {
                 }
                 synchronized(this) {
                     // Turning updates off during a download discards its result.
-                    if (enabled(c)) check(edit.putLong("success", now).putLong("retryAfter", 0)
+                    if (enabled(c) || explicitDownload) check(edit.putLong("success", now).putLong("retryAfter", 0)
                         .putLong("next", now + 7 * DAY + java.util.Random().nextInt(86400000))
                         .putString("status", "Catalogue checked. Cached activities are available offline.").commit())
                 }
             } catch (_: Exception) {
-                p.edit().putString("status", "Could not update catalogue. Existing activities remain available; retry after one day.").commit()
+                p.edit().putString("status", "Could not update catalogue. Existing activities remain available; retry later (server cooldowns are respected).").commit()
             } finally { connection?.disconnect() }
             return snapshot(c)
         } finally { running.set(false) }

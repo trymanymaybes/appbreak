@@ -166,6 +166,100 @@ void main() {
       );
     },
   );
+  test(
+    'explicit update preserves identity, settings, reminders and progress',
+    () async {
+      final d = FakeDevice();
+      final c = setup(d);
+      final b = BundleCatalog.parse(raw).first;
+      await c.installBundle(b, {'workSeconds': 2100});
+      final old = c.profiles.last;
+      await c.saveRoutine({
+        ...old,
+        'name': 'My reading',
+        'enabled': true,
+        'popup': true,
+        'notifications': true,
+        'message': 'My cue',
+      });
+      d.value['history'] = [
+        {'id': 'past', 'routine': old['id']},
+      ];
+      final next = RoutineBundle({
+        ...b.data,
+        'version': 2,
+        'defaults': {...b.data['defaults'], 'workSeconds': 3000},
+      });
+      await c.installBundle(next, {}, updateRoutineId: old['id']);
+      expect(c.error, isNull);
+      final updated = c.profiles.last;
+      expect(updated['id'], old['id']);
+      expect(updated['bundleVersion'], 2);
+      expect(updated['workSeconds'], 2100);
+      expect(updated['name'], 'My reading');
+      expect(updated['enabled'], true);
+      expect(updated['popup'], true);
+      expect(updated['message'], 'My cue');
+      expect(d.value['history'].single['routine'], old['id']);
+      await c.installBundle(b, {}, updateRoutineId: old['id']);
+      expect(c.error, contains('already installed'));
+      c.dispose();
+    },
+  );
+  test(
+    'update rejects unmet dependencies atomically and preserves local activity choices',
+    () async {
+      final d = FakeDevice();
+      final c = setup(d);
+      final b = BundleCatalog.parse(raw).first;
+      await c.installBundle(b, {});
+      final old = c.profiles.last;
+      final bad = RoutineBundle({
+        ...b.data,
+        'version': 2,
+        'dependencies': [
+          {'id': 'missing', 'minimumVersion': 1},
+        ],
+      });
+      await c.installBundle(bad, {}, updateRoutineId: old['id']);
+      expect(c.error, contains('Missing activity'));
+      expect(c.profiles.last['bundleVersion'], 1);
+      final custom = {...old}..remove('activityIds');
+      await c.saveRoutine(custom);
+      final next = RoutineBundle({
+        ...b.data,
+        'version': 2,
+        'dependencies': [
+          {'id': 'quiet.distance', 'minimumVersion': 1},
+        ],
+      });
+      await c.installBundle(next, {}, updateRoutineId: old['id']);
+      expect(c.error, isNull);
+      expect(c.profiles.last.containsKey('activityIds'), false);
+      c.dispose();
+    },
+  );
+  test(
+    'untouched activity selection follows new bundle dependencies',
+    () async {
+      final d = FakeDevice();
+      final c = setup(d);
+      final b = BundleCatalog.parse(raw).first;
+      await c.installBundle(b, {});
+      final id = c.profiles.last['id'];
+      final next = RoutineBundle({
+        ...b.data,
+        'version': 2,
+        'dependencies': [
+          {'id': 'quiet.distance', 'minimumVersion': 1},
+        ],
+      });
+      await c.installBundle(next, {}, updateRoutineId: id);
+      expect(c.error, isNull);
+      expect(c.profiles.last['activityIds'], ['quiet.distance']);
+      c.dispose();
+    },
+  );
   testWidgets(
     'preview shows dependencies, validates then adds disabled routine',
     (tester) async {

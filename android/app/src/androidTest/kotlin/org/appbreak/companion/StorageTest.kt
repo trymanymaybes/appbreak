@@ -56,4 +56,15 @@ class StorageTest: AndroidTestCase() {
         Store(context).use {val state=it.read();state.getJSONArray("history").getJSONObject(0).put("utcOffsetMinutes",9999);it.write(state)}
         try {Backups.validate(Backups.make(context,false));fail("Accepted invalid offset")} catch(_:IllegalArgumentException) {}
     }
+    fun testBundleProvenanceAndPinnedContentSurviveBackup() {
+        val a=JSONObject(context.assets.open("flutter_assets/assets/activities.json").bufferedReader().use{it.readText()}).getJSONArray("activities").getJSONObject(0)
+        a.put("id","community.backup-test").put("contentVersion",2)
+        val p=JSONObject().put("id","bundle-stable").put("name","My reading").put("breakSeconds",60).put("workSeconds",2100).put("selection","rotation").put("categories",JSONArray().put("quiet"))
+            .put("enabled",false).put("bundleId","example.reading").put("bundleVersion",2).put("activityIds",JSONArray().put(a.getString("id"))).put("bundleActivityIds",JSONArray().put(a.getString("id")))
+        Store(context).use{it.write(JSONObject().put("schemaVersion",1).put("settings",JSONObject().put("profiles",JSONArray().put(p))).put("customActivities",JSONArray().put(a)))}
+        val backup=Backups.validate(Backups.make(context,false));Backups.restore(context,backup)
+        val restored=Store(context).use{it.read()};val profile=restored.getJSONObject("settings").getJSONArray("profiles").getJSONObject(0)
+        assertEquals("bundle-stable",profile.getString("id"));assertEquals(2100,profile.getInt("workSeconds"));assertEquals(2,profile.getInt("bundleVersion"))
+        assertEquals(2,restored.getJSONArray("customActivities").getJSONObject(0).getInt("contentVersion"))
+    }
 }

@@ -81,3 +81,7 @@ Release/signing instructions, including the owner-controlled signing key and F-D
 ## Licensing
 
 Original application source is **Apache-2.0** (root `LICENSE`). Original bundled activities are **CC-BY-4.0** (`assets/LICENSE-CC-BY-4.0.txt`). Owner approval was received on 2026-10-18. Third-party SDK/template/dependency notices retain their own licences under `third_party/licenses`. See `NOTICE` for scope. F-Droid inclusion still requires native artifact/dependency review and successful device testing.
+
+## Next release preparation
+
+See [AppBreak 0.6.0](docs/RELEASE-0.6.md) for the candidate feature list, test gates, device checklist and signing/publication handoff. Source preparation does not mean an APK has been published.

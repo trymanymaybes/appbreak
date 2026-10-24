@@ -66,7 +66,17 @@ class _BundlePreviewState extends State<BundlePreview> {
   @override
   Widget build(BuildContext context) {
     final b = widget.bundle;
-    final s = b.settings(overrides);
+    final installed = widget.controller.profiles
+        .where((p) => p['bundleId'] == b.id)
+        .firstOrNull;
+    final updating =
+        installed != null && b.version > (installed['bundleVersion'] ?? 1);
+    final s = updating
+        ? <String, dynamic>{
+            for (final k in RoutineBundle.settingKeys)
+              k: overrides[k] ?? installed[k] ?? b.data['defaults'][k],
+          }
+        : b.settings(overrides);
     final custom = b.data['customisable'] as List;
     return Scaffold(
       appBar: AppBar(title: const Text('Preview and customise')),
@@ -80,8 +90,33 @@ class _BundlePreviewState extends State<BundlePreview> {
             Text(
               'Work activity: ${b.data['workActivity']}\nTrigger: ${s['trigger']}\nSelection: ${s['selection']}',
             ),
+            Text(
+              updating
+                  ? 'Update installed version ${installed['bundleVersion']} to ${b.version}. Keeps the routine name, ID, reminder state, local settings, history and notes. Untouched bundle activity selections follow new dependencies.'
+                  : 'Adds one editable routine, initially disabled, and saves required activities offline. Existing routines, progress and notes are kept.',
+            ),
+            Text(
+              '${b.data['author']} · ${b.data['license']} · version ${b.version}',
+            ),
+            OutlinedButton(
+              onPressed: adding
+                  ? null
+                  : () async {
+                      setState(() => adding = true);
+                      await widget.controller.refreshCatalog(
+                        manual: true,
+                        downloadOnly: true,
+                      );
+                      if (!mounted) return;
+                      setState(() {
+                        adding = false;
+                        message = widget.controller.catalogStatus;
+                      });
+                    },
+              child: const Text('Download required activities'),
+            ),
             const Text(
-              'Adds one editable routine, initially disabled, and saves required activities offline. Existing routines, progress and notes are kept.',
+              'Downloads the reviewed activity catalogue without enabling automatic updates or installing a routine. Add/update below validates every dependency.',
             ),
             for (final dep in b.data['dependencies'])
               Text(
@@ -155,16 +190,26 @@ class _BundlePreviewState extends State<BundlePreview> {
                       if (!form.currentState!.validate()) return;
                       form.currentState!.save();
                       setState(() => adding = true);
-                      await widget.controller.installBundle(b, overrides);
+                      await widget.controller.installBundle(
+                        b,
+                        overrides,
+                        updateRoutineId: updating
+                            ? installed['id'] as String
+                            : null,
+                      );
                       if (!mounted) return;
                       setState(() {
                         adding = false;
                         message =
                             widget.controller.error ??
-                            'Added with reminders off. Edit or remove it in Routines.';
+                            (updating
+                                ? 'Updated. Your settings and history were kept.'
+                                : 'Added with reminders off. Edit or remove it in Routines.');
                       });
                     },
-              child: const Text('Add disabled routine'),
+              child: Text(
+                updating ? 'Update existing routine' : 'Add disabled routine',
+              ),
             ),
           ],
         ),

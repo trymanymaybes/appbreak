@@ -120,7 +120,7 @@ object Backups {
                 for(j in 0 until cats.length()) require(cats.get(j) in listOf("quiet","movement","breathing","hydration","quiz","imagination"))
                 if(profile.has("bundleId")) require(profile.get("bundleId") is String && profile.getString("bundleId").matches(Regex("[a-z0-9._-]{1,80}")))
                 if(profile.has("bundleVersion")) require(profile.get("bundleVersion") is Int && profile.getInt("bundleVersion")>=1)
-                if(profile.has("activityIds")) { val refs=profile.getJSONArray("activityIds");require(refs.length() in 1..30);val seen=mutableSetOf<String>();for(j in 0 until refs.length()) require(refs.get(j) is String && refs.getString(j).matches(Regex("[a-z0-9._-]{1,80}")) && seen.add(refs.getString(j))) }
+                for(field in listOf("activityIds","bundleActivityIds")) if(profile.has(field)) { val refs=profile.getJSONArray(field);require(refs.length() in 1..30);val seen=mutableSetOf<String>();for(j in 0 until refs.length()) require(refs.get(j) is String && refs.getString(j).matches(Regex("[a-z0-9._-]{1,80}")) && seen.add(refs.getString(j))) }
                 if(profile.has("disabledActivities")) { val disabled=profile.getJSONArray("disabledActivities");require(disabled.length()<=212);for(j in 0 until disabled.length()) require(disabled.get(j) is String && disabled.getString(j).length<=80) }
             }
             if(s.has("profile")) require(s.getString("profile") in ids)

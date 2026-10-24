@@ -35,6 +35,20 @@ jobs:
       - name: Native unit tests and instrumentation compilation
         working-directory: android
         run: ./gradlew :app:testFossDebugUnitTest :app:assembleFossDebugAndroidTest --no-daemon
+      - name: Execute native instrumentation on Android 10 emulator
+        timeout-minutes: 15
+        run: bash tools/run_android_instrumentation.sh
+      - name: Retain device test evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: appbreak-emulator-evidence
+          path: |
+            build/app/outputs/androidTest-results/
+            build/app/reports/androidTests/
+            ${{ runner.temp }}/appbreak-device-checks/
+          if-no-files-found: warn
+          retention-days: 14
       - name: Retain unsigned release candidate
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
