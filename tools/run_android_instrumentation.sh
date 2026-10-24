@@ -13,7 +13,7 @@ if [[ -e /dev/kvm && ! -w /dev/kvm ]]; then sudo chmod a+rw /dev/kvm; fi
 sdkmanager 'emulator' 'platform-tools' 'system-images;android-29;default;x86_64'
 printf 'no\n' | avdmanager create avd --force --name appbreak-check --package 'system-images;android-29;default;x86_64' --path "$ANDROID_AVD_HOME/appbreak-check.avd"
 printf 'avd.ini.encoding=UTF-8\npath=%s\ntarget=android-29\n' "$ANDROID_AVD_HOME/appbreak-check.avd" > "$ANDROID_AVD_HOME/appbreak-check.ini"
-emulator -list-avds | rg -x 'appbreak-check'
+emulator -list-avds | grep -x 'appbreak-check'
 emulator -avd appbreak-check -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect -memory 2048 >"$log_dir/emulator.log" 2>&1 &
 emulator_pid=$!
 trap 'timeout 10 adb logcat -d >"$log_dir/logcat.txt" 2>/dev/null || true; kill "$emulator_pid" 2>/dev/null || true' EXIT
