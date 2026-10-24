@@ -50,6 +50,8 @@ List<Activity> fittingActivities(
       .where(
         (a) =>
             enabled.contains(a.category) &&
+            (profile['activityIds'] == null ||
+                (profile['activityIds'] as List).contains(a.id)) &&
             !disabled.contains(a.id) &&
             a.seconds <= seconds,
       )

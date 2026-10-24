@@ -50,7 +50,7 @@ open class MainActivity: FlutterActivity() {
                     }
                     "saveIdeaCard" -> {
                         val text=call.argument<String>("text")!!.trim();val challenge=call.argument<String>("challenge")!!
-                        require(text.length in 1..2000 && challenge.matches(Regex("0[1-6]")))
+                        require(text.length in 1..2000 && challenge.matches(Regex("[0-9]{1,8}")))
                         fileBytes=IdeaCard.render("Many Maybes · Challenge $challenge",text)
                         beginFile(result,Intent(Intent.ACTION_CREATE_DOCUMENT).setType("image/png").putExtra(Intent.EXTRA_TITLE,"many-maybes-idea-$challenge.png"),60)
                     }
@@ -71,13 +71,20 @@ open class MainActivity: FlutterActivity() {
                         if(open) { intent?.action = null; intent?.removeExtra("sessionId") }
                         result.success(if(open) mapOf("sessionId" to sessionId) else null)
                     }
+                    "contentImage" -> {
+                        val url=call.argument<String>("url") ?: ""
+                        Thread {
+                            try { val bytes=ContentMediaCache.load(applicationContext,url);handler.post {result.success(bytes)} }
+                            catch(_:Exception) {handler.post {result.error("media","Image unavailable; use the text alternative.",null)}}
+                        }.start()
+                    }
                     "catalogLoad" -> result.success(ActivityCatalog.snapshot(this))
                     "catalogEnabled" -> { ActivityCatalog.setEnabled(this, call.argument<Boolean>("enabled") == true); result.success(ActivityCatalog.snapshot(this)) }
                     "catalogRefresh" -> {
                         if(this is BreakPopupActivity) result.success(ActivityCatalog.snapshot(this))
                         else Thread {
                             try {
-                                val value = ActivityCatalog.refresh(applicationContext, call.argument<Boolean>("manual") == true)
+                                val value = ActivityCatalog.refresh(applicationContext, call.argument<Boolean>("manual") == true, call.argument<Boolean>("download") == true)
                                 handler.post { result.success(value) }
                             } catch (_: Exception) {
                                 handler.post { result.error("catalog", "Catalogue unavailable; local activities remain available.", null) }

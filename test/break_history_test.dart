@@ -34,6 +34,8 @@ void main() {
       expect(c.history.length, 1);
       expect(c.history.single['date'], '2026-10-18');
       expect(c.history.single['category'], 'unknown');
+      expect(c.history.single.containsKey('recordedAt'), isFalse);
+      expect(c.history.single['confirmedAt'], 100000);
       expect(c.missedBreaks, isEmpty);
       c.dispose();
     },
@@ -55,6 +57,8 @@ void main() {
       await c.cancel();
       expect(c.history, isEmpty);
       expect(c.missedBreaks.single['reason'], 'skipped');
+      expect(c.missedBreaks.single['recordedAt'], 100000);
+      expect(c.missedBreaks.single['utcOffsetMinutes'], isA<int>());
       expect(c.session.phase, Phase.idle);
       c.dispose();
     },
@@ -81,6 +85,18 @@ void main() {
     await tester.tap(find.text('All time'));
     await tester.pumpAndSettle();
     expect(find.text('1 completed · 0 skipped · 1 missed'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Past records (2)'),
+      200,
+      scrollable: find
+          .descendant(
+            of: find.byKey(const ValueKey('tab-2')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+    await tester.tap(find.text('Past records (2)'));
+    await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
       find.text('I took it'),
       200,

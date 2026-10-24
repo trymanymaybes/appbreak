@@ -26,3 +26,7 @@ Maintainers: protect main with required review and required validation checks, u
 and restrict write access. These repository settings must be verified separately;
 this file does not enforce them. A compromised maintainer could publish harmful text
 within the schema: validation is not editorial safety review or cryptographic signing.
+
+## Extended protocol endpoint
+
+Updated clients use `v1/catalog.json`. The root `catalog.json` remains the original strict subset for previously released apps. Do not add new fields to the root endpoint. See [CONTENT-PROTOCOL](../docs/CONTENT-PROTOCOL.md) for versioning, media alternatives, bundle dependencies, migration and review enforcement limitations.

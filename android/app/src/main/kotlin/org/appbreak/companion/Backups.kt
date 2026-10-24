@@ -9,6 +9,14 @@ import java.io.File
 import android.util.Base64
 
 object Backups {
+    private fun validateRecordTime(item:JSONObject) {
+        for(field in listOf("recordedAt","confirmedAt")) if(item.has(field)) {
+            require(item.get(field) is Int || item.get(field) is Long)
+            require(item.getLong(field) in 0L..8640000000000000L)
+        }
+        if(item.has("utcOffsetMinutes")) require(item.get("utcOffsetMinutes") is Int && item.getInt("utcOffsetMinutes") in -840..840)
+    }
+
     const val MAX = 24 * 1024 * 1024
     private fun hash(s: String) = MessageDigest.getInstance("SHA-256").digest(s.toByteArray(Charsets.UTF_8)).joinToString("") { "%02x".format(it) }
     fun make(c:Context, includeAudio:Boolean): ByteArray {
@@ -39,7 +47,7 @@ object Backups {
             for(i in 0 until list.length()) {
                 val item=list.getJSONObject(i); require(item.get("id") is String); val id=item.getString("id"); require(id.length in 1..100 && seen.add(id)) { "Duplicate or invalid IDs" }
                 if(key=="ideas") { require(item.get("text") is String && (!item.has("title") || item.get("title") is String)); for(field in listOf("recording","activity","session")) if(!item.isNull(field)) require(item.get(field) is String); require(item.getString("text").length<=100000); require(item.optString("title").length<=200) }
-                else { require(item.get("date") is String && item.get("category") is String); require(item.getString("date").matches(Regex("\\d{4}-\\d{2}-\\d{2}"))); require(item.getString("category") in listOf("quiet","movement","breathing","hydration","quiz","imagination","unknown")) }
+                else { validateRecordTime(item); require(item.get("date") is String && item.get("category") is String); require(item.getString("date").matches(Regex("\\d{4}-\\d{2}-\\d{2}"))); require(item.getString("category") in listOf("quiet","movement","breathing","hydration","quiz","imagination","unknown")) }
             }
         }
         if(d.has("missedBreaks")) {
@@ -47,6 +55,7 @@ object Backups {
             val ids=mutableSetOf<String>()
             for(i in 0 until list.length()) {
                 val item=list.getJSONObject(i)
+                validateRecordTime(item)
                 require(item.getString("id").length in 1..100 && ids.add(item.getString("id")))
                 require(item.getString("date").matches(Regex("\\d{4}-\\d{2}-\\d{2}")))
                 require(item.getString("reason") in listOf("unconfirmed","skipped"))
@@ -77,6 +86,7 @@ object Backups {
         for(key in listOf("workSeconds","breakSeconds","activeStart","activeEnd","quietStart","quietEnd","goal","popupPausedUntil")) if(s.has(key)) require(s.get(key) is Int || s.get(key) is Long)
         for(key in listOf("rate","volume")) if(s.has(key)) require(s.get(key) is Number)
         if(s.has("popupPausedUntil")) require(s.getLong("popupPausedUntil")>=0)
+        if(s.has("plannerView")) require(s.getString("plannerView") in listOf("calendar","list"))
         if(s.has("voice")) require(s.get("voice") is String)
         require(s.optInt("workSeconds",1500) in 60..14400 && s.optInt("breakSeconds",60) in 20..300)
         for(key in listOf("activeStart","activeEnd","quietStart","quietEnd")) if(s.has(key)) require(s.getInt(key) in 0..23)
@@ -108,11 +118,15 @@ object Backups {
                 if(profile.has("favourite")) require(profile.get("favourite") is String && profile.getString("favourite").length<=80)
                 val cats=profile.getJSONArray("categories");require(cats.length()<=6)
                 for(j in 0 until cats.length()) require(cats.get(j) in listOf("quiet","movement","breathing","hydration","quiz","imagination"))
+                if(profile.has("bundleId")) require(profile.get("bundleId") is String && profile.getString("bundleId").matches(Regex("[a-z0-9._-]{1,80}")))
+                if(profile.has("bundleVersion")) require(profile.get("bundleVersion") is Int && profile.getInt("bundleVersion")>=1)
+                for(field in listOf("activityIds","bundleActivityIds")) if(profile.has(field)) { val refs=profile.getJSONArray(field);require(refs.length() in 1..30);val seen=mutableSetOf<String>();for(j in 0 until refs.length()) require(refs.get(j) is String && refs.getString(j).matches(Regex("[a-z0-9._-]{1,80}")) && seen.add(refs.getString(j))) }
                 if(profile.has("disabledActivities")) { val disabled=profile.getJSONArray("disabledActivities");require(disabled.length()<=212);for(j in 0 until disabled.length()) require(disabled.get(j) is String && disabled.getString(j).length<=80) }
             }
             if(s.has("profile")) require(s.getString("profile") in ids)
         }
         if(d.has("customActivities") && d.getJSONArray("customActivities").length()>0) ActivityPacks.validate(JSONObject().put("schemaVersion",1).put("activities",d.getJSONArray("customActivities")))
+        if(d.has("manyMaybesActivities") && d.getJSONArray("manyMaybesActivities").length()>0) ActivityPacks.validate(JSONObject().put("schemaVersion",1).put("activities",d.getJSONArray("manyMaybesActivities")))
         val a=p.getJSONObject("audio"); var total=0
         a.keys().forEach { name ->
             require(name.matches(Regex("[a-f0-9-]{36}\\.m4a"))) { "Invalid recording path" }

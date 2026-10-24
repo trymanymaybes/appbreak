@@ -1,9 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import '../domain/activity.dart';
+import '../domain/routine_bundle.dart';
+import '../services/bundle_catalog.dart';
+import '../domain/many_maybes.dart';
 import '../domain/break_counts.dart' as counts;
 import '../domain/session.dart';
 import '../domain/profile.dart';
@@ -29,12 +33,23 @@ class Companion extends ChangeNotifier {
     catalogStatus = snapshot['status'] as String;
   }
 
-  Future<void> refreshCatalog({bool manual = false}) async {
-    if (catalogBusy || !visible || session.phase != Phase.idle) return;
+  Future<void> refreshCatalog({
+    bool manual = false,
+    bool downloadOnly = false,
+  }) async {
+    if (catalogBusy || !visible || session.phase != Phase.idle) {
+      if (downloadOnly) {
+        catalogStatus =
+            'Finish or skip the current session, then retry the download.';
+        notifyListeners();
+      }
+      return;
+    }
     catalogBusy = true;
     try {
       final result = await device.call<String>('catalogRefresh', {
         'manual': manual,
+        'download': downloadOnly,
       });
       if (disposed) return;
       readCatalog(result);
@@ -54,6 +69,162 @@ class Companion extends ChangeNotifier {
     );
     notifyListeners();
     if (enabled) await refreshCatalog();
+  }
+
+  List<RoutineBundle> get routineBundles {
+    try {
+      return BundleCatalog.parse(data['bundleCatalog'] as String? ?? '{}');
+    } catch (_) {
+      return [];
+    }
+  }
+
+  bool bundleBusy = false;
+  String bundleStatus =
+      'Download optional examples to preview. Nothing is enabled automatically.';
+  Future<void> refreshBundles({BundleCatalog? source}) async {
+    if (bundleBusy || busy) return;
+    bundleBusy = true;
+    notifyListeners();
+    try {
+      final body = await (source ?? BundleCatalog()).fetch();
+      if (disposed) return;
+      if (busy) throw StateError('App is saving; retry shortly');
+      await act(() async {
+        data['bundleCatalog'] = body;
+      });
+      bundleStatus = error == null
+          ? 'Catalogue saved for offline browsing.'
+          : 'Could not save catalogue: $error';
+    } catch (_) {
+      bundleStatus =
+          'Could not update bundles. Previously downloaded examples remain available. Retry when online.';
+    } finally {
+      bundleBusy = false;
+      if (!disposed) notifyListeners();
+    }
+  }
+
+  Future<void> installBundle(
+    RoutineBundle input,
+    Map<String, dynamic> overrides, {
+    String? updateRoutineId,
+  }) async {
+    if (busy) {
+      error = 'App is saving. Please retry shortly.';
+      notifyListeners();
+      return;
+    }
+    await act(() async {
+      final bundle = RoutineBundle(Map<String, dynamic>.from(input.data));
+      final installed = profiles
+          .where((p) => p['bundleId'] == bundle.id)
+          .firstOrNull;
+      final updating = updateRoutineId != null;
+      if (updating && (installed == null || installed['id'] != updateRoutineId))
+        throw StateError('Installed routine changed. Reopen the preview.');
+      if (updating && bundle.version <= (installed!['bundleVersion'] ?? 1))
+        throw StateError('This version is already installed.');
+      if (updating &&
+          session.routineId == updateRoutineId &&
+          session.phase != Phase.idle)
+        throw StateError('Finish or skip the current routine before updating.');
+      if (!updating && installed != null) {
+        throw StateError(
+          'Already installed. Edit or remove the existing routine; updates never replace your customisations.',
+        );
+      }
+      if (!updating && profiles.length >= 20)
+        throw StateError('At most 20 routines');
+      final options = updating
+          ? <String, dynamic>{
+              for (final k in RoutineBundle.settingKeys)
+                k: installed![k] ?? bundle.data['defaults'][k],
+            }
+          : bundle.settings(overrides);
+      if (updating) {
+        bundle.settings(
+          overrides,
+        ); // Verify only advertised customisations were requested.
+        options.addAll(overrides);
+        RoutineBundle.validateSettings(options);
+      }
+      final available = [
+        ...((data['customActivities'] ?? []) as List).map(
+          (a) => Activity(Map<String, dynamic>.from(a)),
+        ),
+        ...bundled,
+        ...catalog,
+      ];
+      final dependencies = bundle.resolve(available, options);
+      final custom = {
+        for (final a in ((data['customActivities'] ?? []) as List)) a['id']: a,
+      };
+      for (final a in dependencies) {
+        if (!bundled.any((b) => b.id == a.id))
+          custom.putIfAbsent(a.id, () => a.data);
+      }
+      if (custom.length > 200)
+        throw StateError('Too many downloaded/private activities');
+      // Validate everything before mutating; one revision-checked store write commits it.
+      final random = Random.secure();
+      final routineId =
+          'bundle-${List.generate(16, (_) => random.nextInt(256).toRadixString(16).padLeft(2, '0')).join()}';
+      final routine = <String, dynamic>{
+        'id': routineId,
+        'name': bundle.title.substring(0, bundle.title.length.clamp(0, 100)),
+        ...options,
+        'enabled': false,
+        'popup': false,
+        'notifications': false,
+        'bundleId': bundle.id,
+        'bundleVersion': bundle.version,
+        'bundleActivityIds': bundle.activityIds,
+        'activityIds': bundle.activityIds,
+        'categories': dependencies.map((a) => a.category).toSet().toList(),
+        if (options['selection'] == 'fixed') 'favourite': dependencies.first.id,
+      };
+      if (updating) {
+        // Preserve every local setting and identity. Only untouched bundle activity
+        // selections follow new dependencies; older installs stay conservative.
+        final next = {
+          ...installed!,
+          ...options,
+          'bundleVersion': bundle.version,
+          'bundleActivityIds': bundle.activityIds,
+        };
+        if (installed['bundleActivityIds'] != null &&
+            listEquals(
+              installed['activityIds'] as List?,
+              installed['bundleActivityIds'] as List?,
+            )) {
+          next['activityIds'] = bundle.activityIds;
+          if (options['selection'] == 'fixed' &&
+              installed['favourite'] ==
+                  (installed['bundleActivityIds'] as List).first)
+            next['favourite'] = dependencies.first.id;
+        }
+        data['settings'] = {
+          ...settings,
+          'profiles': profiles
+              .map((p) => p['id'] == updateRoutineId ? next : p)
+              .toList(),
+        };
+        data['customActivities'] = custom.values.toList();
+        return;
+      }
+      data['customActivities'] = custom.values.toList();
+      data['settings'] = {
+        ...settings,
+        'profiles': [...profiles, routine],
+      };
+    });
+    if (error == null) {
+      await refresh();
+    } else {
+      data = await device.load();
+      if (!disposed) notifyListeners();
+    }
   }
 
   Session session = const Session();
@@ -84,6 +255,10 @@ class Companion extends ChangeNotifier {
       {
         ...session.toJson(),
         'reason': reason,
+        'recordedAt': moment.wall,
+        'utcOffsetMinutes': DateTime.fromMillisecondsSinceEpoch(
+          moment.wall,
+        ).timeZoneOffset.inMinutes,
         'category':
             current?.category ??
             ((profile['categories'] as List?)?.length == 1
@@ -113,6 +288,10 @@ class Companion extends ChangeNotifier {
           'category': record['category'] ?? activity?.category ?? 'unknown',
           'title': record['title'] ?? activity?.title ?? 'Break',
           'date': record['date'],
+          if (record['recordedAt'] != null) 'recordedAt': record['recordedAt'],
+          if (record['utcOffsetMinutes'] != null)
+            'utcOffsetMinutes': record['utcOffsetMinutes'],
+          'confirmedAt': moment.wall,
           'selfReported': true,
         },
       ];
@@ -239,6 +418,49 @@ class Companion extends ChangeNotifier {
     await switchActivity(fit[(i + direction) % fit.length].id);
   }
 
+  Future<void> useChallenge(
+    ManyMaybesChallenge challenge, {
+    required String sessionId,
+    required String previousActivity,
+  }) async {
+    if (session.id != sessionId ||
+        session.activity != previousActivity ||
+        session.phase != Phase.rest)
+      return;
+    await act(() async {
+      if (session.id != sessionId ||
+          session.activity != previousActivity ||
+          session.phase != Phase.rest)
+        return;
+      if ((profile['disabledActivities'] as List? ?? []).contains(
+        challenge.activityId,
+      )) {
+        throw StateError('This activity is disabled for this routine.');
+      }
+      final activity = challenge.toActivity();
+      final cached = List<Map<String, dynamic>>.from(
+        (data['manyMaybesActivities'] as List? ?? []).map(
+          (x) => Map<String, dynamic>.from(x),
+        ),
+      );
+      cached.removeWhere((a) => a['id'] == activity.id);
+      cached.add(activity.data);
+      // Keep a bounded offline cache; the online catalogue itself is unbounded.
+      if (cached.length > 200) cached.removeRange(0, cached.length - 200);
+      data['manyMaybesActivities'] = cached;
+      activities.removeWhere((a) => a.id == activity.id);
+      activities.add(activity);
+      await device.call('stopSpeech');
+      session = session.at(
+        Phase.rest,
+        session.remaining(moment),
+        moment,
+        activityId: activity.id,
+      );
+      data['lastActivity'] = activity.id;
+    }, stopCapture: challenge.activityId != previousActivity);
+  }
+
   Activity? get current =>
       activities.where((a) => a.id == session.activity).firstOrNull;
   Future<void> init() async {
@@ -267,8 +489,13 @@ class Companion extends ChangeNotifier {
         ...bundled.map((a) => a.id),
         ...((data['customActivities'] ?? []) as List).map((a) => a['id']),
       };
+      final siteActivities = ((data['manyMaybesActivities'] ?? []) as List)
+          .map((a) => Activity(Map<String, dynamic>.from(a)))
+          .toList();
+      final siteIds = siteActivities.map((a) => a.id).toSet();
       activities = [
-        ...bundled,
+        ...bundled.where((a) => !siteIds.contains(a.id)),
+        ...siteActivities,
         ...catalog.where((a) => !localIds.contains(a.id)),
         ...((data['customActivities'] ?? []) as List).map(
           (a) => Activity(Map<String, dynamic>.from(a)),
@@ -483,6 +710,10 @@ class Companion extends ChangeNotifier {
           'activity': a.id,
           'category': a.category,
           'title': a.title,
+          'recordedAt': moment.wall,
+          'utcOffsetMinutes': DateTime.fromMillisecondsSinceEpoch(
+            moment.wall,
+          ).timeZoneOffset.inMinutes,
           'date': DateTime.fromMillisecondsSinceEpoch(
             moment.wall,
           ).toIso8601String().substring(0, 10),
@@ -575,7 +806,11 @@ class Companion extends ChangeNotifier {
     try {
       if ((profile['quiet'] ?? settings['quiet'] ?? true) == true) return;
       await device.call('speak', {
-        'steps': current?.steps ?? [],
+        'steps': [
+          for (final m in (current?.data['media'] as List? ?? []))
+            {'kind': 'narration', 'text': '${m['alt']}. ${m['fallbackText']}'},
+          ...?current?.steps,
+        ],
         'language': current?.data['language'] ?? 'en-IN',
         'voice': settings['voice'],
         'rate': settings['rate'] ?? 1.0,

@@ -11,7 +11,7 @@ import javax.net.ssl.HttpsURLConnection
 
 /** Public, inert content only. Never reads Store, notes, recordings or device IDs. */
 object ActivityCatalog {
-    const val URL_TEXT = "https://raw.githubusercontent.com/trymanymaybes/appbreak/main/activity-catalog/catalog.json"
+    const val URL_TEXT = "https://raw.githubusercontent.com/trymanymaybes/appbreak/main/activity-catalog/v1/catalog.json"
     const val MAX_BYTES = 256 * 1024
     private const val DAY = 86400000L
     private val running = AtomicBoolean(false)
@@ -43,7 +43,7 @@ object ActivityCatalog {
         val pack = JSONObject(body)
         require(pack.keys().asSequence().toSet() == setOf("schemaVersion", "activities"))
         ActivityPacks.validate(pack)
-        val keys = setOf("schemaVersion", "id", "title", "category", "language", "estimatedSeconds", "description", "steps", "requiresVisualAttention", "requiresInput", "accessibleAlternatives", "author", "attribution", "contentLicense", "answer", "reflectionQuestion")
+        val keys = setOf("schemaVersion", "id", "title", "category", "language", "estimatedSeconds", "description", "steps", "requiresVisualAttention", "requiresInput", "accessibleAlternatives", "author", "attribution", "contentLicense", "answer", "reflectionQuestion", "contentVersion", "source", "reveal", "media")
         val list = pack.getJSONArray("activities")
         for (i in 0 until list.length()) {
             val a = list.getJSONObject(i)
@@ -61,17 +61,17 @@ object ActivityCatalog {
     }
 
     /** Worker thread only. Refreshes are independent of session persistence. */
-    fun refresh(c: Context, manual: Boolean): String {
+    fun refresh(c: Context, manual: Boolean, explicitDownload: Boolean = false): String {
         if (!running.compareAndSet(false, true)) return snapshot(c)
         try {
             val p = prefs(c)
             val now = System.currentTimeMillis()
             synchronized(this) {
-                if (!enabled(c)) return snapshot(c)
+                if (!enabled(c) && !explicitDownload) return snapshot(c)
                 val last = p.getLong("attempt", 0)
                 val next = p.getLong("next", 0)
-                // Manual refresh also respects a one-day floor and server cooldown.
-                if (last > now || now < p.getLong("retryAfter", 0) || now - last < DAY || (!manual && now < next)) return snapshot(c)
+                // Explicit user refresh has a one-minute floor; background checks wait a day.
+                if (last > now || now < p.getLong("retryAfter", 0) || now - last < (if(manual) 60000L else DAY) || (!manual && now < next)) return snapshot(c)
                 check(p.edit().putLong("attempt", now).putLong("next", now + DAY).commit())
             }
             var connection: HttpsURLConnection? = null
@@ -117,12 +117,12 @@ object ActivityCatalog {
                 }
                 synchronized(this) {
                     // Turning updates off during a download discards its result.
-                    if (enabled(c)) check(edit.putLong("success", now).putLong("retryAfter", 0)
+                    if (enabled(c) || explicitDownload) check(edit.putLong("success", now).putLong("retryAfter", 0)
                         .putLong("next", now + 7 * DAY + java.util.Random().nextInt(86400000))
                         .putString("status", "Catalogue checked. Cached activities are available offline.").commit())
                 }
             } catch (_: Exception) {
-                p.edit().putString("status", "Could not update catalogue. Existing activities remain available; retry after one day.").commit()
+                p.edit().putString("status", "Could not update catalogue. Existing activities remain available; retry later (server cooldowns are respected).").commit()
             } finally { connection?.disconnect() }
             return snapshot(c)
         } finally { running.set(false) }

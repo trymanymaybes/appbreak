@@ -1,3 +1,5 @@
+> Current release preparation: [0.6.0 checklist and signing handoff](RELEASE-0.6.md). The historical initial-build notes below predate the permanent signing identity; do not generate a replacement key.
+
 # Build, signing and F-Droid preparation
 
 A debug-signed testing APK has been built. No production signing key or store submission has been created. The user created the public repository `trymanymaybes/appbreak`. Never commit keys, passwords, keystores, `key.properties` or `local.properties`.

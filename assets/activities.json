@@ -32,7 +32,9 @@
       ],
       "author": "AppBreak project contributors",
       "attribution": "Original content prepared for AppBreak",
-      "contentLicense": "CC-BY-4.0"
+      "contentLicense": "CC-BY-4.0",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak"
     },
     {
       "schemaVersion": 1,
@@ -65,7 +67,9 @@
       ],
       "author": "AppBreak project contributors",
       "attribution": "Original content prepared for AppBreak",
-      "contentLicense": "CC-BY-4.0"
+      "contentLicense": "CC-BY-4.0",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak"
     },
     {
       "schemaVersion": 1,
@@ -98,7 +102,9 @@
       ],
       "author": "AppBreak project contributors",
       "attribution": "Original content prepared for AppBreak",
-      "contentLicense": "CC-BY-4.0"
+      "contentLicense": "CC-BY-4.0",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak"
     },
     {
       "schemaVersion": 1,
@@ -131,7 +137,9 @@
       ],
       "author": "AppBreak project contributors",
       "attribution": "Original content prepared for AppBreak",
-      "contentLicense": "CC-BY-4.0"
+      "contentLicense": "CC-BY-4.0",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak"
     },
     {
       "schemaVersion": 1,
@@ -164,7 +172,9 @@
       ],
       "author": "AppBreak project contributors",
       "attribution": "Original content prepared for AppBreak",
-      "contentLicense": "CC-BY-4.0"
+      "contentLicense": "CC-BY-4.0",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak"
     },
     {
       "schemaVersion": 1,
@@ -197,7 +207,9 @@
       ],
       "author": "AppBreak project contributors",
       "attribution": "Original content prepared for AppBreak",
-      "contentLicense": "CC-BY-4.0"
+      "contentLicense": "CC-BY-4.0",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak"
     },
     {
       "schemaVersion": 1,
@@ -230,7 +242,9 @@
       ],
       "author": "AppBreak project contributors",
       "attribution": "Original content prepared for AppBreak",
-      "contentLicense": "CC-BY-4.0"
+      "contentLicense": "CC-BY-4.0",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak"
     },
     {
       "schemaVersion": 1,
@@ -264,7 +278,10 @@
       "author": "AppBreak project contributors",
       "attribution": "Original content prepared for AppBreak",
       "contentLicense": "CC-BY-4.0",
-      "answer": "Your shadow."
+      "answer": "Your shadow.",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak",
+      "reveal": "manual"
     },
     {
       "schemaVersion": 1,
@@ -298,7 +315,10 @@
       "author": "AppBreak project contributors",
       "attribution": "Original content prepared for AppBreak",
       "contentLicense": "CC-BY-4.0",
-      "answer": "Eight stones."
+      "answer": "Eight stones.",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak",
+      "reveal": "manual"
     },
     {
       "schemaVersion": 1,
@@ -332,7 +352,9 @@
       "author": "AppBreak project contributors",
       "attribution": "Original content prepared for AppBreak",
       "contentLicense": "CC-BY-4.0",
-      "reflectionQuestion": "What, if anything, would you like to remember?"
+      "reflectionQuestion": "What, if anything, would you like to remember?",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak"
     },
     {
       "schemaVersion": 1,
@@ -366,7 +388,9 @@
       "author": "AppBreak project contributors",
       "attribution": "Original content prepared for AppBreak",
       "contentLicense": "CC-BY-4.0",
-      "reflectionQuestion": "What, if anything, would you like to remember?"
+      "reflectionQuestion": "What, if anything, would you like to remember?",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak"
     },
     {
       "schemaVersion": 1,
@@ -399,7 +423,9 @@
       ],
       "author": "AppBreak project contributors",
       "attribution": "Original content prepared for AppBreak",
-      "contentLicense": "CC-BY-4.0"
+      "contentLicense": "CC-BY-4.0",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak"
     },
     {
       "schemaVersion": 1,
@@ -408,11 +434,11 @@
       "category": "imagination",
       "language": "en-IN",
       "estimatedSeconds": 120,
-      "description": "Imagine a few circles and a line. Think of three scenes these marks could belong to. Choose one and describe what you would add.",
+      "description": "Turn two circles, an arc and a stroke into an object, a place or a scene. Keep the original marks and explore new meanings with a free printable drawing challenge.",
       "steps": [
         {
           "kind": "instruction",
-          "text": "Imagine a few circles and a line. Think of three scenes these marks could belong to. Choose one and describe what you would add."
+          "text": "Fixed starter: two unequal circles, an open arc and a detached stroke. Turn two circles, an arc and a stroke into an object, a place or a scene. Keep the original marks and explore new meanings with a free printable drawing challenge. Look at the starter, or picture it from the description. Look away if you like and imagine what these marks could become. Keep the original marks in place. What would you add?"
         },
         {
           "kind": "thinking",
@@ -434,8 +460,10 @@
         "Read instead of narration. Quiet rest is always available."
       ],
       "author": "Many Maybes",
-      "attribution": "AppBreak imagination adaptation of https://trymanymaybes.github.io/challenge-01.html",
-      "contentLicense": "CC-BY-4.0"
+      "attribution": "Many Maybes challenge description and starter alt text: https://trymanymaybes.github.io/challenge-01.html; AppBreak imagination prompt.",
+      "contentLicense": "CC-BY-4.0",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak"
     },
     {
       "schemaVersion": 1,
@@ -444,11 +472,11 @@
       "category": "imagination",
       "language": "en-IN",
       "estimatedSeconds": 120,
-      "description": "Imagine two shapes with a gap between them. Keep the gap empty. Invent a scene where that empty space matters most.",
+      "description": "Explore negative space with two fixed shapes. Leave the gap blank and add surrounding details to change its meaning. Try this free drawing challenge in your browser.",
       "steps": [
         {
           "kind": "instruction",
-          "text": "Imagine two shapes with a gap between them. Keep the gap empty. Invent a scene where that empty space matters most."
+          "text": "Two filled green shapes surrounding a widening blank gap. Explore negative space with two fixed shapes. Leave the gap blank and add surrounding details to change its meaning. Try this free drawing challenge in your browser. Look at the starter, or picture it from the description. Look away if you like and imagine what these marks could become. Keep the original marks in place. What would you add?"
         },
         {
           "kind": "thinking",
@@ -470,8 +498,10 @@
         "Read instead of narration. Quiet rest is always available."
       ],
       "author": "Many Maybes",
-      "attribution": "AppBreak imagination adaptation of https://trymanymaybes.github.io/challenge-02.html",
-      "contentLicense": "CC-BY-4.0"
+      "attribution": "Many Maybes challenge description and starter alt text: https://trymanymaybes.github.io/challenge-02.html; AppBreak imagination prompt.",
+      "contentLicense": "CC-BY-4.0",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak"
     },
     {
       "schemaVersion": 1,
@@ -480,11 +510,11 @@
       "category": "imagination",
       "language": "en-IN",
       "estimatedSeconds": 120,
-      "description": "Imagine four circles. Picture them first as something tiny, then as something enormous. What detail would make each scale believable?",
+      "description": "Turn four circles into something tiny, human-sized or enormous. Use visual clues to explore scale in this free creative drawing challenge with a printable PDF.",
       "steps": [
         {
           "kind": "instruction",
-          "text": "Imagine four circles. Picture them first as something tiny, then as something enormous. What detail would make each scale believable?"
+          "text": "Fixed starter for Challenge 03; original marks must remain visible. Turn four circles into something tiny, human-sized or enormous. Use visual clues to explore scale in this free creative drawing challenge with a printable PDF. Look at the starter, or picture it from the description. Look away if you like and imagine what these marks could become. Keep the original marks in place. What would you add?"
         },
         {
           "kind": "thinking",
@@ -506,8 +536,10 @@
         "Read instead of narration. Quiet rest is always available."
       ],
       "author": "Many Maybes",
-      "attribution": "AppBreak imagination adaptation of https://trymanymaybes.github.io/challenge-03.html",
-      "contentLicense": "CC-BY-4.0"
+      "attribution": "Many Maybes challenge description and starter alt text: https://trymanymaybes.github.io/challenge-03.html; AppBreak imagination prompt.",
+      "contentLicense": "CC-BY-4.0",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak"
     },
     {
       "schemaVersion": 1,
@@ -516,11 +548,11 @@
       "category": "imagination",
       "language": "en-IN",
       "estimatedSeconds": 120,
-      "description": "Imagine a circle and a broken trail. Invent what happened just before this moment, then a different event that could happen next.",
+      "description": "Use a circle and a broken trail to suggest a past or future event. Add visual clues, keep the original marks and try this free printable storytelling challenge.",
       "steps": [
         {
           "kind": "instruction",
-          "text": "Imagine a circle and a broken trail. Invent what happened just before this moment, then a different event that could happen next."
+          "text": "Fixed starter for Challenge 04; original marks must remain visible. Use a circle and a broken trail to suggest a past or future event. Add visual clues, keep the original marks and try this free printable storytelling challenge. Look at the starter, or picture it from the description. Look away if you like and imagine what these marks could become. Keep the original marks in place. What would you add?"
         },
         {
           "kind": "thinking",
@@ -542,8 +574,10 @@
         "Read instead of narration. Quiet rest is always available."
       ],
       "author": "Many Maybes",
-      "attribution": "AppBreak imagination adaptation of https://trymanymaybes.github.io/challenge-04.html",
-      "contentLicense": "CC-BY-4.0"
+      "attribution": "Many Maybes challenge description and starter alt text: https://trymanymaybes.github.io/challenge-04.html; AppBreak imagination prompt.",
+      "contentLicense": "CC-BY-4.0",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak"
     },
     {
       "schemaVersion": 1,
@@ -552,11 +586,11 @@
       "category": "imagination",
       "language": "en-IN",
       "estimatedSeconds": 120,
-      "description": "Imagine two squares. Think of three relationships they could have. Make the relationship more important than either square alone.",
+      "description": "Connect two fixed squares through support, exchange, cause or comparison. Explore relationships with this free creative drawing challenge and printable worksheet.",
       "steps": [
         {
           "kind": "instruction",
-          "text": "Imagine two squares. Think of three relationships they could have. Make the relationship more important than either square alone."
+          "text": "Fixed starter for Challenge 05; original marks must remain visible. Connect two fixed squares through support, exchange, cause or comparison. Explore relationships with this free creative drawing challenge and printable worksheet. Look at the starter, or picture it from the description. Look away if you like and imagine what these marks could become. Keep the original marks in place. What would you add?"
         },
         {
           "kind": "thinking",
@@ -578,8 +612,10 @@
         "Read instead of narration. Quiet rest is always available."
       ],
       "author": "Many Maybes",
-      "attribution": "AppBreak imagination adaptation of https://trymanymaybes.github.io/challenge-05.html",
-      "contentLicense": "CC-BY-4.0"
+      "attribution": "Many Maybes challenge description and starter alt text: https://trymanymaybes.github.io/challenge-05.html; AppBreak imagination prompt.",
+      "contentLicense": "CC-BY-4.0",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak"
     },
     {
       "schemaVersion": 1,
@@ -588,11 +624,11 @@
       "category": "imagination",
       "language": "en-IN",
       "estimatedSeconds": 120,
-      "description": "Imagine three wavy lines as fabric, water or wood. Choose a material and imagine two clues that suggest it without naming it.",
+      "description": "Make three wavy lines feel soft, flowing or solid. Suggest different materials with visual clues in this free drawing challenge with a printable PDF.",
       "steps": [
         {
           "kind": "instruction",
-          "text": "Imagine three wavy lines as fabric, water or wood. Choose a material and imagine two clues that suggest it without naming it."
+          "text": "Three parallel wavy lines, the fixed starter for Challenge 06. Make three wavy lines feel soft, flowing or solid. Suggest different materials with visual clues in this free drawing challenge with a printable PDF. Look at the starter, or picture it from the description. Look away if you like and imagine what these marks could become. Keep the original marks in place. What would you add?"
         },
         {
           "kind": "thinking",
@@ -614,8 +650,10 @@
         "Read instead of narration. Quiet rest is always available."
       ],
       "author": "Many Maybes",
-      "attribution": "AppBreak imagination adaptation of https://trymanymaybes.github.io/challenge-06.html",
-      "contentLicense": "CC-BY-4.0"
+      "attribution": "Many Maybes challenge description and starter alt text: https://trymanymaybes.github.io/challenge-06.html; AppBreak imagination prompt.",
+      "contentLicense": "CC-BY-4.0",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak"
     }
   ]
 }

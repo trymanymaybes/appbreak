@@ -161,8 +161,67 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 2000
+          },
+          "contentVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "source": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "reveal": {
+            "enum": [
+              "manual"
+            ]
+          },
+          "media": {
+            "type": "array",
+            "maxItems": 4,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "url",
+                "alt",
+                "fallbackText"
+              ],
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2000,
+                  "pattern": "^https://[^/\\s]+/"
+                },
+                "alt": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2000
+                },
+                "fallbackText": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2000
+                }
+              }
+            }
           }
-        }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "reveal"
+              ]
+            },
+            "then": {
+              "required": [
+                "answer"
+              ]
+            }
+          }
+        ]
       }
     }
   }

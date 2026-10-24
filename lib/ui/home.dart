@@ -2,12 +2,15 @@ import 'day_planner.dart';
 import 'voice_setup.dart';
 import 'many_maybes.dart';
 import 'break_progress.dart';
+import 'break_history.dart';
 import 'activity_visual.dart';
 // SPDX-License-Identifier: Apache-2.0
 // ignore_for_file: deprecated_member_use
 import 'dart:async';
 import 'package:flutter/services.dart';
 import 'routine_fields.dart';
+import 'routine_bundles.dart';
+import 'content_media.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import '../application/controller.dart';
@@ -511,6 +514,8 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
             '${activity.data['requiresVisualAttention'] == true ? 'Visual recreation' : 'Eyes-away'} • ${activity.category} • ${activity.data['requiresInput'] == true ? 'optional input' : 'no input required'}',
           ),
           const SizedBox(height: 12),
+          if (challengeFor(activity.id) != null)
+            ManyMaybesChallengeView(controller: c),
           Text(activity.text, style: Theme.of(context).textTheme.bodyLarge),
           const SizedBox(height: 16),
           Wrap(
@@ -844,7 +849,11 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              ActivityVisual(key: ValueKey(a.id), category: a.category),
+              if (challengeFor(a.id) != null)
+                ManyMaybesChallengeView(controller: c)
+              else
+                ActivityVisual(key: ValueKey(a.id), category: a.category),
+              ContentMedia(activity: a),
               const SizedBox(height: 16),
               Text(
                 a.title,
@@ -1041,6 +1050,13 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         'selection': 'rotation',
       }),
     ),
+    button(
+      'Browse optional bundles',
+      () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => RoutineBundlesPage(controller: c)),
+      ),
+    ),
     for (final p in c.profiles) routineCard(p),
   ];
   Widget routineCard(Map<String, dynamic> p) {
@@ -1147,6 +1163,17 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     ...routineFields(ctx, p, update),
+                    if (p['activityIds'] != null) ...[
+                      Text(
+                        'Bundle activity selection: ${(p['activityIds'] as List).join(', ')}',
+                      ),
+                      TextButton(
+                        onPressed: () => update(() => p.remove('activityIds')),
+                        child: const Text(
+                          'Use all activities in selected categories',
+                        ),
+                      ),
+                    ],
                     DropdownButtonFormField<String>(
                       initialValue: p['selection'] ?? 'rotation',
                       isExpanded: true,
@@ -1499,32 +1526,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
   List<Widget> achievements() => [
     Text('Break dashboard', style: Theme.of(context).textTheme.headlineMedium),
     BreakProgress(controller: c),
-    if (c.breakRecords.isEmpty)
-      const ListTile(title: Text('No breaks recorded yet')),
-    ...c.breakRecords.map(
-      (record) => Card(
-        child: ListTile(
-          leading: Icon(
-            record['status'] == 'Completed'
-                ? Icons.check_circle_outline
-                : Icons.history,
-          ),
-          title: Text(
-            '${record['status']} • ${c.activities.where((a) => a.id == record['activity']).firstOrNull?.title ?? 'Break'}',
-          ),
-          subtitle: Text(
-            '${record['date']} • ${c.profiles.where((p) => p['id'] == (record['routine'] ?? record['routineId'])).firstOrNull?['name'] ?? 'Routine'}${record['status'] == 'Missed' ? ' • ${record['reason'] ?? 'unconfirmed'}' : ''}',
-          ),
-          trailing: record['status'] != 'Completed'
-              ? TextButton(
-                  onPressed: () =>
-                      run(() => c.confirmArchivedBreak(record['id'])),
-                  child: const Text('I took it'),
-                )
-              : null,
-        ),
-      ),
-    ),
+    BreakHistory(controller: c),
     const Divider(),
     Text(
       'Participation, at your pace.',
