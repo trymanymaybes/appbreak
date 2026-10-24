@@ -10,7 +10,8 @@ object BreakStats {
     fun metadata(c:Context,d:JSONObject,s:JSONObject):JSONObject {
         val bundled=JSONObject(c.assets.open("flutter_assets/assets/activities.json").bufferedReader().use{it.readText()}).getJSONArray("activities")
         val custom=d.optJSONArray("customActivities") ?: JSONArray();val remote=ActivityCatalog.cached(c)
-        for(list in listOf(bundled,custom,remote)) for(i in 0 until list.length()) {
+        val challenges=d.optJSONArray("manyMaybesActivities") ?: JSONArray()
+        for(list in listOf(challenges,bundled,custom,remote)) for(i in 0 until list.length()) {
             val a=list.getJSONObject(i);if(a.optString("id")==s.optString("activity")) return a
         }
         val cats=Routines.profile(d,s.optString("routineId")).optJSONArray("categories")

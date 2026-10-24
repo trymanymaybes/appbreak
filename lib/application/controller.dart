@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import '../domain/activity.dart';
+import '../domain/many_maybes.dart';
 import '../domain/break_counts.dart' as counts;
 import '../domain/session.dart';
 import '../domain/profile.dart';
@@ -247,6 +248,49 @@ class Companion extends ChangeNotifier {
     await switchActivity(fit[(i + direction) % fit.length].id);
   }
 
+  Future<void> useChallenge(
+    ManyMaybesChallenge challenge, {
+    required String sessionId,
+    required String previousActivity,
+  }) async {
+    if (session.id != sessionId ||
+        session.activity != previousActivity ||
+        session.phase != Phase.rest)
+      return;
+    await act(() async {
+      if (session.id != sessionId ||
+          session.activity != previousActivity ||
+          session.phase != Phase.rest)
+        return;
+      if ((profile['disabledActivities'] as List? ?? []).contains(
+        challenge.activityId,
+      )) {
+        throw StateError('This activity is disabled for this routine.');
+      }
+      final activity = challenge.toActivity();
+      final cached = List<Map<String, dynamic>>.from(
+        (data['manyMaybesActivities'] as List? ?? []).map(
+          (x) => Map<String, dynamic>.from(x),
+        ),
+      );
+      cached.removeWhere((a) => a['id'] == activity.id);
+      cached.add(activity.data);
+      // Keep a bounded offline cache; the online catalogue itself is unbounded.
+      if (cached.length > 200) cached.removeRange(0, cached.length - 200);
+      data['manyMaybesActivities'] = cached;
+      activities.removeWhere((a) => a.id == activity.id);
+      activities.add(activity);
+      await device.call('stopSpeech');
+      session = session.at(
+        Phase.rest,
+        session.remaining(moment),
+        moment,
+        activityId: activity.id,
+      );
+      data['lastActivity'] = activity.id;
+    }, stopCapture: challenge.activityId != previousActivity);
+  }
+
   Activity? get current =>
       activities.where((a) => a.id == session.activity).firstOrNull;
   Future<void> init() async {
@@ -275,8 +319,13 @@ class Companion extends ChangeNotifier {
         ...bundled.map((a) => a.id),
         ...((data['customActivities'] ?? []) as List).map((a) => a['id']),
       };
+      final siteActivities = ((data['manyMaybesActivities'] ?? []) as List)
+          .map((a) => Activity(Map<String, dynamic>.from(a)))
+          .toList();
+      final siteIds = siteActivities.map((a) => a.id).toSet();
       activities = [
-        ...bundled,
+        ...bundled.where((a) => !siteIds.contains(a.id)),
+        ...siteActivities,
         ...catalog.where((a) => !localIds.contains(a.id)),
         ...((data['customActivities'] ?? []) as List).map(
           (a) => Activity(Map<String, dynamic>.from(a)),

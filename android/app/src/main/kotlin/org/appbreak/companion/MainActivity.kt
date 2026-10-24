@@ -50,7 +50,7 @@ open class MainActivity: FlutterActivity() {
                     }
                     "saveIdeaCard" -> {
                         val text=call.argument<String>("text")!!.trim();val challenge=call.argument<String>("challenge")!!
-                        require(text.length in 1..2000 && challenge.matches(Regex("0[1-6]")))
+                        require(text.length in 1..2000 && challenge.matches(Regex("[0-9]{1,8}")))
                         fileBytes=IdeaCard.render("Many Maybes · Challenge $challenge",text)
                         beginFile(result,Intent(Intent.ACTION_CREATE_DOCUMENT).setType("image/png").putExtra(Intent.EXTRA_TITLE,"many-maybes-idea-$challenge.png"),60)
                     }

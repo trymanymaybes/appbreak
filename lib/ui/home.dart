@@ -512,6 +512,8 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
             '${activity.data['requiresVisualAttention'] == true ? 'Visual recreation' : 'Eyes-away'} • ${activity.category} • ${activity.data['requiresInput'] == true ? 'optional input' : 'no input required'}',
           ),
           const SizedBox(height: 12),
+          if (challengeFor(activity.id) != null)
+            ManyMaybesChallengeView(controller: c),
           Text(activity.text, style: Theme.of(context).textTheme.bodyLarge),
           const SizedBox(height: 16),
           Wrap(
@@ -845,7 +847,10 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              ActivityVisual(key: ValueKey(a.id), category: a.category),
+              if (challengeFor(a.id) != null)
+                ManyMaybesChallengeView(controller: c)
+              else
+                ActivityVisual(key: ValueKey(a.id), category: a.category),
               const SizedBox(height: 16),
               Text(
                 a.title,

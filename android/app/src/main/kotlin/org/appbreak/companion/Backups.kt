@@ -123,6 +123,7 @@ object Backups {
             if(s.has("profile")) require(s.getString("profile") in ids)
         }
         if(d.has("customActivities") && d.getJSONArray("customActivities").length()>0) ActivityPacks.validate(JSONObject().put("schemaVersion",1).put("activities",d.getJSONArray("customActivities")))
+        if(d.has("manyMaybesActivities") && d.getJSONArray("manyMaybesActivities").length()>0) ActivityPacks.validate(JSONObject().put("schemaVersion",1).put("activities",d.getJSONArray("manyMaybesActivities")))
         val a=p.getJSONObject("audio"); var total=0
         a.keys().forEach { name ->
             require(name.matches(Regex("[a-f0-9-]{36}\\.m4a"))) { "Invalid recording path" }

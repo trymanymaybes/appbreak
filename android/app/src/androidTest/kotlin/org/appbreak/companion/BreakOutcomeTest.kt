@@ -3,6 +3,12 @@ import android.test.AndroidTestCase
 import org.json.*
 @Suppress("DEPRECATION")
 class BreakOutcomeTest:AndroidTestCase(){
+ fun testSiteChallengeMetadataSupportsNewNumbers(){
+  val a=JSONObject().put("id","manymaybes.challenge-107").put("category","imagination").put("title","New site challenge")
+  val d=JSONObject().put("manyMaybesActivities",JSONArray().put(a));val s=JSONObject().put("activity","manymaybes.challenge-107")
+  BreakStats.snapshot(context,d,s)
+  assertEquals("imagination",s.getString("category"));assertEquals("New site challenge",s.getString("title"))
+ }
  fun testArchivedOutcomesKeepTimestamp(){
   val d=JSONObject();val s=JSONObject().put("id","timed")
   assertTrue(Routines.archive(d,s,"skipped"))
