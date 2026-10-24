@@ -94,6 +94,8 @@ void main() {
       expect(d.value['history'].single['id'], 'past');
       expect(d.value['ideas'].single['id'], 'note');
       expect(d.value['customActivities'], isNotEmpty);
+      await c.installBundle(b, {});
+      expect(c.profiles.last['id'], isNot(p['id']));
       c.dispose();
     },
   );

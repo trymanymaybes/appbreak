@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import '../domain/activity.dart';
@@ -129,13 +130,11 @@ class Companion extends ChangeNotifier {
       if (custom.length > 200)
         throw StateError('Too many downloaded/private activities');
       // Validate everything before mutating; one revision-checked store write commits it.
-      final ids = profiles.map((p) => p['id']).toSet();
-      var n = 1;
-      while (ids.contains('bundle-local-$n')) {
-        n++;
-      }
+      final random = Random.secure();
+      final routineId =
+          'bundle-${List.generate(16, (_) => random.nextInt(256).toRadixString(16).padLeft(2, '0')).join()}';
       final routine = <String, dynamic>{
-        'id': 'bundle-local-$n',
+        'id': routineId,
         'name': bundle.title.substring(0, bundle.title.length.clamp(0, 100)),
         ...options,
         'enabled': false,
@@ -157,6 +156,7 @@ class Companion extends ChangeNotifier {
       await refresh();
     } else {
       data = await device.load();
+      if (!disposed) notifyListeners();
     }
   }
 
