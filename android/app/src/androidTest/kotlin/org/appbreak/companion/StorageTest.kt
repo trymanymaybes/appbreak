@@ -7,6 +7,13 @@ import org.json.JSONArray
 class StorageTest: AndroidTestCase() {
     override fun setUp() { super.setUp(); context.deleteDatabase("companion.db") }
     override fun tearDown() { context.deleteDatabase("companion.db"); super.tearDown() }
+    fun testPlannerViewsSurviveBackup() {
+        for(view in listOf("calendar","day","list")) {
+            Store(context).use { store -> val state=store.read();state.put("schemaVersion",1).put("settings",JSONObject().put("plannerView",view));store.write(state) }
+            val backup=Backups.validate(Backups.make(context,false));Backups.restore(context,backup)
+            assertEquals(view,Store(context).use{it.read()}.getJSONObject("settings").getString("plannerView"))
+        }
+    }
     fun testCompareAndSwapRejectsStaleWriter() {
         Store(context).use { store -> val old=store.read(); store.write(JSONObject(old.toString())); try { store.write(old); fail("Accepted stale data") } catch(_:IllegalStateException) {} }
     }
