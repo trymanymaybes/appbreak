@@ -199,10 +199,6 @@ class Companion extends ChangeNotifier {
               installed['bundleActivityIds'] as List?,
             )) {
           next['activityIds'] = bundle.activityIds;
-          next['categories'] = dependencies
-              .map((a) => a.category)
-              .toSet()
-              .toList();
           if (options['selection'] == 'fixed' &&
               installed['favourite'] ==
                   (installed['bundleActivityIds'] as List).first)

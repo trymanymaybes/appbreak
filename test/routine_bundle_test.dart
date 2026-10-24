@@ -177,6 +177,7 @@ void main() {
       await c.saveRoutine({
         ...old,
         'name': 'My reading',
+        'categories': ['quiet', 'hydration'],
         'enabled': true,
         'popup': true,
         'notifications': true,
@@ -197,6 +198,7 @@ void main() {
       expect(updated['bundleVersion'], 2);
       expect(updated['workSeconds'], 2100);
       expect(updated['name'], 'My reading');
+      expect(updated['categories'], ['quiet', 'hydration']);
       expect(updated['enabled'], true);
       expect(updated['popup'], true);
       expect(updated['message'], 'My cue');
