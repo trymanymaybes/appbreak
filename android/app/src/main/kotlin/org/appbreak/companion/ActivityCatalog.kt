@@ -11,7 +11,7 @@ import javax.net.ssl.HttpsURLConnection
 
 /** Public, inert content only. Never reads Store, notes, recordings or device IDs. */
 object ActivityCatalog {
-    const val URL_TEXT = "https://raw.githubusercontent.com/trymanymaybes/appbreak/main/activity-catalog/catalog.json"
+    const val URL_TEXT = "https://raw.githubusercontent.com/trymanymaybes/appbreak/main/activity-catalog/v1/catalog.json"
     const val MAX_BYTES = 256 * 1024
     private const val DAY = 86400000L
     private val running = AtomicBoolean(false)
@@ -43,7 +43,7 @@ object ActivityCatalog {
         val pack = JSONObject(body)
         require(pack.keys().asSequence().toSet() == setOf("schemaVersion", "activities"))
         ActivityPacks.validate(pack)
-        val keys = setOf("schemaVersion", "id", "title", "category", "language", "estimatedSeconds", "description", "steps", "requiresVisualAttention", "requiresInput", "accessibleAlternatives", "author", "attribution", "contentLicense", "answer", "reflectionQuestion")
+        val keys = setOf("schemaVersion", "id", "title", "category", "language", "estimatedSeconds", "description", "steps", "requiresVisualAttention", "requiresInput", "accessibleAlternatives", "author", "attribution", "contentLicense", "answer", "reflectionQuestion", "contentVersion", "source", "reveal", "media")
         val list = pack.getJSONArray("activities")
         for (i in 0 until list.length()) {
             val a = list.getJSONObject(i)

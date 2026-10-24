@@ -20,6 +20,8 @@ class ManyMaybesChallenge {
       '${description.trim().isNotEmpty && alt.trim().isNotEmpty ? '$alt. ' : ''}$narration Look at the starter, or picture it from the description. Look away if you like and imagine what these marks could become. Keep the original marks in place. What would you add?';
   Activity toActivity() => Activity({
     'schemaVersion': 1,
+    'contentVersion': 1,
+    'source': url,
     'id': activityId,
     'title': 'Many Maybes $number: $title',
     'category': 'imagination',

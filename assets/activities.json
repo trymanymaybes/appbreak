@@ -32,7 +32,9 @@
       ],
       "author": "AppBreak project contributors",
       "attribution": "Original content prepared for AppBreak",
-      "contentLicense": "CC-BY-4.0"
+      "contentLicense": "CC-BY-4.0",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak"
     },
     {
       "schemaVersion": 1,
@@ -65,7 +67,9 @@
       ],
       "author": "AppBreak project contributors",
       "attribution": "Original content prepared for AppBreak",
-      "contentLicense": "CC-BY-4.0"
+      "contentLicense": "CC-BY-4.0",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak"
     },
     {
       "schemaVersion": 1,
@@ -98,7 +102,9 @@
       ],
       "author": "AppBreak project contributors",
       "attribution": "Original content prepared for AppBreak",
-      "contentLicense": "CC-BY-4.0"
+      "contentLicense": "CC-BY-4.0",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak"
     },
     {
       "schemaVersion": 1,
@@ -131,7 +137,9 @@
       ],
       "author": "AppBreak project contributors",
       "attribution": "Original content prepared for AppBreak",
-      "contentLicense": "CC-BY-4.0"
+      "contentLicense": "CC-BY-4.0",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak"
     },
     {
       "schemaVersion": 1,
@@ -164,7 +172,9 @@
       ],
       "author": "AppBreak project contributors",
       "attribution": "Original content prepared for AppBreak",
-      "contentLicense": "CC-BY-4.0"
+      "contentLicense": "CC-BY-4.0",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak"
     },
     {
       "schemaVersion": 1,
@@ -197,7 +207,9 @@
       ],
       "author": "AppBreak project contributors",
       "attribution": "Original content prepared for AppBreak",
-      "contentLicense": "CC-BY-4.0"
+      "contentLicense": "CC-BY-4.0",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak"
     },
     {
       "schemaVersion": 1,
@@ -230,7 +242,9 @@
       ],
       "author": "AppBreak project contributors",
       "attribution": "Original content prepared for AppBreak",
-      "contentLicense": "CC-BY-4.0"
+      "contentLicense": "CC-BY-4.0",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak"
     },
     {
       "schemaVersion": 1,
@@ -264,7 +278,10 @@
       "author": "AppBreak project contributors",
       "attribution": "Original content prepared for AppBreak",
       "contentLicense": "CC-BY-4.0",
-      "answer": "Your shadow."
+      "answer": "Your shadow.",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak",
+      "reveal": "manual"
     },
     {
       "schemaVersion": 1,
@@ -298,7 +315,10 @@
       "author": "AppBreak project contributors",
       "attribution": "Original content prepared for AppBreak",
       "contentLicense": "CC-BY-4.0",
-      "answer": "Eight stones."
+      "answer": "Eight stones.",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak",
+      "reveal": "manual"
     },
     {
       "schemaVersion": 1,
@@ -332,7 +352,9 @@
       "author": "AppBreak project contributors",
       "attribution": "Original content prepared for AppBreak",
       "contentLicense": "CC-BY-4.0",
-      "reflectionQuestion": "What, if anything, would you like to remember?"
+      "reflectionQuestion": "What, if anything, would you like to remember?",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak"
     },
     {
       "schemaVersion": 1,
@@ -366,7 +388,9 @@
       "author": "AppBreak project contributors",
       "attribution": "Original content prepared for AppBreak",
       "contentLicense": "CC-BY-4.0",
-      "reflectionQuestion": "What, if anything, would you like to remember?"
+      "reflectionQuestion": "What, if anything, would you like to remember?",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak"
     },
     {
       "schemaVersion": 1,
@@ -399,7 +423,9 @@
       ],
       "author": "AppBreak project contributors",
       "attribution": "Original content prepared for AppBreak",
-      "contentLicense": "CC-BY-4.0"
+      "contentLicense": "CC-BY-4.0",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak"
     },
     {
       "schemaVersion": 1,
@@ -435,7 +461,9 @@
       ],
       "author": "Many Maybes",
       "attribution": "Many Maybes challenge description and starter alt text: https://trymanymaybes.github.io/challenge-01.html; AppBreak imagination prompt.",
-      "contentLicense": "CC-BY-4.0"
+      "contentLicense": "CC-BY-4.0",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak"
     },
     {
       "schemaVersion": 1,
@@ -471,7 +499,9 @@
       ],
       "author": "Many Maybes",
       "attribution": "Many Maybes challenge description and starter alt text: https://trymanymaybes.github.io/challenge-02.html; AppBreak imagination prompt.",
-      "contentLicense": "CC-BY-4.0"
+      "contentLicense": "CC-BY-4.0",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak"
     },
     {
       "schemaVersion": 1,
@@ -507,7 +537,9 @@
       ],
       "author": "Many Maybes",
       "attribution": "Many Maybes challenge description and starter alt text: https://trymanymaybes.github.io/challenge-03.html; AppBreak imagination prompt.",
-      "contentLicense": "CC-BY-4.0"
+      "contentLicense": "CC-BY-4.0",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak"
     },
     {
       "schemaVersion": 1,
@@ -543,7 +575,9 @@
       ],
       "author": "Many Maybes",
       "attribution": "Many Maybes challenge description and starter alt text: https://trymanymaybes.github.io/challenge-04.html; AppBreak imagination prompt.",
-      "contentLicense": "CC-BY-4.0"
+      "contentLicense": "CC-BY-4.0",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak"
     },
     {
       "schemaVersion": 1,
@@ -579,7 +613,9 @@
       ],
       "author": "Many Maybes",
       "attribution": "Many Maybes challenge description and starter alt text: https://trymanymaybes.github.io/challenge-05.html; AppBreak imagination prompt.",
-      "contentLicense": "CC-BY-4.0"
+      "contentLicense": "CC-BY-4.0",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak"
     },
     {
       "schemaVersion": 1,
@@ -615,7 +651,9 @@
       ],
       "author": "Many Maybes",
       "attribution": "Many Maybes challenge description and starter alt text: https://trymanymaybes.github.io/challenge-06.html; AppBreak imagination prompt.",
-      "contentLicense": "CC-BY-4.0"
+      "contentLicense": "CC-BY-4.0",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak"
     }
   ]
 }

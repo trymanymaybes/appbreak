@@ -2,7 +2,7 @@
 import json
 from pathlib import Path
 from validate_packs import validate
-KEYS = set('schemaVersion id title category language estimatedSeconds description steps requiresVisualAttention requiresInput accessibleAlternatives author attribution contentLicense answer reflectionQuestion'.split())
+KEYS = set('schemaVersion id title category language estimatedSeconds description steps requiresVisualAttention requiresInput accessibleAlternatives author attribution contentLicense answer reflectionQuestion contentVersion source reveal media'.split())
 def validate_catalog(raw):
     assert len(raw) <= 256 * 1024
     def depth(x):

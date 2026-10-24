@@ -17,6 +17,17 @@ object ActivityPacks {
             require(a.get("requiresVisualAttention") is Boolean && a.get("requiresInput") is Boolean)
             val alternatives=a.getJSONArray("accessibleAlternatives"); require(alternatives.length() in 1..20)
             for(j in 0 until alternatives.length()) require(alternatives.get(j) is String && alternatives.getString(j).length in 1..2000)
+            if(a.has("contentVersion")) require(a.get("contentVersion") is Int && a.getInt("contentVersion")>=1)
+            if(a.has("source")) require(a.get("source") is String && a.getString("source").trim().length in 1..2000)
+            if(a.has("reveal")) require(a.getString("reveal")=="manual" && a.has("answer"))
+            if(a.has("media")) {
+                val media=a.getJSONArray("media");require(media.length()<=4)
+                for(j in 0 until media.length()) {
+                    val m=media.getJSONObject(j);require(m.keys().asSequence().toSet()==setOf("url","alt","fallbackText"))
+                    for(k in listOf("url","alt","fallbackText")) require(m.get(k) is String && m.getString(k).trim().length in 1..2000)
+                    val u=java.net.URI(m.getString("url"));require(u.scheme=="https" && !u.host.isNullOrEmpty() && u.userInfo==null && u.port == -1)
+                }
+            }
             val steps=a.getJSONArray("steps"); require(steps.length() in 1..30)
             var silence=0
             for(j in 0 until steps.length()) {

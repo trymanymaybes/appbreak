@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "bundles": [
+    {
+      "schemaVersion": 1,
+      "id": "example.reading",
+      "version": 1,
+      "title": "Example: Reading with quiet breaks",
+      "description": "Optional editable starting point. Reminders remain off until you enable the routine.",
+      "author": "AppBreak contributors",
+      "license": "CC-BY-4.0",
+      "workActivity": "reading",
+      "minimumProtocol": 1,
+      "dependencies": [
+        {
+          "id": "quiet.soft",
+          "minimumVersion": 1
+        }
+      ],
+      "defaults": {
+        "workSeconds": 1500,
+        "breakSeconds": 60,
+        "trigger": "manual",
+        "selection": "rotation",
+        "quiet": true,
+        "repeat": true
+      },
+      "customisable": [
+        "workSeconds",
+        "breakSeconds",
+        "quiet",
+        "repeat"
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "id": "example.study",
+      "version": 1,
+      "title": "Example: Study and imagination",
+      "description": "Optional editable starting point. Reminders remain off until you enable the routine.",
+      "author": "AppBreak contributors",
+      "license": "CC-BY-4.0",
+      "workActivity": "studying",
+      "minimumProtocol": 1,
+      "dependencies": [
+        {
+          "id": "community.imagination.window",
+          "minimumVersion": 1
+        }
+      ],
+      "defaults": {
+        "workSeconds": 1500,
+        "breakSeconds": 60,
+        "trigger": "manual",
+        "selection": "rotation",
+        "quiet": true,
+        "repeat": true
+      },
+      "customisable": [
+        "workSeconds",
+        "breakSeconds",
+        "quiet",
+        "repeat"
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "id": "example.screen",
+      "version": 1,
+      "title": "Example: Screen-use rest",
+      "description": "Optional editable starting point. Reminders remain off until you enable the routine.",
+      "author": "AppBreak contributors",
+      "license": "CC-BY-4.0",
+      "workActivity": "screen use",
+      "minimumProtocol": 1,
+      "dependencies": [
+        {
+          "id": "quiet.soft",
+          "minimumVersion": 1
+        },
+        {
+          "id": "quiet.distance",
+          "minimumVersion": 1
+        }
+      ],
+      "defaults": {
+        "workSeconds": 1500,
+        "breakSeconds": 60,
+        "trigger": "screen",
+        "selection": "rotation",
+        "quiet": true,
+        "repeat": true
+      },
+      "customisable": [
+        "workSeconds",
+        "breakSeconds",
+        "quiet",
+        "repeat"
+      ]
+    }
+  ]
+}

@@ -2,6 +2,37 @@
 class Activity {
   final Map<String, dynamic> data;
   Activity(this.data) {
+    if (data.containsKey('contentVersion') &&
+        (data['contentVersion'] is! int || data['contentVersion'] < 1))
+      throw const FormatException('Invalid content version');
+    if (data.containsKey('reveal') &&
+        (data['reveal'] != 'manual' || data['answer'] is! String))
+      throw const FormatException('Unsupported reveal behaviour');
+    if (data.containsKey('media')) {
+      if (data['media'] is! List || data['media'].length > 4)
+        throw const FormatException('Invalid media');
+      for (final m in data['media']) {
+        if (m is! Map ||
+            m.length != 3 ||
+            ['url', 'alt', 'fallbackText'].any(
+              (k) =>
+                  m[k] is! String ||
+                  (m[k] as String).trim().isEmpty ||
+                  m[k].length > 2000,
+            ))
+          throw const FormatException(
+            'Media needs alt text and a text alternative',
+          );
+        final u = Uri.tryParse(m['url']);
+        if (u == null ||
+            u.scheme != 'https' ||
+            u.host.isEmpty ||
+            u.userInfo.isNotEmpty ||
+            u.hasPort)
+          throw const FormatException('Unsupported media URL');
+      }
+    }
+
     if (data['schemaVersion'] != 1 ||
         !RegExp(r'^[a-z0-9._-]{1,80}$').hasMatch(id) ||
         seconds < 20 ||

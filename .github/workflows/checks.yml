@@ -1,5 +1,10 @@
 name: Source checks
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+    paths-ignore: ['activity-catalog/**', 'routine-bundles/**', '**.md']
+  pull_request:
+    paths-ignore: ['activity-catalog/**', 'routine-bundles/**', '**.md']
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
@@ -16,6 +21,8 @@ jobs:
           test "$(git -C "$RUNNER_TEMP/flutter" rev-parse HEAD)" = adc901062556672b4138e18a4dc62a4be8f4b3c2
           echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
       - run: flutter pub get --enforce-lockfile
+      - run: python3 -m pip install jsonschema==4.23.0
+      - run: python3 tools/validate_content.py
       - run: python3 tools/validate_packs.py
       - run: python3 tools/validate_catalog.py
       - run: python3 -m unittest discover -s tools
@@ -31,7 +38,7 @@ jobs:
       - name: Retain unsigned release candidate
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: appbreak-0.4.0-unsigned-arm64
+          name: appbreak-review-unsigned-arm64
           path: build/app/outputs/flutter-apk/app-foss-release.apk
           if-no-files-found: error
           retention-days: 14

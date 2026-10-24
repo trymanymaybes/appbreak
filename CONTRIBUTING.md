@@ -25,4 +25,18 @@ Review before community publication:
 - No requests for sensitive disclosures; recording/sharing never earns rewards.
 - Run validator, inspect attribution/licence, and obtain human content review.
 
-Community code changes require review, tests and an application release. Content packs never execute code. Public catalogue updates are not part of this MVP.
+Community code changes require review, tests and an application release. Content packs never execute code. Public catalogue updates use the reviewed content process below.
+
+## Public activities and optional routine bundles
+
+Propose content through a PR; only maintainers publish by reviewing and merging to main. Read [the protocol and lifecycle](docs/CONTENT-PROTOCOL.md) first, including the branch-protection limitation.
+
+Copy `activity-catalog/activity.template.json` or `routine-bundles/bundle.template.json`, change stable IDs and author/source/licence, then add entries to the corresponding **v1** catalogue. Do not change the legacy activity endpoint's field set. New published activities require positive contentVersion and source. Increment contentVersion/version for revisions and preserve identity. Informative media needs accurate alt and actionable fallbackText; nonvisual activities do not need invented visual alt text. Templates are examples, not placeholders suitable for publication unchanged.
+
+```sh
+python3 -m pip install jsonschema==4.23.0
+python3 tools/validate_content.py
+python3 -m unittest discover -s tools
+```
+
+The PR checklist, schemas and validators catch structural mistakes; maintainers review content quality, safety, timing, accessibility, source rights and licences. CODEOWNERS alone does not prevent unreviewed merges. App/protocol/renderer changes also require Flutter analysis/tests, Android build/native checks and appropriate device acceptance. Content-only PRs do not build APKs.

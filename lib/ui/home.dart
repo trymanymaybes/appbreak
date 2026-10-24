@@ -9,6 +9,8 @@ import 'activity_visual.dart';
 import 'dart:async';
 import 'package:flutter/services.dart';
 import 'routine_fields.dart';
+import 'routine_bundles.dart';
+import 'content_media.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import '../application/controller.dart';
@@ -851,6 +853,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                 ManyMaybesChallengeView(controller: c)
               else
                 ActivityVisual(key: ValueKey(a.id), category: a.category),
+              ContentMedia(activity: a),
               const SizedBox(height: 16),
               Text(
                 a.title,
@@ -1047,6 +1050,13 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         'selection': 'rotation',
       }),
     ),
+    button(
+      'Browse optional bundles',
+      () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => RoutineBundlesPage(controller: c)),
+      ),
+    ),
     for (final p in c.profiles) routineCard(p),
   ];
   Widget routineCard(Map<String, dynamic> p) {
@@ -1153,6 +1163,17 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     ...routineFields(ctx, p, update),
+                    if (p['activityIds'] != null) ...[
+                      Text(
+                        'Bundle activity selection: ${(p['activityIds'] as List).join(', ')}',
+                      ),
+                      TextButton(
+                        onPressed: () => update(() => p.remove('activityIds')),
+                        child: const Text(
+                          'Use all activities in selected categories',
+                        ),
+                      ),
+                    ],
                     DropdownButtonFormField<String>(
                       initialValue: p['selection'] ?? 'rotation',
                       isExpanded: true,

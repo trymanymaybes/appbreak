@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "example.reading",
+  "version": 1,
+  "title": "Example: Reading with quiet breaks",
+  "description": "Optional editable starting point. Reminders remain off until you enable the routine.",
+  "author": "AppBreak contributors",
+  "license": "CC-BY-4.0",
+  "workActivity": "reading",
+  "minimumProtocol": 1,
+  "dependencies": [
+    {
+      "id": "quiet.soft",
+      "minimumVersion": 1
+    }
+  ],
+  "defaults": {
+    "workSeconds": 1500,
+    "breakSeconds": 60,
+    "trigger": "manual",
+    "selection": "rotation",
+    "quiet": true,
+    "repeat": true
+  },
+  "customisable": [
+    "workSeconds",
+    "breakSeconds",
+    "quiet",
+    "repeat"
+  ]
+}

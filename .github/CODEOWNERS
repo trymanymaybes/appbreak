@@ -2,3 +2,10 @@
 /activity-catalog/ @trymanymaybes
 /tools/validate_catalog.py @trymanymaybes
 /.github/ @trymanymaybes
+/routine-bundles/ @trymanymaybes
+/schemas/ @trymanymaybes
+/tools/ @trymanymaybes
+/lib/domain/activity.dart @trymanymaybes
+/lib/domain/routine_bundle.dart @trymanymaybes
+/lib/services/ @trymanymaybes
+/android/app/src/main/kotlin/org/appbreak/companion/ActivityPacks.kt @trymanymaybes

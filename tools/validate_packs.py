@@ -26,6 +26,16 @@ def validate(pack):
                 silent+=step['seconds']
             else: assert isinstance(step['text'],str) and 1<=len(step['text'])<=2000
         assert silent<=a['estimatedSeconds']
+        if 'contentVersion' in a: assert type(a['contentVersion']) is int and a['contentVersion']>=1
+        if 'source' in a: assert isinstance(a['source'],str) and 1<=len(a['source'].strip())<=2000
+        if 'reveal' in a: assert a['reveal']=='manual' and 'answer' in a
+        if 'media' in a:
+            assert isinstance(a['media'],list) and len(a['media'])<=4
+            from urllib.parse import urlsplit
+            for m in a['media']:
+                assert set(m)=={'url','alt','fallbackText'}
+                assert all(isinstance(v,str) and 1<=len(v.strip())<=2000 for v in m.values())
+                u=urlsplit(m['url']); assert u.scheme=='https' and u.hostname and not u.username and not u.password and not u.port
     return len(activities)
 if __name__=='__main__':
     for name in sys.argv[1:] or ['assets/activities.json']:

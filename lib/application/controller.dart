@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import '../domain/activity.dart';
+import '../domain/routine_bundle.dart';
+import '../services/bundle_catalog.dart';
 import '../domain/many_maybes.dart';
 import '../domain/break_counts.dart' as counts;
 import '../domain/session.dart';
@@ -55,6 +57,107 @@ class Companion extends ChangeNotifier {
     );
     notifyListeners();
     if (enabled) await refreshCatalog();
+  }
+
+  List<RoutineBundle> get routineBundles {
+    try {
+      return BundleCatalog.parse(data['bundleCatalog'] as String? ?? '{}');
+    } catch (_) {
+      return [];
+    }
+  }
+
+  bool bundleBusy = false;
+  String bundleStatus =
+      'Download optional examples to preview. Nothing is enabled automatically.';
+  Future<void> refreshBundles({BundleCatalog? source}) async {
+    if (bundleBusy || busy) return;
+    bundleBusy = true;
+    notifyListeners();
+    try {
+      final body = await (source ?? BundleCatalog()).fetch();
+      if (disposed) return;
+      if (busy) throw StateError('App is saving; retry shortly');
+      await act(() async {
+        data['bundleCatalog'] = body;
+      });
+      bundleStatus = error == null
+          ? 'Catalogue saved for offline browsing.'
+          : 'Could not save catalogue: $error';
+    } catch (_) {
+      bundleStatus =
+          'Could not update bundles. Previously downloaded examples remain available. Retry when online.';
+    } finally {
+      bundleBusy = false;
+      if (!disposed) notifyListeners();
+    }
+  }
+
+  Future<void> installBundle(
+    RoutineBundle input,
+    Map<String, dynamic> overrides,
+  ) async {
+    if (busy) {
+      error = 'App is saving. Please retry shortly.';
+      notifyListeners();
+      return;
+    }
+    await act(() async {
+      final bundle = RoutineBundle(Map<String, dynamic>.from(input.data));
+      if (profiles.any((p) => p['bundleId'] == bundle.id)) {
+        throw StateError(
+          'Already installed. Edit or remove the existing routine; updates never replace your customisations.',
+        );
+      }
+      if (profiles.length >= 20) throw StateError('At most 20 routines');
+      final options = bundle.settings(overrides);
+      final available = [
+        ...((data['customActivities'] ?? []) as List).map(
+          (a) => Activity(Map<String, dynamic>.from(a)),
+        ),
+        ...bundled,
+        ...catalog,
+      ];
+      final dependencies = bundle.resolve(available, options);
+      final custom = {
+        for (final a in ((data['customActivities'] ?? []) as List)) a['id']: a,
+      };
+      for (final a in dependencies) {
+        if (!bundled.any((b) => b.id == a.id))
+          custom.putIfAbsent(a.id, () => a.data);
+      }
+      if (custom.length > 200)
+        throw StateError('Too many downloaded/private activities');
+      // Validate everything before mutating; one revision-checked store write commits it.
+      final ids = profiles.map((p) => p['id']).toSet();
+      var n = 1;
+      while (ids.contains('bundle-local-$n')) {
+        n++;
+      }
+      final routine = <String, dynamic>{
+        'id': 'bundle-local-$n',
+        'name': bundle.title.substring(0, bundle.title.length.clamp(0, 100)),
+        ...options,
+        'enabled': false,
+        'popup': false,
+        'notifications': false,
+        'bundleId': bundle.id,
+        'bundleVersion': bundle.version,
+        'activityIds': bundle.activityIds,
+        'categories': dependencies.map((a) => a.category).toSet().toList(),
+        if (options['selection'] == 'fixed') 'favourite': dependencies.first.id,
+      };
+      data['customActivities'] = custom.values.toList();
+      data['settings'] = {
+        ...settings,
+        'profiles': [...profiles, routine],
+      };
+    });
+    if (error == null) {
+      await refresh();
+    } else {
+      data = await device.load();
+    }
   }
 
   Session session = const Session();
@@ -636,7 +739,11 @@ class Companion extends ChangeNotifier {
     try {
       if ((profile['quiet'] ?? settings['quiet'] ?? true) == true) return;
       await device.call('speak', {
-        'steps': current?.steps ?? [],
+        'steps': [
+          for (final m in (current?.data['media'] as List? ?? []))
+            {'kind': 'narration', 'text': '${m['alt']}. ${m['fallbackText']}'},
+          ...?current?.steps,
+        ],
         'language': current?.data['language'] ?? 'en-IN',
         'voice': settings['voice'],
         'rate': settings['rate'] ?? 1.0,
