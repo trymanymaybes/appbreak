@@ -16,6 +16,7 @@ import 'package:flutter/semantics.dart';
 import '../application/controller.dart';
 import '../domain/session.dart';
 import '../domain/activity.dart';
+import '../domain/profile.dart';
 import '../domain/progress.dart';
 import '../platform/device.dart';
 
@@ -1181,9 +1182,10 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                         labelText: 'Activity selection',
                       ),
                       items: const [
+                        DropdownMenuItem(value: 'shuffle', child: Text('Shuffle without repeats')),
                         DropdownMenuItem(
                           value: 'rotation',
-                          child: Text('Rotate activities'),
+                          child: Text('Rotate in order'),
                         ),
                         DropdownMenuItem(
                           value: 'fixed',
@@ -1197,7 +1199,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                       onChanged: (v) => update(() => p['selection'] = v),
                     ),
                     const Text(
-                      'Choose at start opens quiet rest; use Choose activity when ready.',
+                      'Shuffle shows every eligible activity once before repeating. Each routine keeps its own progress. Choose at start opens quiet rest; use Choose activity when ready.',
                     ),
                     SwitchListTile(
                       title: const Text('Quiet mode for this profile'),
@@ -1215,10 +1217,11 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                     const Text(
                       'Individual activities — unchecked items are excluded from rotation and manual browsing. Automatic suggestions also respect category and duration; manual browsing includes other categories and longer activities.',
                     ),
+                    Text('${fittingActivities(c.activities, {...p, 'categories': enabled, 'disabledActivities': disabled}, p['breakSeconds'] ?? 30).length} activities eligible for automatic selection'),
                     for (final a in c.activities)
-                      if (enabled.contains(a.category))
                         CheckboxListTile(
                           title: Text('${a.title} (${a.seconds}s)'),
+                          subtitle: Text(activityExclusions(a, {...p, 'categories': enabled, 'disabledActivities': disabled}, p['breakSeconds'] ?? 30).join(' · ').isEmpty ? 'Eligible for automatic selection' : activityExclusions(a, {...p, 'categories': enabled, 'disabledActivities': disabled}, p['breakSeconds'] ?? 30).join(' · ')),
                           value: !disabled.contains(a.id),
                           secondary: IconButton(
                             tooltip: 'Set favourite',

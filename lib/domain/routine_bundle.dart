@@ -89,7 +89,7 @@ class RoutineBundle {
     'quiet',
     'repeat',
   };
-  static void validateSettings(Map<String, dynamic> s) {
+  static void validateSettings(Map<String, dynamic> s, {bool allowLocalShuffle = false}) {
     if (s.length != settingKeys.length ||
         !s.keys.every(settingKeys.contains) ||
         s['workSeconds'] is! int ||
@@ -99,7 +99,7 @@ class RoutineBundle {
         s['breakSeconds'] < 20 ||
         s['breakSeconds'] > 300 ||
         !['manual', 'interval', 'screen'].contains(s['trigger']) ||
-        !['rotation', 'fixed', 'choose'].contains(s['selection']) ||
+        !['rotation', 'fixed', 'choose', if (allowLocalShuffle) 'shuffle'].contains(s['selection']) ||
         s['quiet'] is! bool ||
         s['repeat'] is! bool) {
       throw const FormatException('Unsupported routine settings or timing');

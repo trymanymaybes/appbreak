@@ -62,6 +62,19 @@ object Backups {
                 for(field in listOf("activity","routineId")) if(!item.isNull(field)) require(item.get(field) is String)
             }
         }
+        if(d.has("activitySelection")) {
+            val selections=d.getJSONObject("activitySelection");require(selections.length()<=20)
+            for(id in selections.keys()) {
+                require(id.length in 1..80)
+                val state=selections.getJSONObject(id)
+                if(state.has("last")) require(state.get("last") is String && state.getString("last").length in 1..80)
+                if(state.has("seen")) {
+                    val seen=state.getJSONArray("seen");require(seen.length()<=1000)
+                    val ids=mutableSetOf<String>()
+                    for(i in 0 until seen.length()) require(seen.get(i) is String && seen.getString(i).length in 1..80 && ids.add(seen.getString(i)))
+                }
+            }
+        }
         if(d.has("plans")) {
             val plans=d.getJSONArray("plans");require(plans.length()<=100);val ids=mutableSetOf<String>()
             for(i in 0 until plans.length()) {val p=plans.getJSONObject(i)
@@ -106,7 +119,7 @@ object Backups {
                 require(profile.get("id") is String && profile.getString("id").matches(Regex("[a-z0-9._-]{1,80}")) && ids.add(profile.getString("id")))
                 require(profile.get("name") is String && profile.getString("name").length in 1..100)
                 require(profile.get("breakSeconds") is Int && profile.getInt("breakSeconds") in 20..300)
-                require(profile.opt("selection") in listOf("rotation","fixed","choose"))
+                require(profile.opt("selection") in listOf("rotation","fixed","choose","shuffle"))
                 for(key in listOf("enabled","popup","notifications","repeat","resetByBreak")) if(profile.has(key)) require(profile.get(key) is Boolean)
                 if(profile.has("trigger")) require(profile.getString("trigger") in listOf("screen","manual","interval","scheduled"))
                 if(profile.has("goalPeriod")) require(profile.getString("goalPeriod") in listOf("daily","weekly"))

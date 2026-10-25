@@ -14,6 +14,15 @@ class StorageTest: AndroidTestCase() {
             assertEquals(view,Store(context).use{it.read()}.getJSONObject("settings").getString("plannerView"))
         }
     }
+    fun testSelectionProgressSurvivesBackup() {
+        val state=JSONObject().put("last","quiet.soft").put("seen",JSONArray().put("quiet.soft"))
+        Store(context).use { store -> val data=store.read();data.put("schemaVersion",1).put("activitySelection",JSONObject().put("short",state));store.write(data) }
+        val backup=Backups.validate(Backups.make(context,false));Backups.restore(context,backup)
+        val restored=Store(context).use{it.read()}.getJSONObject("activitySelection").getJSONObject("short")
+        assertEquals("quiet.soft",restored.getString("last"));assertEquals("quiet.soft",restored.getJSONArray("seen").getString(0))
+        Store(context).use { store -> val data=store.read();data.getJSONObject("activitySelection").getJSONObject("short").put("seen",JSONArray().put(42));store.write(data) }
+        try {Backups.validate(Backups.make(context,false));fail("Accepted invalid selection state")} catch(_:IllegalArgumentException) {}
+    }
     fun testCompareAndSwapRejectsStaleWriter() {
         Store(context).use { store -> val old=store.read(); store.write(JSONObject(old.toString())); try { store.write(old); fail("Accepted stale data") } catch(_:IllegalStateException) {} }
     }

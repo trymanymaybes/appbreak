@@ -147,7 +147,7 @@ class Companion extends ChangeNotifier {
           overrides,
         ); // Verify only advertised customisations were requested.
         options.addAll(overrides);
-        RoutineBundle.validateSettings(options);
+        RoutineBundle.validateSettings(options, allowLocalShuffle: true);
       }
       final available = [
         ...((data['customActivities'] ?? []) as List).map(
@@ -349,6 +349,7 @@ class Companion extends ChangeNotifier {
       'profile': list.first['id'],
     };
     (data['routineState'] as Map?)?.remove(id);
+    (data['activitySelection'] as Map?)?.remove(id);
   });
   Future<void> startRoutine(String id) async {
     await device.call('startRoutine', {'id': id});
@@ -410,6 +411,7 @@ class Companion extends ChangeNotifier {
       activityId: a.id,
     );
     data['lastActivity'] = id;
+    notePresented(a, activities, profile, breakSeconds, activitySelectionState());
   });
   Future<void> cycleActivity(int direction) async {
     final fit = alternatives;
@@ -458,6 +460,7 @@ class Companion extends ChangeNotifier {
         activityId: activity.id,
       );
       data['lastActivity'] = activity.id;
+      notePresented(activity, activities, profile, breakSeconds, activitySelectionState());
     }, stopCapture: challenge.activityId != previousActivity);
   }
 
@@ -503,8 +506,12 @@ class Companion extends ChangeNotifier {
       ];
       // An update must not replace the instructions in an ongoing break.
       if (previous != null && session.phase != Phase.idle) {
-        activities.removeWhere((a) => a.id == previous.id);
-        activities.add(previous);
+        final index = activities.indexWhere((a) => a.id == previous.id);
+        if (index < 0) {
+          activities.add(previous);
+        } else {
+          activities[index] = previous;
+        }
       }
       if (!(data['settings'] as Map? ?? {}).containsKey('profiles')) {
         data['settings'] = {
@@ -635,13 +642,25 @@ class Companion extends ChangeNotifier {
       timing: timing,
     ).at(Phase.work, workSeconds * 1000, moment);
   });
+  Map<String, dynamic> activitySelectionState() {
+    final states = Map<String, dynamic>.from(data['activitySelection'] as Map? ?? {});
+    final id = profile['id'] as String;
+    final state = Map<String, dynamic>.from(states[id] as Map? ?? {});
+    states[id] = state;
+    data['activitySelection'] = states;
+    return state;
+  }
+
   Future<void> _breakNow() async {
+    final state = activitySelectionState();
     final activity = selectForProfile(
       activities,
       profile,
       breakSeconds,
-      data['lastActivity'],
+      state['last'] as String?,
+      selectionState: state,
     );
+    notePresented(activity, activities, profile, breakSeconds, state);
     session = Session(
       id: newId(),
       routineId: session.routineId,
