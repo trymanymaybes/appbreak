@@ -38,12 +38,20 @@ jobs:
           echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
       - name: Linux build dependencies
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev
+        run: sudo apt-get update && sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev xvfb
       - run: flutter pub get --enforce-lockfile
       - run: flutter analyze
       - run: flutter test --reporter expanded
       - name: Compile native desktop release
         run: flutter build ${{ matrix.target }} --release
+      - name: Linux release startup smoke test
+        if: runner.os == 'Linux'
+        run: |
+          set +e
+          timeout 15s xvfb-run -a build/linux/x64/release/bundle/appbreak > "$RUNNER_TEMP/appbreak-linux-startup.log" 2>&1
+          result=$?
+          cat "$RUNNER_TEMP/appbreak-linux-startup.log"
+          test "$result" = 124
       - name: Archive review bundle preserving executable permissions
         run: tar -czf appbreak-${{ matrix.target }}-preview.tar.gz -C "$(dirname '${{ matrix.output }}')" "$(basename '${{ matrix.output }}')"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
