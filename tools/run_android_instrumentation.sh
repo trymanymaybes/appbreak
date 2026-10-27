@@ -13,6 +13,10 @@ if [[ -e /dev/kvm && ! -w /dev/kvm ]]; then sudo chmod a+rw /dev/kvm; fi
 sdkmanager 'emulator' 'platform-tools' 'system-images;android-29;default;x86_64'
 printf 'no\n' | avdmanager create avd --force --name appbreak-check --package 'system-images;android-29;default;x86_64' --path "$ANDROID_AVD_HOME/appbreak-check.avd"
 printf 'avd.ini.encoding=UTF-8\npath=%s\ntarget=android-29\n' "$ANDROID_AVD_HOME/appbreak-check.avd" > "$ANDROID_AVD_HOME/appbreak-check.ini"
+# AVD defaults vary by emulator image. The oversized-backup rejection fixture
+# intentionally allocates 24 MiB; a default 16 MiB Java heap fails before validation.
+sed -i '/^vm.heapSize=/d' "$ANDROID_AVD_HOME/appbreak-check.avd/config.ini"
+printf '\nvm.heapSize=256\n' >> "$ANDROID_AVD_HOME/appbreak-check.avd/config.ini"
 emulator -list-avds | grep -x 'appbreak-check'
 emulator -avd appbreak-check -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect -memory 2048 >"$log_dir/emulator.log" 2>&1 &
 emulator_pid=$!
@@ -29,5 +33,6 @@ for attempt in $(seq 1 120); do
   sleep 2
 done
 if [[ "$booted" != true ]]; then echo 'Emulator did not finish booting'; exit 1; fi
+adb shell getprop dalvik.vm.heapsize | tee "$log_dir/java-heap.txt"
 adb shell input keyevent 82
 (cd android && ./gradlew :app:connectedFossDebugAndroidTest --no-daemon)
