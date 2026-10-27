@@ -325,6 +325,9 @@ class Companion extends ChangeNotifier {
   Future<void> updateProfile(Map<String, dynamic> changes) =>
       saveRoutine({...profile, ...changes});
   Future<void> saveRoutine(Map<String, dynamic> routine) => act(() async {
+    if (device.isDesktop && routine['enabled'] == true && routine['trigger'] != 'manual') {
+      throw StateError('Automatic triggers are not available in the desktop preview. Choose a manual routine or keep it disabled.');
+    }
     final list = profiles;
     final i = list.indexWhere((p) => p['id'] == routine['id']);
     if (i < 0) {
@@ -478,7 +481,7 @@ class Companion extends ChangeNotifier {
     await refresh();
     unawaited(refreshCatalog());
     ticker = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (visible) refresh();
+      if (visible || device.isDesktop) refresh();
     });
   }
 

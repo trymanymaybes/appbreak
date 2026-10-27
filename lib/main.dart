@@ -2,12 +2,12 @@
 import 'package:flutter/material.dart';
 import 'application/controller.dart';
 import 'domain/session.dart';
-import 'platform/device.dart';
+import 'platform/platform_device.dart';
 import 'ui/home.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final popup = await Device().call<bool>('isBreakPopup') ?? false;
+  final popup = await platformDevice().call<bool>('isBreakPopup') ?? false;
   runApp(AppBreak(popup: popup));
 }
 
@@ -41,7 +41,7 @@ class AppBreak extends StatefulWidget {
 }
 
 class _AppBreakState extends State<AppBreak> {
-  final controller = Companion(Device());
+  final controller = Companion(platformDevice());
   @override
   Widget build(BuildContext context) => AnimatedBuilder(
     animation: controller,

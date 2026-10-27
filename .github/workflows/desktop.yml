@@ -1,0 +1,53 @@
+name: Desktop checks
+on:
+  push:
+    paths-ignore: ['activity-catalog/**', 'routine-bundles/**', '**.md']
+  pull_request:
+    paths-ignore: ['activity-catalog/**', 'routine-bundles/**', '**.md']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  desktop:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: linux
+            output: build/linux/x64/release/bundle
+          - os: windows-latest
+            target: windows
+            output: build/windows/x64/runner/Release
+          - os: macos-latest
+            target: macos
+            output: build/macos/Build/Products/Release/AppBreak.app
+    runs-on: ${{ matrix.os }}
+    env:
+      CI: 'true'
+      FLUTTER_SUPPRESS_ANALYTICS: 'true'
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Install pinned Flutter
+        run: |
+          git clone --depth 1 --branch 3.35.7 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
+          test "$(git -C "$RUNNER_TEMP/flutter" rev-parse HEAD)" = adc901062556672b4138e18a4dc62a4be8f4b3c2
+          echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
+      - name: Linux build dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev
+      - run: flutter pub get --enforce-lockfile
+      - run: flutter analyze
+      - run: flutter test --reporter expanded
+      - name: Compile native desktop release
+        run: flutter build ${{ matrix.target }} --release
+      - name: Archive review bundle preserving executable permissions
+        run: tar -czf appbreak-${{ matrix.target }}-preview.tar.gz -C "$(dirname '${{ matrix.output }}')" "$(basename '${{ matrix.output }}')"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: appbreak-${{ matrix.target }}-preview
+          path: appbreak-${{ matrix.target }}-preview.tar.gz
+          retention-days: 14

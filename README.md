@@ -85,3 +85,7 @@ Original application source is **Apache-2.0** (root `LICENSE`). Original bundled
 ## Next release preparation
 
 See [AppBreak 0.6.0](docs/RELEASE-0.6.md) for the candidate feature list, test gates, device checklist and signing/publication handoff. Source preparation does not mean an APK has been published.
+
+## Desktop preview
+
+The next release includes Windows, macOS and Linux targets. See [desktop capabilities and limitations](docs/DESKTOP.md). These are preview builds; Android remains the full-featured platform.

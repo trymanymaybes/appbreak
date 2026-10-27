@@ -1,5 +1,5 @@
 import 'dart:typed_data';
-import '../platform/device.dart';
+import '../platform/platform_device.dart';
 import 'package:flutter/material.dart';
 import '../domain/activity.dart';
 
@@ -42,7 +42,9 @@ class CachedContentImage extends StatefulWidget {
 class _CachedContentImageState extends State<CachedContentImage> {
   late Future<Uint8List?> bytes;
   void load() {
-    bytes = Device().call<Uint8List>('contentImage', {'url': widget.url});
+    bytes = platformDevice().call<Uint8List>('contentImage', {
+      'url': widget.url,
+    });
   }
 
   @override

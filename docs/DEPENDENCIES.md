@@ -41,3 +41,5 @@ Debug builds declare INTERNET solely for Flutter VM-service debugging, as in the
 Version 0.2 adds test-only JUnit 4.13.2 (EPL-1.0) for pure native accounting tests. It is scoped to testImplementation, not either APK runtime graph. Android on-device SpeechRecognizer, UsageStatsManager and popup launch use platform APIs; no runtime plugin or speech model dependency was added. JUnit is a legacy test-only baseline; no new runtime dependency maintenance claim is made.
 
 JUnit brings test-only Hamcrest Core 1.3 (BSD). The JUnit and Hamcrest licence texts were inspected from the resolved JARs and retained under third_party/licenses; neither is bundled into the app runtime.
+
+Desktop preview adds Flutter-published path_provider, file_selector and url_launcher plugins, plus Dart crypto. Exact direct and transitive versions are pinned in pubspec.lock; Flutter collects their licence notices. They provide application-support paths, user-chosen file dialogs, HTTPS link launching and backup/cache hashes. Android platform operations continue using the existing native adapter. Desktop native release and licence audits remain release gates.

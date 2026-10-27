@@ -24,14 +24,6 @@ rotation/fixed/choose so older apps can still consume that endpoint. Bundle upda
 preserve a local shuffle choice. Old APKs may reject backups containing shuffle;
 choose a legacy mode before exporting for an older app.
 
-# Laptop support follow-up
+# Laptop support
 
-The UI and data-only catalogues can be shared. A desktop build still needs platform
-implementations of Device storage/clock, timers and suspend/resume handling,
-notifications, file dialogs/backups, media caching, narration and recording.
-First deliver manual work/break timers, planner and local content/history; then
-tray/background support and idle/lock detection. Do not report unsupported features
-as enabled. Keep local data private; cross-device synchronisation is separate.
-
-No laptop executable is included in this change. Select Windows, macOS or Linux
-as the first target before choosing platform integrations and packaging.
+Windows, macOS and Linux now have native build targets and a shared desktop-core preview in this PR. Per-routine shuffle and its saved progress work in that adapter too. See [DESKTOP.md](DESKTOP.md) for build instructions, supported features and remaining native integrations.
