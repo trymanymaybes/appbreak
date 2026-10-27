@@ -16,7 +16,7 @@ jobs:
           - os: ubuntu-latest
             target: linux
             output: build/linux/x64/release/bundle
-          - os: windows-latest
+          - os: windows-2022
             target: windows
             output: build/windows/x64/runner/Release
           - os: macos-latest

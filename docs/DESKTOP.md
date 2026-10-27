@@ -20,6 +20,6 @@ Active-screen/idle/lock tracking, narration/TTS, recording/playback/dictation, p
 
 ## Build and verification
 
-Use Flutter 3.35.7 (commit adc901062556672b4138e18a4dc62a4be8f4b3c2) and the committed lockfile. Run `flutter pub get --enforce-lockfile`, `flutter analyze`, `flutter test` and `flutter build windows`, `flutter build macos` or `flutter build linux` on the corresponding OS. Linux needs Clang, CMake, Ninja, pkg-config, GTK3 and liblzma development packages. Windows needs Visual Studio's C++ desktop workload; macOS needs Xcode and CocoaPods.
+Use Flutter 3.35.7 (commit adc901062556672b4138e18a4dc62a4be8f4b3c2) and the committed lockfile. Run `flutter pub get --enforce-lockfile`, `flutter analyze`, `flutter test` and `flutter build windows`, `flutter build macos` or `flutter build linux` on the corresponding OS. Linux needs Clang, CMake, Ninja, pkg-config, GTK3 and liblzma development packages. Windows needs Visual Studio 2022's C++ desktop workload (the pinned Flutter SDK does not recognise Visual Studio 2026); macOS needs Xcode and CocoaPods.
 
 The desktop workflow builds all three native release targets and retains review artifacts, independently of content-only changes. These are development artifacts, not signed/notarised public installers. Do not distribute as stable until native UI, lifecycle, file dialogs, accessibility, offline and suspend/resume checks pass on each target. CI compilation is not proof of those interactive checks. No APK is published by this workflow.
