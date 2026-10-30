@@ -69,7 +69,11 @@ open class MainActivity: FlutterActivity() {
                         // Handles both launcher creation and onNewIntent (warm notification tap).
                         val open = intent?.action == "openBreak"
                         val sessionId = intent?.getStringExtra("sessionId")
-                        if(open) { intent?.action = null; intent?.removeExtra("sessionId") }
+                        if(open) {
+                            val s=Store(this).use { it.read().optJSONObject("session") }
+                            if(s!=null && (sessionId==null || sessionId==s.optString("id"))) ReminderHealth.response(this,s)
+                            intent?.action = null; intent?.removeExtra("sessionId")
+                        }
                         result.success(if(open) mapOf("sessionId" to sessionId) else null)
                     }
                     "contentImage" -> {

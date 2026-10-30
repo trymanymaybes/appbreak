@@ -88,7 +88,7 @@ object Reminders {
         val e=ReminderHealth.entry(ReminderHealth.read(c),s)
         if(ReminderHealth.waitMs(c,s)>0) return
         if(e.optInt("unanswered")>=ReminderHealth.MAX_ATTEMPTS || e.optInt("failedAttempts")>=ReminderHealth.MAX_ATTEMPTS) {
-            ReminderHealth.issue(c,s,if(e.optInt("unanswered")>=3) "No response recorded after three reminders. The routine will continue." else "Reminder delivery could not be confirmed. Check notification and popup permissions.")
+            ReminderHealth.issue(c,s,if(e.optInt("unanswered")>=3) "No response recorded after three reminders. This break was marked unanswered." else "Reminder delivery could not be confirmed. Check notification and popup permissions.")
             release(c,s);return
         }
         notify(c,s.optString("phase")!="due",retry=true)
@@ -99,7 +99,8 @@ object Reminders {
         if(d.optString("dismissedNotification")==s.optString("id")+":"+phase) return
         val confirmation=phase in listOf("pending","finished") || finished
         val running=phase=="rest"
-        val tracked=!running && ReminderHealth.waitMs(c,s)==0L
+        val health=ReminderHealth.entry(ReminderHealth.read(c),s)
+        val tracked=!running && ReminderHealth.waitMs(c,s)==0L && health.optInt("unanswered")<ReminderHealth.MAX_ATTEMPTS && health.optInt("failedAttempts")<ReminderHealth.MAX_ATTEMPTS
         val token=s.optString("id")+":"+phase+":"+SystemClock.elapsedRealtime()
         val manager=c.getSystemService(NotificationManager::class.java)
         val open=PendingIntent.getActivity(c,10,Intent(c,MainActivity::class.java).setAction("openBreak").putExtra("sessionId",s.optString("id")).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
