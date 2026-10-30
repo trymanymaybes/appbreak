@@ -58,4 +58,18 @@ class ReminderRecoveryTest:AndroidTestCase() {
         assertEquals(1,ReminderHealth.read(context).getJSONArray("issues").length())
         assertFalse(ReminderHealth.entry(ReminderHealth.read(context),s).has("lastResponseAt"))
     }
+    fun testOldDismissedStateDoesNotBlockFollowingRoutine() {
+        val s=session();save(s)
+        Store(context).use {val d=it.read();d.put("dismissedNotification","test:due");it.write(d)}
+        Reminders.recover(context)
+        assertNull(Store(context).use{it.read()}.optJSONObject("session"))
+        assertFalse(ReminderHealth.read(context).has("issues"))
+    }
+    fun testQuietHoursSuppressRecoveryWithoutCountingAttempts() {
+        val s=session();save(s)
+        Store(context).use {val d=it.read();d.getJSONObject("settings").put("quietHours",true).put("quietStart",0).put("quietEnd",0);it.write(d)}
+        Reminders.recover(context)
+        assertFalse(ReminderHealth.entry(ReminderHealth.read(context),s).has("lastAttemptAt"))
+        assertEquals("test",Store(context).use{it.read()}.getJSONObject("session").getString("id"))
+    }
 }

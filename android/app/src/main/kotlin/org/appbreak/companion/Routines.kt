@@ -43,7 +43,7 @@ object Routines {
         for(p in profiles(d)) if(p.optString("trigger")=="screen" && p.optBoolean("enabled")) reset(c,d,p.getString("id"))
     }
     fun start(c:Context,id:String) {
-        Store(c).use { store -> val d=store.read();val p=profile(d,id);check(p.has("id"));state(d).put(id,fresh(c,p));store.write(d) }
+        Store(c).use { store -> val d=store.read();val p=profile(d,id);check(p.has("id"));state(d).put(id,fresh(c,p));store.write(d);ReminderHealth.response(c,JSONObject().put("routineId",id)) }
         Reminders.schedule(c)
     }
     fun nextDelay(c:Context,d:JSONObject):Long? {

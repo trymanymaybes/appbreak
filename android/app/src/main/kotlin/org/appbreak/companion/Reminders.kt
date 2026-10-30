@@ -64,27 +64,33 @@ object Reminders {
         val open=PendingIntent.getActivity(c,31,Intent(c,MainActivity::class.java).setAction("openProgress").addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         try {manager.notify(3,Notification.Builder(c,"skip_summary").setSmallIcon(android.R.drawable.ic_lock_idle_alarm).setContentTitle("${BreakStats.skipped(d)} breaks skipped today").setContentText("Open Progress to see counts by activity type.").setContentIntent(open).setOnlyAlertOnce(true).setAutoCancel(true).setVisibility(Notification.VISIBILITY_PRIVATE).build())} catch(_:SecurityException){}
     }
+    private fun release(c:Context,s:JSONObject,responded:Boolean=false) {
+        Store(c).use { store -> val d=store.read();val active=d.optJSONObject("session")
+            if(active?.optString("id")==s.optString("id")) {
+                BreakStats.snapshot(c,d,active);Routines.archive(d,active,"unconfirmed")
+                Routines.reset(c,d,active.optString("routineId"));d.remove("session");store.write(d)
+            }
+        }
+        clear(c);ReminderHealth.response(c,s,responded)
+    }
     fun recover(c:Context) {
         val d=Store(c).use { it.read() };val s=d.optJSONObject("session") ?: return
         if(s.optString("phase") !in listOf("due","finished","pending")) return
         if(s.optString("phase")=="pending" && remaining(c,s)>0) return
         val settings=d.optJSONObject("settings") ?: JSONObject()
         val p=Routines.profile(d,s.optString("routineId"))
-        if(!allowed(settings) || (p.has("id") && !Routines.allowed(p)) || settings.optLong("popupPausedUntil")>System.currentTimeMillis()) return
-        if(p.has("id") && !p.optBoolean("enabled") && p.optString("trigger")!="manual") {
-            Store(c).use { store -> val current=store.read();if(current.optJSONObject("session")?.optString("id")==s.optString("id")) {current.remove("session");store.write(current)} }
-            clear(c);ReminderHealth.response(c,s,false);return
-        }
+        val dismissed=d.optString("dismissedNotification")==s.optString("id")+":"+s.optString("phase")
+        val disabled=p.has("id") && !p.optBoolean("enabled") && p.optString("trigger")!="manual"
+        val outsideWindow=p.has("id") && !Routines.allowed(p)
+        val silent=!p.optBoolean("notifications",true) && (!p.optBoolean("popup",true) || !settings.optBoolean("popup",true))
+        if(dismissed || disabled || outsideWindow || silent) {release(c,s,dismissed);return}
+        if(!allowed(settings) || settings.optLong("popupPausedUntil")>System.currentTimeMillis()) return
         val e=ReminderHealth.entry(ReminderHealth.read(c),s)
         if(ReminderHealth.waitMs(c,s)>0) return
         if(e.optInt("unanswered")>=ReminderHealth.MAX_ATTEMPTS || e.optInt("failedAttempts")>=ReminderHealth.MAX_ATTEMPTS) {
             ReminderHealth.issue(c,s,if(e.optInt("unanswered")>=3) "No response recorded after three reminders. The routine will continue." else "Reminder delivery could not be confirmed. Check notification and popup permissions.")
-            Store(c).use { store -> val current=store.read();val active=current.optJSONObject("session")
-                if(active?.optString("id")==s.optString("id")) { BreakStats.snapshot(c,current,active);Routines.archive(current,active,"unconfirmed");Routines.reset(c,current,active.optString("routineId"));current.remove("session");store.write(current) }
-            }
-            clear(c);ReminderHealth.response(c,s,false);return
+            release(c,s);return
         }
-        if(d.optString("dismissedNotification")==s.optString("id")+":"+s.optString("phase")) return
         notify(c,s.optString("phase")!="due",retry=true)
     }
     fun notify(c: Context, finished: Boolean, popup:Boolean=true, retry:Boolean=false) {
