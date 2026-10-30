@@ -1,0 +1,11 @@
+# Android reminder recovery
+
+Reminders schedule the earliest session, routine, planner or recovery deadline. Screen-time accounting still polls once per minute. Repeated foreground refreshes preserve an earlier armed alarm instead of cancelling and pushing it back. The receiver always re-arms in a finally block, including stale notification actions. Foreground load runs the same reconciliation. An orphan `presented` routine is reset so it cannot stall indefinitely.
+
+Android uses exact idle-allowed alarms when access is available, with an inexact fallback. Optional access is linked from Progress → Reminder status & issues. This does not bypass Doze throttling, force-stop, notification permissions or OEM restrictions. No continuously running background service is added.
+
+Device-local diagnostics record the last notification posted, popup Activity resumed, and explicit response by routine. Notification posting is not proof of visibility. Both surfaces share one attempt token. Completion, skip, dismissal, postponement and pause acknowledge the episode; merely opening the popup does not. Countdown updates do not count as reminder attempts. Data lives in separate private preferences, avoiding revision conflicts with Flutter state; it is not uploaded or included in exports. Delete all data clears it.
+
+Recovery checks waiting breaks at least five minutes after the last attempt. After three issued reminders and another response window, an unanswered issue is logged once, the break is archived as unconfirmed, and its routine is reset. Three unsuccessful delivery attempts produce a separate permissions/delivery issue, not an unanswered count. Quiet hours, routine windows and popup pause are respected. Recent issues (maximum 50) appear in Progress and a low-priority Android issue notification. Manual nonrepeating routines remain stopped after resolution.
+
+Validation: native regression tests cover postpone/re-arm, orphan state recovery, stable alarm targets, persisted attempt deduplication, failed delivery, clock/reboot handling, and third-attempt recovery. Device acceptance must exercise screen off/Doze, notification denial, popup-only mode, process death, complete/postpone from both surfaces, quiet hours and reboot. Exact timing remains subject to Android restrictions.

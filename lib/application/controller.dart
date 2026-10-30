@@ -18,6 +18,7 @@ class Companion extends ChangeNotifier {
   final Device device;
   Companion(this.device);
   Map<String, dynamic> data = {};
+  Map<String, dynamic> reminderHealth = {};
   List<Activity> activities = [];
   List<Activity> bundled = [];
   List<Activity> catalog = [];
@@ -491,6 +492,12 @@ class Companion extends ChangeNotifier {
     busy = true;
     try {
       data = await device.load();
+      if (!device.isDesktop) {
+        try {
+          final health = await device.call<String>('reminderHealth');
+          if (health != null) reminderHealth = Map<String, dynamic>.from(jsonDecode(health));
+        } catch (_) { /* Older native adapters do not expose diagnostics. */ }
+      }
       final previous = current;
       final localIds = {
         ...bundled.map((a) => a.id),
@@ -865,3 +872,4 @@ class Companion extends ChangeNotifier {
     super.dispose();
   }
 }
+

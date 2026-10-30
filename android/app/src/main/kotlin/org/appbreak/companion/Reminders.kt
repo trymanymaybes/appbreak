@@ -15,17 +15,32 @@ object Reminders {
     private fun alarm(c: Context) = PendingIntent.getBroadcast(c, 1, Intent(c,ReminderReceiver::class.java).setAction("alarm"), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     fun schedule(c: Context) {
         val manager = c.getSystemService(AlarmManager::class.java)
-        manager.cancel(alarm(c))
+
         val d=Store(c).use { it.read() };val s=d.optJSONObject("session")
         val delays=mutableListOf<Long>()
         if(s?.optString("phase") in listOf("work","rest","paused")) delays.add(if(s!!.optString("timing")=="screen" && s.optString("phase")=="work") 60000L else remaining(c,s))
         if(s?.optString("phase")=="pending" && remaining(c,s)>0) delays.add(remaining(c,s))
         Planner.nextDelay(d)?.let{delays.add(it)}
-        if(Routines.profiles(d).any { it.optBoolean("enabled") }) delays.add(60000L)
+        Routines.nextDelay(c,d)?.let { delays.add(it) }
+        if(s?.optString("phase") in listOf("due","finished") || (s?.optString("phase")=="pending" && remaining(c,s)<=0)) {
+            val settings=d.optJSONObject("settings") ?: JSONObject()
+            val p=Routines.profile(d,s!!.optString("routineId"))
+            val eligible=allowed(settings) && (!p.has("id") || Routines.allowed(p)) && settings.optLong("popupPausedUntil")<=System.currentTimeMillis()
+            delays.add(if(eligible) maxOf(1000L,ReminderHealth.waitMs(c,s)) else 60000L)
+        }
         val pauseUntil=d.optJSONObject("settings")?.optLong("popupPausedUntil",0) ?: 0L
         if(pauseUntil>System.currentTimeMillis()) delays.add(pauseUntil-System.currentTimeMillis())
-        if(delays.isEmpty()) return
-        manager.setAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP,SystemClock.elapsedRealtime()+delays.min().coerceAtLeast(1000),alarm(c))
+        val saved=c.getSharedPreferences("reminder_alarm",Context.MODE_PRIVATE)
+        if(delays.isEmpty()) { manager.cancel(alarm(c));saved.edit().clear().commit();return }
+        val target=SystemClock.elapsedRealtime()+delays.min().coerceAtLeast(1000)
+        val old=saved.getLong("target",0)
+        // Foreground refresh must not continually push an already armed alarm back.
+        if(saved.getInt("boot",-1)==boot(c) && old>SystemClock.elapsedRealtime() && old<=target) return
+        try {
+            if(Build.VERSION.SDK_INT<31 || manager.canScheduleExactAlarms()) manager.setExactAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP,target,alarm(c))
+            else manager.setAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP,target,alarm(c))
+        } catch(_:SecurityException) { manager.setAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP,target,alarm(c)) }
+        saved.edit().putLong("target",target).putInt("boot",boot(c)).commit()
     }
 
     fun allowed(settings: JSONObject): Boolean {
@@ -49,12 +64,44 @@ object Reminders {
         val open=PendingIntent.getActivity(c,31,Intent(c,MainActivity::class.java).setAction("openProgress").addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         try {manager.notify(3,Notification.Builder(c,"skip_summary").setSmallIcon(android.R.drawable.ic_lock_idle_alarm).setContentTitle("${BreakStats.skipped(d)} breaks skipped today").setContentText("Open Progress to see counts by activity type.").setContentIntent(open).setOnlyAlertOnce(true).setAutoCancel(true).setVisibility(Notification.VISIBILITY_PRIVATE).build())} catch(_:SecurityException){}
     }
-    fun notify(c: Context, finished: Boolean, popup:Boolean=true) {
+    private fun release(c:Context,s:JSONObject,responded:Boolean=false) {
+        Store(c).use { store -> val d=store.read();val active=d.optJSONObject("session")
+            if(active?.optString("id")==s.optString("id")) {
+                BreakStats.snapshot(c,d,active);Routines.archive(d,active,"unconfirmed")
+                Routines.reset(c,d,active.optString("routineId"));d.remove("session");store.write(d)
+            }
+        }
+        clear(c);ReminderHealth.response(c,s,responded)
+    }
+    fun recover(c:Context) {
+        val d=Store(c).use { it.read() };val s=d.optJSONObject("session") ?: return
+        if(s.optString("phase") !in listOf("due","finished","pending")) return
+        if(s.optString("phase")=="pending" && remaining(c,s)>0) return
+        val settings=d.optJSONObject("settings") ?: JSONObject()
+        val p=Routines.profile(d,s.optString("routineId"))
+        val dismissed=d.optString("dismissedNotification")==s.optString("id")+":"+s.optString("phase")
+        val disabled=p.has("id") && !p.optBoolean("enabled") && p.optString("trigger")!="manual"
+        val outsideWindow=p.has("id") && !Routines.allowed(p)
+        val silent=!p.optBoolean("notifications",true) && (!p.optBoolean("popup",true) || !settings.optBoolean("popup",true))
+        if(dismissed || disabled || outsideWindow || silent) {release(c,s,dismissed);return}
+        if(!allowed(settings) || settings.optLong("popupPausedUntil")>System.currentTimeMillis()) return
+        val e=ReminderHealth.entry(ReminderHealth.read(c),s)
+        if(ReminderHealth.waitMs(c,s)>0) return
+        if(e.optInt("unanswered")>=ReminderHealth.MAX_ATTEMPTS || e.optInt("failedAttempts")>=ReminderHealth.MAX_ATTEMPTS) {
+            ReminderHealth.issue(c,s,if(e.optInt("unanswered")>=3) "No response recorded after three reminders. This break was marked unanswered." else "Reminder delivery could not be confirmed. Check notification and popup permissions.")
+            release(c,s);return
+        }
+        notify(c,s.optString("phase")!="due",retry=true)
+    }
+    fun notify(c: Context, finished: Boolean, popup:Boolean=true, retry:Boolean=false) {
         val d=Store(c).use { it.read() };val s=d.optJSONObject("session") ?: return
         val phase=s.optString("phase");val p=Routines.profile(d,s.optString("routineId"));val settings=d.optJSONObject("settings") ?: JSONObject()
         if(d.optString("dismissedNotification")==s.optString("id")+":"+phase) return
         val confirmation=phase in listOf("pending","finished") || finished
         val running=phase=="rest"
+        val health=ReminderHealth.entry(ReminderHealth.read(c),s)
+        val tracked=!running && ReminderHealth.waitMs(c,s)==0L && health.optInt("unanswered")<ReminderHealth.MAX_ATTEMPTS && health.optInt("failedAttempts")<ReminderHealth.MAX_ATTEMPTS
+        val token=s.optString("id")+":"+phase+":"+SystemClock.elapsedRealtime()
         val manager=c.getSystemService(NotificationManager::class.java)
         val open=PendingIntent.getActivity(c,10,Intent(c,MainActivity::class.java).setAction("openBreak").putExtra("sessionId",s.optString("id")).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val b=Notification.Builder(c,channel(c,p)).setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
@@ -62,7 +109,7 @@ object Reminders {
             .setContentText(if(confirmation) "Confirm participation, or skip this break." else if(running) "Return when ready. Completion is yours to confirm." else p.optString("message","Break ready. Start when you are ready."))
             .setSubText(BreakStats.summary(c,d,s))
             .setColor(p.optLong("color",0xff356859).toInt()).setVisibility(Notification.VISIBILITY_PRIVATE)
-            .setContentIntent(open).setOnlyAlertOnce(true).setAutoCancel(false)
+            .setContentIntent(open).setOnlyAlertOnce(!retry || !tracked).setAutoCancel(false)
         val dismiss=Intent(c,ReminderReceiver::class.java).setAction("dismissed").putExtra("sessionId",s.optString("id")).putExtra("phase",phase)
         b.setDeleteIntent(PendingIntent.getBroadcast(c,24,dismiss,PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
         fun action(code:Int,label:String,action:String) {
@@ -78,18 +125,35 @@ object Reminders {
             b.addAction(Notification.Action.Builder(null,"Start break",open).build())
             action(11,"Postpone 5 min","postpone");action(12,"Pause 15 min","pause")
         }
-        if(p.optBoolean("notifications",true)) try { manager.notify(1,b.build()) } catch(_:SecurityException) { }
-        else clear(c)
-        if(popup && !visible && !confirmation && !running && p.optBoolean("popup",true) && PopupPolicy.allowed(settings.optBoolean("popup",true), settings.optLong("popupPausedUntil",0), System.currentTimeMillis()) && Settings.canDrawOverlays(c) && c.getSystemService(PowerManager::class.java).isInteractive && !c.getSystemService(KeyguardManager::class.java).isKeyguardLocked) {
-            try { c.startActivity(Intent(c,BreakPopupActivity::class.java).putExtra("breakPopup",true).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)) } catch(_:Exception) { }
+        var posted=false
+        if(p.optBoolean("notifications",true) && manager.areNotificationsEnabled() && manager.getNotificationChannel(channel(c,p))?.importance!=NotificationManager.IMPORTANCE_NONE) {
+            try { manager.notify(1,b.build());posted=true } catch(_:SecurityException) { }
+        } else clear(c)
+        if(tracked) ReminderHealth.record(c,s,token,posted)
+        if(popup && tracked && !visible && !running && p.optBoolean("popup",true) && PopupPolicy.allowed(settings.optBoolean("popup",true), settings.optLong("popupPausedUntil",0), System.currentTimeMillis()) && Settings.canDrawOverlays(c) && c.getSystemService(PowerManager::class.java).isInteractive && !c.getSystemService(KeyguardManager::class.java).isKeyguardLocked) {
+            try { c.startActivity(Intent(c,BreakPopupActivity::class.java).putExtra("breakPopup",true).putExtra("reminderToken",token).putExtra("reminderSession",s.toString()).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)) } catch(_:Exception) { }
         }
     }
 
 }
 class ReminderReceiver: BroadcastReceiver() {
     override fun onReceive(c: Context, intent: Intent) {
+        if(intent.action!="foreground") c.getSharedPreferences("reminder_alarm",Context.MODE_PRIVATE).edit().clear().commit()
+        try { receive(c,intent) } finally { Reminders.schedule(c) }
+    }
+    private fun receive(c: Context, intent: Intent) {
         if(intent.action=="dismissed") {
-            Store(c).use { store -> val d=store.read();val s=d.optJSONObject("session");if(s!=null && s.optString("id")==intent.getStringExtra("sessionId")) {d.put("dismissedNotification",s.optString("id")+":"+intent.getStringExtra("phase"));store.write(d)} };return
+            Store(c).use { store ->
+                val d=store.read();val s=d.optJSONObject("session")
+                if(s!=null && s.optString("id")==intent.getStringExtra("sessionId") && s.optString("phase")==intent.getStringExtra("phase")) {
+                    d.put("dismissedNotification",s.optString("id")+":"+s.optString("phase"))
+                    // Swiping the countdown notification must not stop an ongoing break.
+                    if(s.optString("phase") in listOf("due","pending","finished")) {
+                        Routines.archive(d,s,"unconfirmed");Routines.reset(c,d,s.optString("routineId"));d.remove("session")
+                    }
+                    store.write(d);ReminderHealth.response(c,s)
+                }
+            };return
         }
         if(intent.action=="testReminder") {
             Store(c).use { store -> val d=store.read(); if(d.optJSONObject("session")?.optString("phase") in listOf(null,"idle")) {
@@ -108,8 +172,7 @@ class ReminderReceiver: BroadcastReceiver() {
             }
         }
         if(resumeDue) Reminders.notify(c,false)
-        Routines.refresh(c)
-        ScreenTime.refresh(c)
+        if(!intent.hasExtra("sessionId")) { Reminders.recover(c);Routines.refresh(c);ScreenTime.refresh(c) }
         Store(c).use { store ->
             val d=store.read(); val s=d.optJSONObject("session") ?: run { Reminders.schedule(c);return }
             if(intent.hasExtra("sessionId") && intent.getStringExtra("sessionId")!=s.optString("id")) return
@@ -137,7 +200,9 @@ class ReminderReceiver: BroadcastReceiver() {
                 }
             }
             store.write(d)
+            if(intent.action in listOf("postpone","pause","pauseBreak")) ReminderHealth.response(c,s)
         }
         Reminders.schedule(c)
     }
 }
+

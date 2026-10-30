@@ -170,8 +170,9 @@ object Backups {
             for(i in 0 until notes.length()) { val n=notes.getJSONObject(i); if(!n.isNull("recording")) n.put("recording",mapping[n.getString("recording")]) }
             Store(c).use { it.write(d,true) }
         } catch(e:Exception) { staged.forEach { it.delete() }; throw e }
-        Reminders.clear(c); Reminders.schedule(c)
+        ReminderHealth.clear(c);Reminders.clear(c); Reminders.schedule(c)
         // Orphan cleanup only after successful transaction.
         val keep=mapping.values.toSet(); dir.listFiles()?.filter { it.name !in keep }?.forEach { it.delete() }
     }
 }
+
