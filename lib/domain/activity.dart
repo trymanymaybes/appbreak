@@ -58,6 +58,7 @@ const categories = [
   'hydration',
   'quiz',
   'imagination',
+  'read-aloud',
 ];
 Activity chooseActivity(
   List<Activity> all,

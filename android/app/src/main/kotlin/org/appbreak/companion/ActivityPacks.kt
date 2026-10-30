@@ -11,7 +11,7 @@ object ActivityPacks {
             for(key in listOf("id","category","title","language","description","author","attribution","contentLicense")) require(a.get(key) is String)
             require(a.get("estimatedSeconds") is Int)
             require(a.getString("id").matches(Regex("[a-z0-9._-]{1,80}")) && ids.add(a.getString("id")))
-            require(a.getString("category") in listOf("quiet","movement","breathing","hydration","quiz","imagination"))
+            require(a.getString("category") in listOf("quiet","movement","breathing","hydration","quiz","imagination","read-aloud"))
             require(a.getInt("estimatedSeconds") in 20..300)
             for(key in listOf("title","language","description","author","attribution","contentLicense")) require(a.getString(key).length in 1..2000)
             require(a.get("requiresVisualAttention") is Boolean && a.get("requiresInput") is Boolean)

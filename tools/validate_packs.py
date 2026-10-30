@@ -2,7 +2,7 @@
 """Validate inert activity content with the Python standard library."""
 import json, re, sys
 from pathlib import Path
-CATEGORIES={'quiet','movement','breathing','hydration','quiz','imagination'}
+CATEGORIES={'quiet','movement','breathing','hydration','quiz','imagination','read-aloud'}
 def validate(pack):
     assert pack['schemaVersion']==1, 'Unsupported schema'
     activities=pack['activities']; assert 1<=len(activities)<=200

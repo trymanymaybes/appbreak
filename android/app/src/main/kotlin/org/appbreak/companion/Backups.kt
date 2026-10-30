@@ -47,7 +47,7 @@ object Backups {
             for(i in 0 until list.length()) {
                 val item=list.getJSONObject(i); require(item.get("id") is String); val id=item.getString("id"); require(id.length in 1..100 && seen.add(id)) { "Duplicate or invalid IDs" }
                 if(key=="ideas") { require(item.get("text") is String && (!item.has("title") || item.get("title") is String)); for(field in listOf("recording","activity","session")) if(!item.isNull(field)) require(item.get(field) is String); require(item.getString("text").length<=100000); require(item.optString("title").length<=200) }
-                else { validateRecordTime(item); require(item.get("date") is String && item.get("category") is String); require(item.getString("date").matches(Regex("\\d{4}-\\d{2}-\\d{2}"))); require(item.getString("category") in listOf("quiet","movement","breathing","hydration","quiz","imagination","unknown")) }
+                else { validateRecordTime(item); require(item.get("date") is String && item.get("category") is String); require(item.getString("date").matches(Regex("\\d{4}-\\d{2}-\\d{2}"))); require(item.getString("category") in listOf("quiet","movement","breathing","hydration","quiz","imagination","read-aloud","unknown")) }
             }
         }
         if(d.has("missedBreaks")) {
@@ -100,6 +100,7 @@ object Backups {
         for(key in listOf("rate","volume")) if(s.has(key)) require(s.get(key) is Number)
         if(s.has("popupPausedUntil")) require(s.getLong("popupPausedUntil")>=0)
         if(s.has("plannerView")) require(s.getString("plannerView") in listOf("calendar","day","list"))
+        if(s.has("readAloudUrl")) require(s.get("readAloudUrl") is String && s.getString("readAloudUrl").length<=2000)
         if(s.has("voice")) require(s.get("voice") is String)
         require(s.optInt("workSeconds",1500) in 60..14400 && s.optInt("breakSeconds",60) in 20..300)
         for(key in listOf("activeStart","activeEnd","quietStart","quietEnd")) if(s.has(key)) require(s.getInt(key) in 0..23)
@@ -107,7 +108,7 @@ object Backups {
         if(s.has("rate")) require(s.getDouble("rate") in 0.5..1.5)
         if(s.has("volume")) require(s.getDouble("volume") in 0.0..1.0)
         if(s.has("goal")) require(s.getInt("goal") in 1..30)
-        if(s.has("categories")) { val cats=s.getJSONArray("categories"); for(i in 0 until cats.length()) { require(cats.get(i) is String); require(cats.getString(i) in listOf("quiet","movement","breathing","hydration","quiz","imagination","unknown")) } }
+        if(s.has("categories")) { val cats=s.getJSONArray("categories"); for(i in 0 until cats.length()) { require(cats.get(i) is String); require(cats.getString(i) in listOf("quiet","movement","breathing","hydration","quiz","imagination","read-aloud","unknown")) } }
         if(s.has("timing")) require(s.get("timing") in listOf("elapsed","screen"))
         if(s.has("profile")) require(s.get("profile") is String)
         if(s.has("dictationLanguage")) require(s.get("dictationLanguage") in listOf("en-IN","hi-IN","kn-IN","ta-IN"))
@@ -129,8 +130,8 @@ object Backups {
                 if(profile.has("days")) { val days=profile.getJSONArray("days");require(days.length()<=7);val seenDays=mutableSetOf<Int>();for(j in 0 until days.length()) require(days.get(j) is Int && days.getInt(j) in 1..7 && seenDays.add(days.getInt(j))) }
                 if(profile.has("quiet")) require(profile.get("quiet") is Boolean)
                 if(profile.has("favourite")) require(profile.get("favourite") is String && profile.getString("favourite").length<=80)
-                val cats=profile.getJSONArray("categories");require(cats.length()<=6)
-                for(j in 0 until cats.length()) require(cats.get(j) in listOf("quiet","movement","breathing","hydration","quiz","imagination"))
+                val cats=profile.getJSONArray("categories");require(cats.length()<=7)
+                for(j in 0 until cats.length()) require(cats.get(j) in listOf("quiet","movement","breathing","hydration","quiz","imagination","read-aloud"))
                 if(profile.has("bundleId")) require(profile.get("bundleId") is String && profile.getString("bundleId").matches(Regex("[a-z0-9._-]{1,80}")))
                 if(profile.has("bundleVersion")) require(profile.get("bundleVersion") is Int && profile.getInt("bundleVersion")>=1)
                 for(field in listOf("activityIds","bundleActivityIds")) if(profile.has(field)) { val refs=profile.getJSONArray(field);require(refs.length() in 1..30);val seen=mutableSetOf<String>();for(j in 0 until refs.length()) require(refs.get(j) is String && refs.getString(j).matches(Regex("[a-z0-9._-]{1,80}")) && seen.add(refs.getString(j))) }

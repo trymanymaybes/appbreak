@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'routine_fields.dart';
 import 'routine_bundles.dart';
 import 'content_media.dart';
+import 'read_aloud.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import '../application/controller.dart';
@@ -518,6 +519,11 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
           if (challengeFor(activity.id) != null)
             ManyMaybesChallengeView(controller: c),
           Text(activity.text, style: Theme.of(context).textTheme.bodyLarge),
+          if (activity.category == 'read-aloud')
+            ReadAloudView(
+              key: ValueKey('read-${s.id}-${activity.id}'),
+              controller: c,
+            ),
           const SizedBox(height: 16),
           Wrap(
             children: [
@@ -889,6 +895,11 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
               ),
               const SizedBox(height: 20),
               Text(a.text, style: Theme.of(context).textTheme.bodyLarge),
+              if (a.category == 'read-aloud')
+                ReadAloudView(
+                  key: ValueKey('read-${s.id}-${a.id}'),
+                  controller: c,
+                ),
               if (a.data['answer'] != null)
                 button(
                   'Reveal / read answer',

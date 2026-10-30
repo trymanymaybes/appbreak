@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import '../domain/activity.dart';
 import '../domain/routine_bundle.dart';
 import '../services/bundle_catalog.dart';
+import '../services/read_aloud.dart';
 import '../domain/many_maybes.dart';
 import '../domain/break_counts.dart' as counts;
 import '../domain/session.dart';
@@ -824,16 +825,29 @@ class Companion extends ChangeNotifier {
     // File deletion follows committed metadata through native garbage collection.
     if (note['recording'] != null) data['pendingDelete'] = note['recording'];
   });
+  ReadAloudArticle? readAloudArticle;
+
   Future<void> narrate() async {
     try {
       if ((profile['quiet'] ?? settings['quiet'] ?? true) == true) return;
+      if (current?.category == 'read-aloud' && readAloudArticle == null) {
+        throw StateError('Load a page before starting Read aloud.');
+      }
+      error = null;
       await device.call('speak', {
-        'steps': [
-          for (final m in (current?.data['media'] as List? ?? []))
-            {'kind': 'narration', 'text': '${m['alt']}. ${m['fallbackText']}'},
-          ...?current?.steps,
-        ],
-        'language': current?.data['language'] ?? 'en-IN',
+        'steps': current?.category == 'read-aloud'
+            ? readAloudArticle!.steps
+            : [
+                for (final m in (current?.data['media'] as List? ?? []))
+                  {
+                    'kind': 'narration',
+                    'text': '${m['alt']}. ${m['fallbackText']}',
+                  },
+                ...?current?.steps,
+              ],
+        'language': current?.category == 'read-aloud'
+            ? readAloudArticle!.language
+            : current?.data['language'] ?? 'en-IN',
         'voice': settings['voice'],
         'rate': settings['rate'] ?? 1.0,
         'volume': settings['volume'] ?? 0.8,

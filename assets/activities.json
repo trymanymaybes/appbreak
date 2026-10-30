@@ -654,6 +654,36 @@
       "contentLicense": "CC-BY-4.0",
       "contentVersion": 1,
       "source": "https://github.com/trymanymaybes/appbreak"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "read-aloud.web",
+      "title": "Read aloud",
+      "category": "read-aloud",
+      "language": "en-IN",
+      "estimatedSeconds": 60,
+      "description": "Listen to a public web page using an installed offline voice. Paste a URL, load the text, then play.",
+      "steps": [
+        {
+          "kind": "instruction",
+          "text": "Paste a public HTTPS page URL below and load it. Check the extracted text, turn off Quiet break, then press Play. Reading stops when the break ends."
+        },
+        {
+          "kind": "completion",
+          "text": "Your reading break has ended."
+        }
+      ],
+      "requiresVisualAttention": false,
+      "requiresInput": true,
+      "accessibleAlternatives": [
+        "Read the extracted text using your screen reader.",
+        "Choose quiet rest instead."
+      ],
+      "author": "AppBreak project contributors",
+      "attribution": "Original activity instructions; linked page content belongs to its authors.",
+      "contentLicense": "CC-BY-4.0",
+      "contentVersion": 1,
+      "source": "https://github.com/trymanymaybes/appbreak"
     }
   ]
 }
