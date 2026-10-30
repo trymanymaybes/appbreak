@@ -21,16 +21,14 @@ class BreakHistoryTest: AndroidTestCase() {
         assertFalse(d.has("missedBreaks"))
         assertEquals("presented",d.getJSONObject("routineState").getJSONObject("a").getString("phase"))
     }
-    fun testExpiredBreakArchivedOnceAndRoutineRestarts() {
+    fun testExpiredBreakWaitsForBoundedRecoveryInsteadOfDisappearing() {
         seed(-1000); Routines.refresh(context)
         val first=Store(context).use { it.read() }
-        assertEquals(1,first.getJSONArray("missedBreaks").length())
-        assertEquals("work",first.getJSONObject("routineState").getJSONObject("a").getString("phase"))
-        val deadline=first.getJSONObject("routineState").getJSONObject("a").getLong("elapsedDue")
+        assertFalse(first.has("missedBreaks"))
+        assertEquals("old",first.getJSONObject("session").getString("id"))
+        assertEquals("presented",first.getJSONObject("routineState").getJSONObject("a").getString("phase"))
+        // The recovery tests exercise archive/reset after the third response window.
         Routines.refresh(context)
-        val second=Store(context).use { it.read() }
-        assertEquals(1,second.getJSONArray("missedBreaks").length())
-        assertEquals(deadline,second.getJSONObject("routineState").getJSONObject("a").getLong("elapsedDue"))
-        assertFalse(second.has("history"))
+        assertFalse(Store(context).use { it.read() }.has("history"))
     }
 }

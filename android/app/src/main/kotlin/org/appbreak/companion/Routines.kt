@@ -75,16 +75,15 @@ object Routines {
             val now=System.currentTimeMillis();val cal=Calendar.getInstance()
             val day="${cal.get(Calendar.YEAR)}-${cal.get(Calendar.DAY_OF_YEAR)}"
             val active=d.optJSONObject("session")
-            val expired=false
             var occupied=active?.optString("phase") !in listOf(null,"idle")
             for(p in ps) {
                 val id=p.getString("id");if(!p.optBoolean("enabled",false)) { states.remove(id);continue }
                 var s=states.optJSONObject(id)
                 if(s==null) { if(p.optString("trigger")=="manual") continue; s=fresh(c,p);states.put(id,s) }
-                if(!expired && d.optJSONObject("session")?.optString("routineId")==id && d.optJSONObject("session")?.optString("phase")!="idle") { s.put("phase","presented");continue }
+                if(d.optJSONObject("session")?.optString("routineId")==id && d.optJSONObject("session")?.optString("phase")!="idle") { s.put("phase","presented");continue }
                 if(s.optBoolean("stopped")) continue
                 if(!allowed(p) || !Reminders.allowed(settings)) { val n=fresh(c,p);if(s.has("lastDay")) n.put("lastDay",s.optString("lastDay"));states.put(id,n);continue }
-                if(s.optString("phase")=="presented") { s=fresh(c,p);states.put(id,s) }
+                if(s.optString("phase")=="presented") { reset(c,d,id);s=states.getJSONObject(id);if(s.optBoolean("stopped")) continue }
                 var due=false
                 when(p.optString("trigger","manual")) {
                     "scheduled" -> {
@@ -145,8 +144,7 @@ object Routines {
                         .put("date",java.text.SimpleDateFormat("yyyy-MM-dd",java.util.Locale.US).format(java.util.Date())).put("selfReported",true))
                 }
             }
-            ReminderHealth.response(c,s)
-            reset(c,d,s.optString("routineId"));if(yes) resetScreenRoutines(c,d);d.remove("session");store.write(d)
+            reset(c,d,s.optString("routineId"));if(yes) resetScreenRoutines(c,d);d.remove("session");store.write(d);ReminderHealth.response(c,s)
         }
         Reminders.clear(c);if(!yes) Reminders.skippedSummary(c);Reminders.schedule(c)
     }

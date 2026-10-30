@@ -141,7 +141,6 @@ open class MainActivity: FlutterActivity() {
                         Store(this).use {
                             val previous=it.read().optJSONObject("session")
                             cueEvent=BreakCues.transition(d,previous,active)
-                            if(previous!=null && previous.optString("phase")!="idle" && active?.optString("phase") in listOf(null,"idle","paused","work") && (previous.optString("phase")!=active?.optString("phase") || previous.optString("id")!=active?.optString("id"))) ReminderHealth.response(this,previous)
                             val missed=d.optJSONArray("missedBreaks")
                             skippedNow=previous!=null && missed!=null && (0 until missed.length()).any { n -> missed.getJSONObject(n).optString("id")==previous.optString("id") && missed.getJSONObject(n).optString("reason")=="skipped" } && active?.optString("phase")=="idle"
                             if(previous!=null && previous.optString("phase")!="idle" && active?.optString("phase") in listOf(null,"idle")) {
@@ -150,6 +149,7 @@ open class MainActivity: FlutterActivity() {
                                 if(history!=null && (0 until history.length()).any { history.getJSONObject(it).optString("id")==previous.optString("id") }) Routines.resetScreenRoutines(this,d)
                             }
                             it.write(d)
+                            if(previous!=null && previous.optString("phase")!="idle" && active?.optString("phase") in listOf(null,"idle","paused","work") && (previous.optString("phase")!=active?.optString("phase") || previous.optString("id")!=active?.optString("id"))) ReminderHealth.response(this,previous)
                         }
                         cueEvent?.let { BreakCues.play(this,it,d.optJSONObject("settings") ?: JSONObject()) }
                         if(skippedNow) Reminders.skippedSummary(this)

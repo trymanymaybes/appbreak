@@ -93,8 +93,7 @@ object Reminders {
         if(d.optString("dismissedNotification")==s.optString("id")+":"+phase) return
         val confirmation=phase in listOf("pending","finished") || finished
         val running=phase=="rest"
-        val tracked=!running
-        if(tracked && ReminderHealth.waitMs(c,s)>0) return
+        val tracked=!running && ReminderHealth.waitMs(c,s)==0L
         val token=s.optString("id")+":"+phase+":"+SystemClock.elapsedRealtime()
         val manager=c.getSystemService(NotificationManager::class.java)
         val open=PendingIntent.getActivity(c,10,Intent(c,MainActivity::class.java).setAction("openBreak").putExtra("sessionId",s.optString("id")).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
@@ -103,7 +102,7 @@ object Reminders {
             .setContentText(if(confirmation) "Confirm participation, or skip this break." else if(running) "Return when ready. Completion is yours to confirm." else p.optString("message","Break ready. Start when you are ready."))
             .setSubText(BreakStats.summary(c,d,s))
             .setColor(p.optLong("color",0xff356859).toInt()).setVisibility(Notification.VISIBILITY_PRIVATE)
-            .setContentIntent(open).setOnlyAlertOnce(!retry).setAutoCancel(false)
+            .setContentIntent(open).setOnlyAlertOnce(!retry || !tracked).setAutoCancel(false)
         val dismiss=Intent(c,ReminderReceiver::class.java).setAction("dismissed").putExtra("sessionId",s.optString("id")).putExtra("phase",phase)
         b.setDeleteIntent(PendingIntent.getBroadcast(c,24,dismiss,PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
         fun action(code:Int,label:String,action:String) {
@@ -124,7 +123,7 @@ object Reminders {
             try { manager.notify(1,b.build());posted=true } catch(_:SecurityException) { }
         } else clear(c)
         if(tracked) ReminderHealth.record(c,s,token,posted)
-        if(popup && !visible && !running && p.optBoolean("popup",true) && PopupPolicy.allowed(settings.optBoolean("popup",true), settings.optLong("popupPausedUntil",0), System.currentTimeMillis()) && Settings.canDrawOverlays(c) && c.getSystemService(PowerManager::class.java).isInteractive && !c.getSystemService(KeyguardManager::class.java).isKeyguardLocked) {
+        if(popup && tracked && !visible && !running && p.optBoolean("popup",true) && PopupPolicy.allowed(settings.optBoolean("popup",true), settings.optLong("popupPausedUntil",0), System.currentTimeMillis()) && Settings.canDrawOverlays(c) && c.getSystemService(PowerManager::class.java).isInteractive && !c.getSystemService(KeyguardManager::class.java).isKeyguardLocked) {
             try { c.startActivity(Intent(c,BreakPopupActivity::class.java).putExtra("breakPopup",true).putExtra("reminderToken",token).putExtra("reminderSession",s.toString()).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)) } catch(_:Exception) { }
         }
     }
@@ -183,8 +182,8 @@ class ReminderReceiver: BroadcastReceiver() {
                     }
                 }
             }
-            if(intent.action in listOf("postpone","pause","pauseBreak")) ReminderHealth.response(c,s)
             store.write(d)
+            if(intent.action in listOf("postpone","pause","pauseBreak")) ReminderHealth.response(c,s)
         }
         Reminders.schedule(c)
     }

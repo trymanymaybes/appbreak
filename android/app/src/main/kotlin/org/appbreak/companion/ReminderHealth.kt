@@ -39,7 +39,7 @@ object ReminderHealth {
             e.put("attemptIssued",false)
         }
         if((posted || popup) && !e.optBoolean("attemptIssued")) {
-            e.put("unanswered",e.optInt("unanswered")+1).put("attemptIssued",true)
+            e.put("unanswered",e.optInt("unanswered")+1).put("attemptIssued",true).put("failedAttempts",0)
         } else if(!same && !posted && !popup) e.put("failedAttempts",e.optInt("failedAttempts")+1)
         if(posted) e.put("lastNotificationAt",now)
         if(popup) e.put("lastPopupAt",now)
