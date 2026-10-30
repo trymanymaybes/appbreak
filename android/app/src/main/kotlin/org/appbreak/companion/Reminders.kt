@@ -143,7 +143,17 @@ class ReminderReceiver: BroadcastReceiver() {
     }
     private fun receive(c: Context, intent: Intent) {
         if(intent.action=="dismissed") {
-            Store(c).use { store -> val d=store.read();val s=d.optJSONObject("session");if(s!=null && s.optString("id")==intent.getStringExtra("sessionId")) {d.put("dismissedNotification",s.optString("id")+":"+intent.getStringExtra("phase"));ReminderHealth.response(c,s);Routines.archive(d,s,"unconfirmed");Routines.reset(c,d,s.optString("routineId"));d.remove("session");store.write(d)} };return
+            Store(c).use { store ->
+                val d=store.read();val s=d.optJSONObject("session")
+                if(s!=null && s.optString("id")==intent.getStringExtra("sessionId") && s.optString("phase")==intent.getStringExtra("phase")) {
+                    d.put("dismissedNotification",s.optString("id")+":"+s.optString("phase"))
+                    // Swiping the countdown notification must not stop an ongoing break.
+                    if(s.optString("phase") in listOf("due","pending","finished")) {
+                        Routines.archive(d,s,"unconfirmed");Routines.reset(c,d,s.optString("routineId"));d.remove("session")
+                    }
+                    store.write(d);ReminderHealth.response(c,s)
+                }
+            };return
         }
         if(intent.action=="testReminder") {
             Store(c).use { store -> val d=store.read(); if(d.optJSONObject("session")?.optString("phase") in listOf(null,"idle")) {

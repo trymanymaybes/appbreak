@@ -72,4 +72,11 @@ class ReminderRecoveryTest:AndroidTestCase() {
         assertFalse(ReminderHealth.entry(ReminderHealth.read(context),s).has("lastAttemptAt"))
         assertEquals("test",Store(context).use{it.read()}.getJSONObject("session").getString("id"))
     }
+    fun testDismissingCountdownKeepsBreakAndIgnoresStaleDismissal() {
+        val s=session().put("phase","rest").put("elapsedDue",SystemClock.elapsedRealtime()+120000);save(s)
+        ReminderReceiver().onReceive(context,Intent("dismissed").putExtra("sessionId","test").putExtra("phase","due"))
+        assertFalse(Store(context).use{it.read()}.has("dismissedNotification"))
+        ReminderReceiver().onReceive(context,Intent("dismissed").putExtra("sessionId","test").putExtra("phase","rest"))
+        assertEquals("rest",Store(context).use{it.read()}.getJSONObject("session").getString("phase"))
+    }
 }
