@@ -53,7 +53,9 @@ object Routines {
             if(!p.optBoolean("enabled")) continue
             val s=state(d).optJSONObject(p.getString("id"))
             if(s?.optBoolean("stopped")==true) continue
-            if(occupied || !allowed(p) || !Reminders.allowed(d.optJSONObject("settings") ?: JSONObject())) { delays.add(60000);continue }
+            // The current session already supplies its work/rest/pause/retry deadline.
+            if(occupied) continue
+            if(!allowed(p) || !Reminders.allowed(d.optJSONObject("settings") ?: JSONObject())) { delays.add(60000);continue }
             if(s==null) { if(p.optString("trigger")!="manual") delays.add(1000);continue }
             if(p.optString("trigger")=="scheduled") {
                 val now=Calendar.getInstance();val target=now.clone() as Calendar

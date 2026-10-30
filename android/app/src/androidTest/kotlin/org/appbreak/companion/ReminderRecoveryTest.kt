@@ -43,8 +43,10 @@ class ReminderRecoveryTest:AndroidTestCase() {
         assertEquals("work",Store(context).use{it.read()}.getJSONObject("routineState").getJSONObject("r").getString("phase"))
     }
     fun testRepeatedScheduleDoesNotMoveAlarmLater() {
-        save(session().put("phase","work").put("elapsedDue",SystemClock.elapsedRealtime()+120000))
+        val deadline=SystemClock.elapsedRealtime()+120000
+        save(session().put("phase","work").put("elapsedDue",deadline))
         Reminders.schedule(context);val prefs=context.getSharedPreferences("reminder_alarm",0);val first=prefs.getLong("target",0)
+        assertTrue(kotlin.math.abs(first-deadline)<1000)
         Reminders.schedule(context);assertEquals(first,prefs.getLong("target",0))
     }
     fun testThirdUnansweredLogsOnceAndReleasesSlot() {
