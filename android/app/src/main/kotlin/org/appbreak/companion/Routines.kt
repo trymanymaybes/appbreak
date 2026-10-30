@@ -46,25 +46,37 @@ object Routines {
         Store(c).use { store -> val d=store.read();val p=profile(d,id);check(p.has("id"));state(d).put(id,fresh(c,p));store.write(d) }
         Reminders.schedule(c)
     }
+    fun nextDelay(c:Context,d:JSONObject):Long? {
+        val delays=mutableListOf<Long>()
+        val occupied=d.optJSONObject("session")?.optString("phase") !in listOf(null,"idle")
+        for(p in profiles(d)) {
+            if(!p.optBoolean("enabled")) continue
+            val s=state(d).optJSONObject(p.getString("id"))
+            if(s?.optBoolean("stopped")==true) continue
+            if(occupied || !allowed(p) || !Reminders.allowed(d.optJSONObject("settings") ?: JSONObject())) { delays.add(60000);continue }
+            if(s==null) { if(p.optString("trigger")!="manual") delays.add(1000);continue }
+            if(p.optString("trigger")=="scheduled") {
+                val now=Calendar.getInstance();val target=now.clone() as Calendar
+                target.set(Calendar.HOUR_OF_DAY,p.optInt("minuteOfDay",540)/60);target.set(Calendar.MINUTE,p.optInt("minuteOfDay",540)%60);target.set(Calendar.SECOND,0);target.set(Calendar.MILLISECOND,0)
+                if(target.timeInMillis<=now.timeInMillis) delays.add(60000) else delays.add(target.timeInMillis-now.timeInMillis)
+            } else if(p.optString("trigger")=="screen") delays.add(60000)
+            else delays.add(remainingDelay(c,s))
+        }
+        return delays.minOrNull()
+    }
+    private fun remainingDelay(c:Context,s:JSONObject)=if(s.optString("phase")=="presented") 1000L else Reminders.remaining(c,s).coerceAtLeast(1000)
     fun refresh(c:Context) {
         Planner.refresh(c)
         if(Store(c).use{Planner.active(it.read())})return
         var notify=false
-        var endCueSettings:JSONObject?=null
         Store(c).use { store ->
             val d=store.read();val ps=profiles(d);if(ps.isEmpty()) return
             val before=d.toString();val states=state(d);val settings=d.optJSONObject("settings") ?: JSONObject()
             val now=System.currentTimeMillis();val cal=Calendar.getInstance()
             val day="${cal.get(Calendar.YEAR)}-${cal.get(Calendar.DAY_OF_YEAR)}"
             val active=d.optJSONObject("session")
-            val expired=active!=null && (active.optString("phase")=="finished" ||
-                (active.optString("phase") in listOf("rest","pending") && Reminders.remaining(c,active)<=0))
-            if(expired && active!=null) {
-                BreakStats.snapshot(c,d,active)
-                if(Reminders.remaining(c,active)> -120000 && BreakCues.prepare(d,active,"end")) endCueSettings=settings
-            }
-            if(expired && archive(d,active!!,"unconfirmed")) reset(c,d,active.optString("routineId"))
-            var occupied=active?.optString("phase") !in listOf(null,"idle") && !expired
+            val expired=false
+            var occupied=active?.optString("phase") !in listOf(null,"idle")
             for(p in ps) {
                 val id=p.getString("id");if(!p.optBoolean("enabled",false)) { states.remove(id);continue }
                 var s=states.optJSONObject(id)
@@ -72,7 +84,7 @@ object Routines {
                 if(!expired && d.optJSONObject("session")?.optString("routineId")==id && d.optJSONObject("session")?.optString("phase")!="idle") { s.put("phase","presented");continue }
                 if(s.optBoolean("stopped")) continue
                 if(!allowed(p) || !Reminders.allowed(settings)) { val n=fresh(c,p);if(s.has("lastDay")) n.put("lastDay",s.optString("lastDay"));states.put(id,n);continue }
-                if(s.optString("phase")=="presented") continue
+                if(s.optString("phase")=="presented") { s=fresh(c,p);states.put(id,s) }
                 var due=false
                 when(p.optString("trigger","manual")) {
                     "scheduled" -> {
@@ -98,7 +110,6 @@ object Routines {
             }
             if(before!=d.toString()) store.write(d)
         }
-        endCueSettings?.let { BreakCues.play(c,"end",it) }
         if(notify) Reminders.notify(c,false)
     }
     /** Missed means unconfirmed, not evidence that the person stayed on screen. */
@@ -134,8 +145,10 @@ object Routines {
                         .put("date",java.text.SimpleDateFormat("yyyy-MM-dd",java.util.Locale.US).format(java.util.Date())).put("selfReported",true))
                 }
             }
+            ReminderHealth.response(c,s)
             reset(c,d,s.optString("routineId"));if(yes) resetScreenRoutines(c,d);d.remove("session");store.write(d)
         }
         Reminders.clear(c);if(!yes) Reminders.skippedSummary(c);Reminders.schedule(c)
     }
 }
+
