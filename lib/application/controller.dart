@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import '../domain/activity.dart';
 import '../domain/routine_bundle.dart';
 import '../services/bundle_catalog.dart';
+import '../services/read_aloud.dart';
 import '../domain/many_maybes.dart';
 import '../domain/break_counts.dart' as counts;
 import '../domain/session.dart';
@@ -17,6 +18,7 @@ class Companion extends ChangeNotifier {
   final Device device;
   Companion(this.device);
   Map<String, dynamic> data = {};
+  Map<String, dynamic> reminderHealth = {};
   List<Activity> activities = [];
   List<Activity> bundled = [];
   List<Activity> catalog = [];
@@ -147,7 +149,7 @@ class Companion extends ChangeNotifier {
           overrides,
         ); // Verify only advertised customisations were requested.
         options.addAll(overrides);
-        RoutineBundle.validateSettings(options);
+        RoutineBundle.validateSettings(options, allowLocalShuffle: true);
       }
       final available = [
         ...((data['customActivities'] ?? []) as List).map(
@@ -325,6 +327,9 @@ class Companion extends ChangeNotifier {
   Future<void> updateProfile(Map<String, dynamic> changes) =>
       saveRoutine({...profile, ...changes});
   Future<void> saveRoutine(Map<String, dynamic> routine) => act(() async {
+    if (device.isDesktop && routine['enabled'] == true && routine['trigger'] != 'manual') {
+      throw StateError('Automatic triggers are not available in the desktop preview. Choose a manual routine or keep it disabled.');
+    }
     final list = profiles;
     final i = list.indexWhere((p) => p['id'] == routine['id']);
     if (i < 0) {
@@ -349,6 +354,7 @@ class Companion extends ChangeNotifier {
       'profile': list.first['id'],
     };
     (data['routineState'] as Map?)?.remove(id);
+    (data['activitySelection'] as Map?)?.remove(id);
   });
   Future<void> startRoutine(String id) async {
     await device.call('startRoutine', {'id': id});
@@ -410,6 +416,7 @@ class Companion extends ChangeNotifier {
       activityId: a.id,
     );
     data['lastActivity'] = id;
+    notePresented(a, activities, profile, breakSeconds, activitySelectionState());
   });
   Future<void> cycleActivity(int direction) async {
     final fit = alternatives;
@@ -458,6 +465,7 @@ class Companion extends ChangeNotifier {
         activityId: activity.id,
       );
       data['lastActivity'] = activity.id;
+      notePresented(activity, activities, profile, breakSeconds, activitySelectionState());
     }, stopCapture: challenge.activityId != previousActivity);
   }
 
@@ -475,7 +483,7 @@ class Companion extends ChangeNotifier {
     await refresh();
     unawaited(refreshCatalog());
     ticker = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (visible) refresh();
+      if (visible || device.isDesktop) refresh();
     });
   }
 
@@ -484,6 +492,12 @@ class Companion extends ChangeNotifier {
     busy = true;
     try {
       data = await device.load();
+      if (!device.isDesktop) {
+        try {
+          final health = await device.call<String>('reminderHealth');
+          if (health != null) reminderHealth = Map<String, dynamic>.from(jsonDecode(health));
+        } catch (_) { /* Older native adapters do not expose diagnostics. */ }
+      }
       final previous = current;
       final localIds = {
         ...bundled.map((a) => a.id),
@@ -503,8 +517,12 @@ class Companion extends ChangeNotifier {
       ];
       // An update must not replace the instructions in an ongoing break.
       if (previous != null && session.phase != Phase.idle) {
-        activities.removeWhere((a) => a.id == previous.id);
-        activities.add(previous);
+        final index = activities.indexWhere((a) => a.id == previous.id);
+        if (index < 0) {
+          activities.add(previous);
+        } else {
+          activities[index] = previous;
+        }
       }
       if (!(data['settings'] as Map? ?? {}).containsKey('profiles')) {
         data['settings'] = {
@@ -635,13 +653,25 @@ class Companion extends ChangeNotifier {
       timing: timing,
     ).at(Phase.work, workSeconds * 1000, moment);
   });
+  Map<String, dynamic> activitySelectionState() {
+    final states = Map<String, dynamic>.from(data['activitySelection'] as Map? ?? {});
+    final id = profile['id'] as String;
+    final state = Map<String, dynamic>.from(states[id] as Map? ?? {});
+    states[id] = state;
+    data['activitySelection'] = states;
+    return state;
+  }
+
   Future<void> _breakNow() async {
+    final state = activitySelectionState();
     final activity = selectForProfile(
       activities,
       profile,
       breakSeconds,
-      data['lastActivity'],
+      state['last'] as String?,
+      selectionState: state,
     );
+    notePresented(activity, activities, profile, breakSeconds, state);
     session = Session(
       id: newId(),
       routineId: session.routineId,
@@ -802,16 +832,29 @@ class Companion extends ChangeNotifier {
     // File deletion follows committed metadata through native garbage collection.
     if (note['recording'] != null) data['pendingDelete'] = note['recording'];
   });
+  ReadAloudArticle? readAloudArticle;
+
   Future<void> narrate() async {
     try {
       if ((profile['quiet'] ?? settings['quiet'] ?? true) == true) return;
+      if (current?.category == 'read-aloud' && readAloudArticle == null) {
+        throw StateError('Load a page before starting Read aloud.');
+      }
+      error = null;
       await device.call('speak', {
-        'steps': [
-          for (final m in (current?.data['media'] as List? ?? []))
-            {'kind': 'narration', 'text': '${m['alt']}. ${m['fallbackText']}'},
-          ...?current?.steps,
-        ],
-        'language': current?.data['language'] ?? 'en-IN',
+        'steps': current?.category == 'read-aloud'
+            ? readAloudArticle!.steps
+            : [
+                for (final m in (current?.data['media'] as List? ?? []))
+                  {
+                    'kind': 'narration',
+                    'text': '${m['alt']}. ${m['fallbackText']}',
+                  },
+                ...?current?.steps,
+              ],
+        'language': current?.category == 'read-aloud'
+            ? readAloudArticle!.language
+            : current?.data['language'] ?? 'en-IN',
         'voice': settings['voice'],
         'rate': settings['rate'] ?? 1.0,
         'volume': settings['volume'] ?? 0.8,
@@ -829,3 +872,4 @@ class Companion extends ChangeNotifier {
     super.dispose();
   }
 }
+

@@ -7,6 +7,31 @@ import org.json.JSONArray
 class StorageTest: AndroidTestCase() {
     override fun setUp() { super.setUp(); context.deleteDatabase("companion.db") }
     override fun tearDown() { context.deleteDatabase("companion.db"); super.tearDown() }
+    fun testReadAloudSettingsSurviveBackup() {
+        val settings=JSONObject().put("readAloudUrl","https://example.org/article")
+            .put("categories",JSONArray().put("read-aloud"))
+        Store(context).use { it.write(JSONObject().put("schemaVersion",1).put("settings",settings)) }
+        Backups.restore(context,Backups.validate(Backups.make(context,false)))
+        val restored=Store(context).use { it.read().getJSONObject("settings") }
+        assertEquals("https://example.org/article",restored.getString("readAloudUrl"))
+        assertEquals("read-aloud",restored.getJSONArray("categories").getString(0))
+    }
+    fun testPlannerViewsSurviveBackup() {
+        for(view in listOf("calendar","day","list")) {
+            Store(context).use { store -> val state=store.read();state.put("schemaVersion",1).put("settings",JSONObject().put("plannerView",view));store.write(state) }
+            val backup=Backups.validate(Backups.make(context,false));Backups.restore(context,backup)
+            assertEquals(view,Store(context).use{it.read()}.getJSONObject("settings").getString("plannerView"))
+        }
+    }
+    fun testSelectionProgressSurvivesBackup() {
+        val state=JSONObject().put("last","quiet.soft").put("seen",JSONArray().put("quiet.soft"))
+        Store(context).use { store -> val data=store.read();data.put("schemaVersion",1).put("activitySelection",JSONObject().put("short",state));store.write(data) }
+        val backup=Backups.validate(Backups.make(context,false));Backups.restore(context,backup)
+        val restored=Store(context).use{it.read()}.getJSONObject("activitySelection").getJSONObject("short")
+        assertEquals("quiet.soft",restored.getString("last"));assertEquals("quiet.soft",restored.getJSONArray("seen").getString(0))
+        Store(context).use { store -> val data=store.read();data.getJSONObject("activitySelection").getJSONObject("short").put("seen",JSONArray().put(42));store.write(data) }
+        try {Backups.validate(Backups.make(context,false));fail("Accepted invalid selection state")} catch(_:IllegalArgumentException) {}
+    }
     fun testCompareAndSwapRejectsStaleWriter() {
         Store(context).use { store -> val old=store.read(); store.write(JSONObject(old.toString())); try { store.write(old); fail("Accepted stale data") } catch(_:IllegalStateException) {} }
     }

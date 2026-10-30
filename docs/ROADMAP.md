@@ -20,8 +20,4 @@ Implement UNUserNotificationCenter authorization, action routing, pending-reques
 
 ## Phase 4: desktop
 
-Implement platform clocks, notifications and local SQLite paths, keyboard shortcuts, tray controls, microphone/audio-focus equivalents and native file dialogs. Work sessions remain user-started. Any optional wider active-use detection requires separate explicit permission/privacy design; do not relabel elapsed time. Test keyboard-only navigation, high scaling and multi-monitor focus.
-
-## Phase 5: TV
-
-Design a ten-foot interface with large text, visible remote focus and no touch-only controls. Reconsider recording/input capabilities; optional companion input must be separately designed and explicitly paired. Do not assume the app can interrupt streaming apps, observe viewing, access their content or track usage. A TV edition can offer user-started breaks and locally available activities within its own surface.
+Windows, macOS and Linux now have a shared desktop-core preview on the next-release branch. See [DESKTOP.md](DESKTOP.md) for implemented features, build instructions and explicit limitations. Next: native notification/tray integration, speech/recording, validated backup restore, active-use/idle/lock/suspend accounting and OS acceptance tests before a stable desktop release. Cross-device sync remains a separate opt-in project.

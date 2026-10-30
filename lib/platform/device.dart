@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../domain/session.dart';
 
 class Device {
+  bool get isDesktop => false;
   static const channel = MethodChannel('org.appbreak/device');
   Future<T?> call<T>(String method, [Map<String, dynamic>? args]) =>
       channel.invokeMethod<T>(method, args);

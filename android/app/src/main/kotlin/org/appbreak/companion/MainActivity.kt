@@ -35,6 +35,7 @@ open class MainActivity: FlutterActivity() {
     private val stopLimit=Runnable { finishRecording() }
     override fun configureFlutterEngine(engine: FlutterEngine) {
         super.configureFlutterEngine(engine)
+        getSharedPreferences("reminder_alarm",Context.MODE_PRIVATE).edit().clear().commit()
         getSystemService(AccessibilityManager::class.java).addTouchExplorationStateChangeListener(screenReaderListener)
         tts=TextToSpeech(this) { status -> ttsReady=status==TextToSpeech.SUCCESS }
         channel=MethodChannel(engine.dartExecutor.binaryMessenger,"org.appbreak/device")
@@ -68,7 +69,11 @@ open class MainActivity: FlutterActivity() {
                         // Handles both launcher creation and onNewIntent (warm notification tap).
                         val open = intent?.action == "openBreak"
                         val sessionId = intent?.getStringExtra("sessionId")
-                        if(open) { intent?.action = null; intent?.removeExtra("sessionId") }
+                        if(open) {
+                            val s=Store(this).use { it.read().optJSONObject("session") }
+                            if(s!=null && (sessionId==null || sessionId==s.optString("id"))) ReminderHealth.response(this,s)
+                            intent?.action = null; intent?.removeExtra("sessionId")
+                        }
                         result.success(if(open) mapOf("sessionId" to sessionId) else null)
                     }
                     "contentImage" -> {
@@ -127,7 +132,9 @@ open class MainActivity: FlutterActivity() {
                     "stopDictation" -> { dictation?.stop();result.success(null) }
                     "allowed" -> result.success(Reminders.allowed(Store(this).use { it.read().optJSONObject("settings") ?: JSONObject() }))
                     "now" -> result.success(mapOf("wall" to System.currentTimeMillis(),"elapsed" to SystemClock.elapsedRealtime(),"boot" to Reminders.boot(this)))
-                    "load" -> { Routines.refresh(this); ScreenTime.refresh(this); result.success(Store(this).use { it.read().toString() }) }
+                    "reminderHealth" -> result.success(ReminderHealth.read(this).put("exactAlarms",Build.VERSION.SDK_INT<31 || getSystemService(AlarmManager::class.java).canScheduleExactAlarms()).toString())
+                    "exactAlarms" -> { if(Build.VERSION.SDK_INT>=31) startActivity(Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,android.net.Uri.parse("package:$packageName")));result.success(null) }
+                    "load" -> { ReminderReceiver().onReceive(this,Intent("foreground")); result.success(Store(this).use { it.read().toString() }) }
                     "save" -> {
                         val d=JSONObject(call.argument<String>("json")!!)
                         val doomed=d.optString("pendingDelete"); d.remove("pendingDelete")
@@ -146,6 +153,7 @@ open class MainActivity: FlutterActivity() {
                                 if(history!=null && (0 until history.length()).any { history.getJSONObject(it).optString("id")==previous.optString("id") }) Routines.resetScreenRoutines(this,d)
                             }
                             it.write(d)
+                            if(previous!=null && previous.optString("phase")!="idle" && active?.optString("phase") in listOf(null,"idle","paused","work") && (previous.optString("phase")!=active?.optString("phase") || previous.optString("id")!=active?.optString("id"))) ReminderHealth.response(this,previous)
                         }
                         cueEvent?.let { BreakCues.play(this,it,d.optJSONObject("settings") ?: JSONObject()) }
                         if(skippedNow) Reminders.skippedSummary(this)
@@ -224,7 +232,7 @@ open class MainActivity: FlutterActivity() {
                     "previewRestore" -> { check(recorder==null); beginFile(result,Intent(Intent.ACTION_OPEN_DOCUMENT).setType("application/json"),61) }
                     "restore" -> { check(recorder==null); val p=restorePreview ?: error("Choose a backup first"); Backups.restore(this,p); restorePreview=null; result.success(null) }
                     "usage" -> result.success(filesDir.walkTopDown().filter { it.isFile }.sumOf { it.length() } + getDatabasePath("companion.db").length())
-                    "deleteAll" -> { ActivityCatalog.clear(this); finishRecording(); tts?.stop(); player?.release(); player=null; Store(this).use { it.write(JSONObject().put("schemaVersion",1).put("settings",JSONObject().put("autoSetup",false)),true) }; File(filesDir,"recordings").deleteRecursively(); File(cacheDir,"shares").deleteRecursively(); Reminders.clear(this); Reminders.schedule(this); result.success(null) }
+                    "deleteAll" -> { ActivityCatalog.clear(this); finishRecording(); tts?.stop(); player?.release(); player=null; Store(this).use { it.write(JSONObject().put("schemaVersion",1).put("settings",JSONObject().put("autoSetup",false)),true) }; File(filesDir,"recordings").deleteRecursively(); File(cacheDir,"shares").deleteRecursively(); ReminderHealth.clear(this);Reminders.clear(this); Reminders.schedule(this); result.success(null) }
                     else -> result.notImplemented()
                 }
             } catch(e:Exception) { result.error("device",e.message ?: "Operation failed",null) }
@@ -315,7 +323,10 @@ open class MainActivity: FlutterActivity() {
         channel?.invokeMethod("permissionsChanged", null)
     }
     override fun onNewIntent(intent:Intent) { super.onNewIntent(intent);setIntent(intent);configurePopup() }
-    override fun onResume() { super.onResume(); configurePopup(); Reminders.visible=true; if(Store(this).use { it.read().optJSONObject("session")?.optString("phase") } in listOf(null,"idle")) Reminders.clear(this) }
+    override fun onResume() { super.onResume();
+        val token=intent?.getStringExtra("reminderToken");val reminder=intent?.getStringExtra("reminderSession")
+        if(token!=null && reminder!=null) { ReminderHealth.record(this,JSONObject(reminder),token,false,true);intent.removeExtra("reminderToken");intent.removeExtra("reminderSession") }
+ configurePopup(); Reminders.visible=true; if(Store(this).use { it.read().optJSONObject("session")?.optString("phase") } in listOf(null,"idle")) Reminders.clear(this) }
     override fun onPause() { dictation?.stop();Reminders.visible=false; finishRecording(); tts?.stop(); player?.pause(); super.onPause() }
     override fun onDestroy() { dictation?.stop();getSystemService(AccessibilityManager::class.java).removeTouchExplorationStateChangeListener(screenReaderListener); finishRecording(); tts?.shutdown(); player?.release(); audioRequest?.let { getSystemService(AudioManager::class.java).abandonAudioFocusRequest(it) }; super.onDestroy() }
 }
@@ -329,3 +340,4 @@ class BreakPopupActivity: MainActivity() {
         configurePopup()
     }
 }
+

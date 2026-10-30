@@ -19,7 +19,7 @@ List<Widget> routineFields(
         },
         onChanged: (v) {
           final n = int.tryParse(v);
-          if (n != null) p[key] = n;
+          if (n != null) update(() => p[key] = n);
         },
       );
   Widget toggle(String key, String label, bool fallback) => SwitchListTile(

@@ -3,7 +3,7 @@ from pathlib import Path
 from validate_packs import validate
 class PackTests(unittest.TestCase):
     def setUp(self): self.pack=json.loads(Path('assets/activities.json').read_text())
-    def test_valid(self): self.assertEqual(validate(self.pack),18)
+    def test_valid(self): self.assertEqual(validate(self.pack),19)
     def test_duplicate_id(self):
         self.pack['activities'][1]['id']=self.pack['activities'][0]['id']
         with self.assertRaises(AssertionError):validate(self.pack)

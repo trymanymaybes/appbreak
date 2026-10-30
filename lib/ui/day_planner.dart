@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../application/controller.dart';
+import 'day_timeline.dart';
 
 class DayPlanner extends StatefulWidget {
   final Companion controller;
@@ -10,11 +11,21 @@ class DayPlanner extends StatefulWidget {
 
 class _DayPlannerState extends State<DayPlanner> {
   DateTime day = DateUtils.dateOnly(DateTime.now());
-  late bool calendar;
+  late String view;
+  bool get calendar => view == 'calendar';
   @override
   void initState() {
     super.initState();
-    calendar = widget.controller.settings['plannerView'] != 'list';
+    final saved = widget.controller.settings['plannerView'];
+    view = ['calendar', 'day', 'list'].contains(saved) ? saved : 'calendar';
+  }
+
+  void selectDate(DateTime value) {
+    setState(() {
+      day = value;
+      view = 'day';
+    });
+    c.updateSettings({'plannerView': 'day'});
   }
 
   Companion get c => widget.controller;
@@ -84,7 +95,7 @@ class _DayPlannerState extends State<DayPlanner> {
             final isToday = DateUtils.isSameDay(today, value);
             return Semantics(
               button: true,
-              onTap: () => setState(() => day = value),
+              onTap: () => selectDate(value),
               selected: selected,
               label:
                   '${local.formatFullDate(value)}, $count planned activities${isToday ? ', today' : ''}',
@@ -104,7 +115,7 @@ class _DayPlannerState extends State<DayPlanner> {
                       'calendar-${value.toIso8601String().substring(0, 10)}',
                     ),
                     borderRadius: BorderRadius.circular(8),
-                    onTap: () => setState(() => day = value),
+                    onTap: () => selectDate(value),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -283,23 +294,29 @@ class _DayPlannerState extends State<DayPlanner> {
         ),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
-          child: SegmentedButton<bool>(
+          child: SegmentedButton<String>(
+            showSelectedIcon: false,
             segments: const [
               ButtonSegment(
-                value: true,
+                value: 'calendar',
                 icon: Icon(Icons.calendar_month),
-                label: Text('Calendar'),
+                label: Text('Month'),
               ),
               ButtonSegment(
-                value: false,
+                value: 'day',
+                icon: Icon(Icons.view_day),
+                label: Text('Day'),
+              ),
+              ButtonSegment(
+                value: 'list',
                 icon: Icon(Icons.view_list),
                 label: Text('List'),
               ),
             ],
-            selected: {calendar},
+            selected: {view},
             onSelectionChanged: (values) {
-              setState(() => calendar = values.single);
-              c.updateSettings({'plannerView': calendar ? 'calendar' : 'list'});
+              setState(() => view = values.single);
+              c.updateSettings({'plannerView': view});
             },
           ),
         ),
@@ -341,90 +358,151 @@ class _DayPlannerState extends State<DayPlanner> {
           style: Theme.of(context).textTheme.titleMedium,
         ),
         if (plans.isEmpty) const Text('No activities planned.'),
-        for (final p in plans)
-          Builder(
-            builder: (context) {
-              final r =
-                  (c.data['planRecords'] as Map? ?? {})['${p['id']}@$date']
-                      as Map? ??
-                  {};
-              final status =
-                  r['status'] ??
-                  (DateTime.now().isAfter(
-                        day.add(Duration(minutes: p['minute'] + p['minutes'])),
-                      )
-                      ? 'missed'
-                      : 'planned');
-              return Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        p['title'],
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      Text(
-                        '${TimeOfDay(hour: p['minute'] ~/ 60, minute: p['minute'] % 60).format(context)} · ${p['minutes']} min · $status',
-                      ),
-                      if (r['remindAt'] != null)
-                        Text(
-                          'Reminder: ${TimeOfDay.fromDateTime(DateTime.fromMillisecondsSinceEpoch(r['remindAt'])).format(context)}',
-                        ),
-                      Wrap(
-                        children: [
-                          for (final a in [
-                            ('start', 'Start now'),
-                            ('delay', 'Delay 10 min'),
-                            ('complete', 'Mark completed'),
-                            ('extend', 'Extend 15 min'),
-                            ('skip', 'Skip block'),
-                          ])
-                            if (switch (a.$1) {
-                              'start' => [
-                                'planned',
-                                'prompted',
-                                'delayed',
-                                'missed',
-                              ].contains(status),
-                              'delay' => [
-                                'planned',
-                                'prompted',
-                                'delayed',
-                              ].contains(status),
-                              'complete' => [
-                                'active',
-                                'ended',
-                              ].contains(status),
-                              'extend' => status == 'active',
-                              _ => !['completed', 'skipped'].contains(status),
-                            })
-                              TextButton(
-                                onPressed: () =>
-                                    c.planAction(p['id'], date, a.$1),
-                                child: Text(a.$2),
-                              ),
-                          if (status != 'active')
-                            TextButton(
-                              onPressed: () => edit(p),
-                              child: const Text('Edit'),
-                            ),
-                          if (status != 'active')
-                            TextButton(
-                              onPressed: () =>
-                                  c.planAction(p['id'], date, 'delete'),
-                              child: const Text('Delete plan'),
-                            ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
+        if (view == 'day')
+          DayTimeline(
+            day: day,
+            plans: plans,
+            status: statusFor,
+            routine: routineFor,
+            onOpen: openPlan,
+          )
+        else
+          for (final p in plans) planCard(p),
       ],
+    );
+  }
+
+  String routineFor(Map<String, dynamic> p) {
+    final profiles = c.profiles.where((r) => r['id'] == p['routine']);
+    if (profiles.isEmpty) return 'Break routine removed — edit this plan';
+    final r = profiles.first;
+    final work = (r['workSeconds'] as num? ?? 1500) / 60;
+    final rest = (r['breakSeconds'] as num? ?? 60) / 60;
+    String minutes(num n) =>
+        n == n.roundToDouble() ? n.toInt().toString() : n.toStringAsFixed(1);
+    return '${r['name']} · ${minutes(work)} min ${r['trigger'] == 'screen' ? 'screen use' : 'work'} / ${minutes(rest)} min break';
+  }
+
+  String statusFor(Map<String, dynamic> p) {
+    final r =
+        (c.data['planRecords'] as Map? ?? {})['${p['id']}@$date'] as Map? ?? {};
+    return r['status'] ??
+        (DateTime.now().isAfter(
+              day.add(Duration(minutes: p['minute'] + p['minutes'])),
+            )
+            ? 'missed'
+            : 'planned');
+  }
+
+  Future<void> openPlan(Map<String, dynamic> p) async {
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Planned activity'),
+        content: SizedBox(
+          width: 420,
+          child: SingleChildScrollView(
+            child: AnimatedBuilder(
+              animation: c,
+              builder: (_, _) {
+                final current = c.plans.where((plan) => plan['id'] == p['id']);
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (current.isEmpty)
+                      const Text('Plan removed. History is retained.')
+                    else
+                      planCard(current.first),
+                    if (c.error != null)
+                      Text(
+                        c.error!,
+                        style: TextStyle(
+                          color: Theme.of(ctx).colorScheme.error,
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget planCard(Map<String, dynamic> p) {
+    final r =
+        (c.data['planRecords'] as Map? ?? {})['${p['id']}@$date'] as Map? ?? {};
+    final status = statusFor(p);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(p['title'], style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              '${TimeOfDay(hour: p['minute'] ~/ 60, minute: p['minute'] % 60).format(context)} · ${p['minutes']} min · $status',
+            ),
+            Text(routineFor(p)),
+            if (r['end'] != null && status == 'active')
+              Text(
+                'Session ends: ${TimeOfDay.fromDateTime(DateTime.fromMillisecondsSinceEpoch(r['end'])).format(context)}',
+              ),
+            if (r['remindAt'] != null)
+              Text(
+                'Reminder: ${TimeOfDay.fromDateTime(DateTime.fromMillisecondsSinceEpoch(r['remindAt'])).format(context)}',
+              ),
+            Wrap(
+              children: [
+                for (final a in [
+                  ('start', 'Start now'),
+                  ('delay', 'Delay 10 min'),
+                  ('complete', 'Mark completed'),
+                  ('extend', 'Extend 15 min'),
+                  ('skip', 'Skip block'),
+                ])
+                  if (switch (a.$1) {
+                    'start' => [
+                      'planned',
+                      'prompted',
+                      'delayed',
+                      'missed',
+                    ].contains(status),
+                    'delay' => [
+                      'planned',
+                      'prompted',
+                      'delayed',
+                    ].contains(status),
+                    'complete' => ['active', 'ended'].contains(status),
+                    'extend' => status == 'active',
+                    _ => !['completed', 'skipped'].contains(status),
+                  })
+                    TextButton(
+                      onPressed: () => c.planAction(p['id'], date, a.$1),
+                      child: Text(a.$2),
+                    ),
+                if (status != 'active')
+                  TextButton(
+                    onPressed: () => edit(p),
+                    child: const Text('Edit'),
+                  ),
+                if (status != 'active')
+                  TextButton(
+                    onPressed: () => c.planAction(p['id'], date, 'delete'),
+                    child: const Text('Delete plan'),
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../application/controller.dart';
 import '../domain/break_counts.dart';
+import 'reminder_status.dart';
 
 class BreakProgress extends StatefulWidget {
   final Companion controller;
@@ -22,6 +23,8 @@ class _BreakProgressState extends State<BreakProgress> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (!widget.controller.device.isDesktop)
+          ReminderStatus(controller: widget.controller),
         Wrap(
           spacing: 8,
           children: ['Today', 'This week', 'All time']
@@ -58,3 +61,4 @@ class _BreakProgressState extends State<BreakProgress> {
     );
   }
 }
+

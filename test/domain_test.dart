@@ -58,7 +58,7 @@ void main() {
           .map((a) => Activity(a))
           .toList();
   test('eighteen bundled activities cover all required categories', () {
-    expect(all.length, 18);
+    expect(all.length, 19);
     expect(all.map((a) => a.category).toSet(), categories.toSet());
   });
   test('selection fits duration and avoids immediate repeat', () {

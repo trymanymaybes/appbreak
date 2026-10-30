@@ -11,11 +11,13 @@ import 'package:flutter/services.dart';
 import 'routine_fields.dart';
 import 'routine_bundles.dart';
 import 'content_media.dart';
+import 'read_aloud.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import '../application/controller.dart';
 import '../domain/session.dart';
 import '../domain/activity.dart';
+import '../domain/profile.dart';
 import '../domain/progress.dart';
 import '../platform/device.dart';
 
@@ -517,6 +519,11 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
           if (challengeFor(activity.id) != null)
             ManyMaybesChallengeView(controller: c),
           Text(activity.text, style: Theme.of(context).textTheme.bodyLarge),
+          if (activity.category == 'read-aloud')
+            ReadAloudView(
+              key: ValueKey('read-${s.id}-${activity.id}'),
+              controller: c,
+            ),
           const SizedBox(height: 16),
           Wrap(
             children: [
@@ -589,7 +596,16 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
             'Progress records your participation, not verified movement, hydration, or eye rest. You may leave or skip at any time.',
           ),
         ]),
-      if (capabilities['notifications'] == false)
+      if (c.device.isDesktop)
+        const Card(
+          child: ListTile(
+            title: Text('Desktop preview'),
+            subtitle: Text(
+              'Keep AppBreak open for elapsed timers. Closing the window stops reminders. Active-screen tracking, system notifications, narration, recording and backup restore are not available yet. Planner, text notes and manual breaks work locally.',
+            ),
+          ),
+        ),
+      if (!c.device.isDesktop && capabilities['notifications'] == false)
         Card(
           child: ListTile(
             title: const Text('Background notifications are disabled'),
@@ -615,9 +631,10 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
             'Your daily goal: ${c.settings['goal'] ?? 3} breaks. Progress: $completed.',
           ),
       ]),
-      const Text(
-        'Background reminders can be delayed by Android, battery settings or notification permissions. No overdue backlog is replayed.',
-      ),
+      if (!c.device.isDesktop)
+        const Text(
+          'Background reminders can be delayed by Android, battery settings or notification permissions. No overdue backlog is replayed.',
+        ),
     ];
   }
 
@@ -649,67 +666,73 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       onChanged: (v) => c.updateSettings({'profile': v}),
     ),
   );
-  Widget permissionsPanel() => section('Permission checklist', [
-    VoiceSetup(controller: c),
-    popupControls(showPause: false),
-    const Text(
-      'Notifications — needed for background break reminders. Tapping a notification opens the break without popup permission.',
-    ),
-    Text(
-      'Notifications: ${capabilities['notifications'] == true ? 'enabled' : 'disabled or unchecked'}',
-    ),
-    Wrap(
-      children: [
-        button(
-          'Request notifications',
-          () => run(() async {
-            await c.device.call('notifications');
-            await loadCapabilities();
-          }),
-        ),
-        button(
-          'Notification settings',
-          () => run(() => c.device.call('notificationSettings')),
-        ),
-        button(
-          'Test reminder in 10 seconds',
-          () => run(() => c.device.call('testReminder')),
-        ),
-      ],
-    ),
-    const Text(
-      'Usage access — needed for automatic active-screen routines; manual sessions work without it.',
-    ),
-    Text(
-      'Screen-time access: ${capabilities['usage'] == true ? 'granted' : 'not granted'}. Only screen/lock events are counted; app names are not saved.',
-    ),
-    button(
-      'Enable Usage access',
-      () => run(() async {
-        if (await confirm(
-          'Screen-time access',
-          'Android exposes usage events through this permission. AppBreak reads screen and lock transitions only; it stores no app-by-app history.',
-        ))
-          await c.device.call('usageAccess');
-      }),
-    ),
-    Text(
-      'Microphone — optional for Speak and Record. Access: ${capabilities['microphone'] == true ? 'granted' : 'not granted'}. Offline dictation: ${capabilities['dictation'] == true ? 'service available; language model still needs testing' : 'unavailable on this device'}. Microphone permission is requested when you tap Speak or Record.',
-    ),
-    button(
-      'Allow microphone',
-      () => run(() => c.device.call('microphoneAccess')),
-      enabled: capabilities['microphone'] != true,
-    ),
-    button(
-      'App permission settings',
-      () => run(() => c.device.call('appSettings')),
-    ),
-    const Text(
-      'If Android no longer shows a permission prompt, use App permission settings. No broad storage permission is needed: backups use the system file picker. Internet access for catalogue updates has no Android runtime prompt and can be disabled in Settings.',
-    ),
-    button('Refresh permission status', () => loadCapabilities()),
-  ]);
+  Widget permissionsPanel() => c.device.isDesktop
+      ? section('Desktop preview', [
+          const Text(
+            'No Android permissions are needed. Use manual routines and elapsed timers with the app open. Screen-time tracking, system notifications, narration and microphone features are not supported yet.',
+          ),
+        ])
+      : section('Permission checklist', [
+          VoiceSetup(controller: c),
+          popupControls(showPause: false),
+          const Text(
+            'Notifications — needed for background break reminders. Tapping a notification opens the break without popup permission.',
+          ),
+          Text(
+            'Notifications: ${capabilities['notifications'] == true ? 'enabled' : 'disabled or unchecked'}',
+          ),
+          Wrap(
+            children: [
+              button(
+                'Request notifications',
+                () => run(() async {
+                  await c.device.call('notifications');
+                  await loadCapabilities();
+                }),
+              ),
+              button(
+                'Notification settings',
+                () => run(() => c.device.call('notificationSettings')),
+              ),
+              button(
+                'Test reminder in 10 seconds',
+                () => run(() => c.device.call('testReminder')),
+              ),
+            ],
+          ),
+          const Text(
+            'Usage access — needed for automatic active-screen routines; manual sessions work without it.',
+          ),
+          Text(
+            'Screen-time access: ${capabilities['usage'] == true ? 'granted' : 'not granted'}. Only screen/lock events are counted; app names are not saved.',
+          ),
+          button(
+            'Enable Usage access',
+            () => run(() async {
+              if (await confirm(
+                'Screen-time access',
+                'Android exposes usage events through this permission. AppBreak reads screen and lock transitions only; it stores no app-by-app history.',
+              ))
+                await c.device.call('usageAccess');
+            }),
+          ),
+          Text(
+            'Microphone — optional for Speak and Record. Access: ${capabilities['microphone'] == true ? 'granted' : 'not granted'}. Offline dictation: ${capabilities['dictation'] == true ? 'service available; language model still needs testing' : 'unavailable on this device'}. Microphone permission is requested when you tap Speak or Record.',
+          ),
+          button(
+            'Allow microphone',
+            () => run(() => c.device.call('microphoneAccess')),
+            enabled: capabilities['microphone'] != true,
+          ),
+          button(
+            'App permission settings',
+            () => run(() => c.device.call('appSettings')),
+          ),
+          const Text(
+            'If Android no longer shows a permission prompt, use App permission settings. No broad storage permission is needed: backups use the system file picker. Internet access for catalogue updates has no Android runtime prompt and can be disabled in Settings.',
+          ),
+          button('Refresh permission status', () => loadCapabilities()),
+        ]);
   Widget statusIndicator() {
     final phase = c.session.phase;
     final (color, label) = switch (phase) {
@@ -872,6 +895,11 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
               ),
               const SizedBox(height: 20),
               Text(a.text, style: Theme.of(context).textTheme.bodyLarge),
+              if (a.category == 'read-aloud')
+                ReadAloudView(
+                  key: ValueKey('read-${s.id}-${a.id}'),
+                  controller: c,
+                ),
               if (a.data['answer'] != null)
                 button(
                   'Reveal / read answer',
@@ -1182,8 +1210,12 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                       ),
                       items: const [
                         DropdownMenuItem(
+                          value: 'shuffle',
+                          child: Text('Shuffle without repeats'),
+                        ),
+                        DropdownMenuItem(
                           value: 'rotation',
-                          child: Text('Rotate activities'),
+                          child: Text('Rotate in order'),
                         ),
                         DropdownMenuItem(
                           value: 'fixed',
@@ -1197,7 +1229,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                       onChanged: (v) => update(() => p['selection'] = v),
                     ),
                     const Text(
-                      'Choose at start opens quiet rest; use Choose activity when ready.',
+                      'Shuffle shows every eligible activity once before repeating. Each routine keeps its own progress. Choose at start opens quiet rest; use Choose activity when ready.',
                     ),
                     SwitchListTile(
                       title: const Text('Quiet mode for this profile'),
@@ -1215,27 +1247,41 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                     const Text(
                       'Individual activities — unchecked items are excluded from rotation and manual browsing. Automatic suggestions also respect category and duration; manual browsing includes other categories and longer activities.',
                     ),
+                    Text(
+                      '${fittingActivities(c.activities, {...p, 'categories': enabled, 'disabledActivities': disabled}, p['breakSeconds'] ?? 30).length} activities eligible for automatic selection',
+                    ),
                     for (final a in c.activities)
-                      if (enabled.contains(a.category))
-                        CheckboxListTile(
-                          title: Text('${a.title} (${a.seconds}s)'),
-                          value: !disabled.contains(a.id),
-                          secondary: IconButton(
-                            tooltip: 'Set favourite',
-                            icon: Icon(
-                              p['favourite'] == a.id
-                                  ? Icons.star
-                                  : Icons.star_border,
-                            ),
-                            onPressed: () =>
-                                update(() => p['favourite'] = a.id),
-                          ),
-                          onChanged: (v) => update(() {
-                            v == true
-                                ? disabled.remove(a.id)
-                                : disabled.add(a.id);
-                          }),
+                      CheckboxListTile(
+                        title: Text('${a.title} (${a.seconds}s)'),
+                        subtitle: Text(
+                          activityExclusions(a, {
+                                ...p,
+                                'categories': enabled,
+                                'disabledActivities': disabled,
+                              }, p['breakSeconds'] ?? 30).join(' · ').isEmpty
+                              ? 'Eligible for automatic selection'
+                              : activityExclusions(a, {
+                                  ...p,
+                                  'categories': enabled,
+                                  'disabledActivities': disabled,
+                                }, p['breakSeconds'] ?? 30).join(' · '),
                         ),
+                        value: !disabled.contains(a.id),
+                        secondary: IconButton(
+                          tooltip: 'Set favourite',
+                          icon: Icon(
+                            p['favourite'] == a.id
+                                ? Icons.star
+                                : Icons.star_border,
+                          ),
+                          onPressed: () => update(() => p['favourite'] = a.id),
+                        ),
+                        onChanged: (v) => update(() {
+                          v == true
+                              ? disabled.remove(a.id)
+                              : disabled.add(a.id);
+                        }),
+                      ),
                   ],
                 ),
               ),
