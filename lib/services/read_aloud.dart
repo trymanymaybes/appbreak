@@ -38,7 +38,7 @@ class ReadAloudSource {
         value.length > 2000) {
       throw const FormatException('Enter a complete HTTPS page URL.');
     }
-    return uri.replace(fragment: '');
+    return uri.removeFragment();
   }
 
   Future<ReadAloudArticle> load(String value) async {

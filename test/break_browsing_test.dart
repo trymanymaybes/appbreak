@@ -19,7 +19,7 @@ void main() {
           .map((a) => Activity(a))
           .toList();
   test(
-    'manual browsing exposes all eighteen while auto suggestions retain profile filters',
+    'manual browsing exposes all built-in activities while auto suggestions retain profile filters',
     () {
       expect(all.length, 19);
       expect(browsableActivities(all, defaultProfiles.first).length, 19);
@@ -35,7 +35,7 @@ void main() {
         browsableActivities(all, {
           'disabledActivities': [all.last.id],
         }).length,
-        17,
+        all.length - 1,
       );
     },
   );
