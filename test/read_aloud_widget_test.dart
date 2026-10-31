@@ -13,7 +13,65 @@ class Source extends ReadAloudSource {
   Future<ReadAloudArticle> load(String value) => result.future;
 }
 
+class PlaybackDevice extends FakeDevice {
+  String playback = 'playing';
+  final actions = <String>[];
+  @override
+  Future<T?> call<T>(String method, [Map<String, dynamic>? args]) async {
+    if (method == 'readAloudState') return {'state': playback} as T;
+    if (method == 'readAloudControl') {
+      final action = args!['action'] as String;
+      actions.add(action);
+      playback = action == 'pause' ? 'paused' : 'playing';
+    }
+    if (method == 'stopSpeech') { actions.add('stop'); playback = 'stopped'; }
+    return null;
+  }
+}
+
 void main() {
+  testWidgets('controls reflect native playback and resume without restarting', (tester) async {
+    final d = PlaybackDevice();
+    final c = Companion(d);
+    c.data['settings'] = {'quiet': false};
+    c.readAloudArticle = const ReadAloudArticle('Title', 'Body', 'en-IN');
+    await tester.pumpWidget(MaterialApp(home: Scaffold(body: SingleChildScrollView(child: ReadAloudView(controller: c)))));
+    await tester.pump();
+    expect(find.text('Pause'), findsOneWidget);
+    await tester.tap(find.text('Pause'));
+    await tester.pump();
+    expect(find.text('Resume'), findsOneWidget);
+    await tester.tap(find.text('Resume'));
+    await tester.pump();
+    expect(d.actions, ['pause', 'resume']);
+    expect(find.text('Pause'), findsOneWidget);
+    // Notification / headset state changes are reflected on the next refresh.
+    d.playback = 'paused';
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump();
+    expect(find.text('Resume'), findsOneWidget);
+    await tester.tap(find.text('Restart'));
+    await tester.pump();
+    await tester.tap(find.text('Stop'));
+    await tester.pump();
+    expect(d.actions, ['pause', 'resume', 'restart', 'stop']);
+    expect(find.text('Play page'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+    c.dispose();
+  });
+  testWidgets('active playback controls survive a recreated view without article text', (tester) async {
+    final d = PlaybackDevice();
+    final c = Companion(d);
+    await tester.pumpWidget(MaterialApp(home: Scaffold(body: SingleChildScrollView(child: ReadAloudView(controller: c)))));
+    await tester.pump();
+    expect(find.text('Pause'), findsOneWidget);
+    await tester.tap(find.text('Stop'));
+    await tester.pump();
+    expect(d.actions, ['stop']);
+    expect(find.text('Pause'), findsNothing);
+    await tester.pumpWidget(const SizedBox());
+    c.dispose();
+  });
   testWidgets(
     'loads preview, saves URL and clears stale text when URL changes',
     (tester) async {
