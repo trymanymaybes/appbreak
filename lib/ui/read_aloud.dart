@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../application/controller.dart';
 import '../services/read_aloud.dart';
@@ -16,11 +17,37 @@ class _ReadAloudViewState extends State<ReadAloudView> {
   bool loading = false;
   String? error;
   int requestVersion = 0;
+  Timer? playbackTimer;
+  String playback = 'stopped';
+
+  Future<void> refreshPlayback() async {
+    if (c.device.isDesktop) return;
+    try {
+      final state = await c.device.call<Map>('readAloudState');
+      if (!mounted || state == null) return;
+      final next = state['state'] as String? ?? 'stopped';
+      final message = state['error'] as String?;
+      if (playback != next || (message != null && error != message)) {
+        setState(() { playback = next; if (message != null) error = message; });
+      }
+    } catch (_) { /* Playback actions surface native errors. */ }
+  }
+
+  Future<void> control(String action) async {
+    try {
+      await c.device.call('readAloudControl', {'action': action});
+      await refreshPlayback();
+    } catch (e) {
+      if (mounted) setState(() { error = '$e'; });
+    }
+  }
   Companion get c => widget.controller;
 
   @override
   void initState() {
     super.initState();
+    refreshPlayback();
+    playbackTimer = Timer.periodic(const Duration(milliseconds: 500), (_) => refreshPlayback());
     url = TextEditingController(
       text: c.settings['readAloudUrl'] as String? ?? '',
     );
@@ -122,44 +149,44 @@ class _ReadAloudViewState extends State<ReadAloudView> {
             title: const Text('Preview extracted text'),
             children: [SelectableText(article.text)],
           ),
-          if (!c.device.isDesktop)
-            Wrap(
-              spacing: 8,
-              children: [
-                FilledButton.icon(
-                  onPressed: () async {
-                    if ((c.profile['quiet'] ?? c.settings['quiet'] ?? true) ==
-                        true) {
-                      setState(() {
-                        error = 'Turn off Quiet break to hear the page.';
-                      });
-                      return;
-                    }
-                    await c.narrate();
-                    if (mounted)
-                      setState(() {
-                        error = c.error;
-                      });
-                  },
-                  icon: const Icon(Icons.volume_up),
-                  label: const Text('Play page / restart'),
-                ),
-                TextButton(
-                  onPressed: () async {
-                    try {
-                      await c.device.call('stopSpeech');
-                    } catch (e) {
-                      if (mounted)
-                        setState(() {
-                          error = '$e';
-                        });
-                    }
-                  },
-                  child: const Text('Stop'),
-                ),
-              ],
-            ),
         ],
+        if (!c.device.isDesktop && (article != null || playback != 'stopped'))
+          Wrap(
+            spacing: 8,
+            children: [
+              FilledButton.icon(
+                onPressed: loading || playback == 'loading' ? null : () async {
+                  if (playback == 'playing') { await control('pause'); return; }
+                  if ((c.profile['quiet'] ?? c.settings['quiet'] ?? true) == true) {
+                    setState(() { error = 'Turn off Quiet break to hear the page.'; });
+                    return;
+                  }
+                  if (playback == 'paused') {
+                    await control('resume');
+                  } else {
+                    await c.narrate();
+                    if (mounted) setState(() { error = c.error; });
+                    await refreshPlayback();
+                  }
+                },
+                icon: Icon(playback == 'playing' ? Icons.pause : Icons.play_arrow),
+                label: Text(playback == 'playing' ? 'Pause' : playback == 'paused' ? 'Resume' : playback == 'loading' ? 'Preparing voice…' : 'Play page'),
+              ),
+              TextButton(
+                onPressed: playback == 'stopped' || loading ? null : () => control('restart'),
+                child: const Text('Restart'),
+              ),
+              TextButton(
+                onPressed: () async {
+                  await c.device.call('stopSpeech');
+                  await refreshPlayback();
+                },
+                child: const Text('Stop'),
+              ),
+            ],
+          ),
+        if (!c.device.isDesktop)
+          const Text('Playback continues with the screen off, until the break ends. Pause/Resume is also available in the playback notification.'),
       ],
     );
   }
@@ -167,6 +194,7 @@ class _ReadAloudViewState extends State<ReadAloudView> {
   @override
   void dispose() {
     requestVersion++;
+    playbackTimer?.cancel();
     url.dispose();
     super.dispose();
   }
