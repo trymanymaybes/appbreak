@@ -69,7 +69,7 @@ class ReadAloudService : Service() {
         engine = TextToSpeech(applicationContext) { result -> handler.post {
             ready = result == TextToSpeech.SUCCESS
             if (!ready) fail("No local speech engine available.")
-            else if (status == "loading") play()
+            else if (status == "loading" && payload.has("steps")) play()
         } }
         engine?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
             override fun onStart(id: String?) {}
@@ -142,6 +142,7 @@ class ReadAloudService : Service() {
         if (engine?.speak(text, TextToSpeech.QUEUE_FLUSH, params, "$generation") == TextToSpeech.ERROR) fail("Unable to start speech. Try again.")
     }
     private fun pause() {
+        if (status == "stopped") return
         generation++ // Ignore completion/range callbacks from the cancelled utterance.
         engine?.stop()
         status = "paused"
@@ -149,6 +150,7 @@ class ReadAloudService : Service() {
         publish()
     }
     private fun command(action: String) {
+        if (status == "stopped") return
         when (action) {
             "pause" -> pause()
             "resume" -> if (status != "playing") play()
@@ -183,6 +185,7 @@ class ReadAloudService : Service() {
             .setStyle(Notification.MediaStyle().setMediaSession(media.sessionToken).setShowActionsInCompactView(0, 2)).build()
     }
     private fun publish() {
+        if (status == "stopped") return
         media.setPlaybackState(PlaybackState.Builder().setActions(PlaybackState.ACTION_PLAY or PlaybackState.ACTION_PAUSE or PlaybackState.ACTION_STOP)
             .setState(if (status == "playing") PlaybackState.STATE_PLAYING else if (status == "loading") PlaybackState.STATE_BUFFERING else PlaybackState.STATE_PAUSED, PlaybackState.PLAYBACK_POSITION_UNKNOWN, if (status == "playing") 1f else 0f).build())
         getSystemService(NotificationManager::class.java).notify(42, notification())
