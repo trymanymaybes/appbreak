@@ -844,7 +844,8 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
               onPressed: recordingBusy ? null : toggleIdeaRecording,
               ),
             ),
-          AttentionOutline(
+          SpeechOutline(
+            device: c.device,
             child: IconButton(
             tooltip: 'Start / replay narration',
             icon: const Icon(Icons.volume_up_outlined),
