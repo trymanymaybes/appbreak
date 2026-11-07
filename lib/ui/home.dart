@@ -12,6 +12,7 @@ import 'routine_fields.dart';
 import 'routine_bundles.dart';
 import 'content_media.dart';
 import 'read_aloud.dart';
+import 'attention_outline.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import '../application/controller.dart';
@@ -40,6 +41,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
   int lastProgressNavigation = 0;
   String search = '';
   bool recording = false, includeAudio = false, dictating = false;
+  bool recordingBusy = false;
   String transcript = '', dictationStatus = '';
   Future<void> Function()? flushDraft;
   Map<String, dynamic> capabilities = {};
@@ -157,6 +159,27 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       if (result is String && mounted) message(result);
     } catch (e) {
       if (mounted) message('$e');
+    }
+  }
+
+  Future<void> toggleIdeaRecording() async {
+    if (recordingBusy) return;
+    setState(() => recordingBusy = true);
+    try {
+      await run(() async {
+        if (recording) {
+          final saved = await c.device.call<String>('stopRecord');
+          recording = false;
+          await c.refresh();
+          if (saved != null && mounted) message('Voice idea saved in Ideas.');
+        } else {
+          await c.device.call('stopSpeech');
+          await c.device.call('record');
+          recording = true;
+        }
+      });
+    } finally {
+      if (mounted) setState(() => recordingBusy = false);
     }
   }
 
@@ -798,10 +821,23 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          IconButton(
+          if (!c.device.isDesktop)
+            AttentionOutline(
+              active: recording,
+              color: recording ? Theme.of(context).colorScheme.error : null,
+              child: IconButton(
+              tooltip: recording ? 'Stop and save idea' : 'Record a voice idea',
+              icon: Icon(recording ? Icons.stop_circle : Icons.mic),
+              color: recording ? Theme.of(context).colorScheme.error : null,
+              onPressed: recordingBusy ? null : toggleIdeaRecording,
+              ),
+            ),
+          AttentionOutline(
+            child: IconButton(
             tooltip: 'Start / replay narration',
             icon: const Icon(Icons.volume_up_outlined),
             onPressed: () => run(c.narrate),
+            ),
           ),
           IconButton(
             tooltip: 'Stop narration',
@@ -963,16 +999,8 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
             ),
             button(
               recording ? 'Stop and save audio' : 'Record audio instead',
-              () => run(() async {
-                if (recording) {
-                  await c.device.call('stopRecord');
-                  recording = false;
-                } else {
-                  await c.device.call('record');
-                  recording = true;
-                }
-                if (mounted) setState(() {});
-              }),
+              toggleIdeaRecording,
+              enabled: !recordingBusy,
             ),
           ],
         ),
@@ -1456,18 +1484,8 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         button(dictating ? 'Stop dictation' : 'Speak to text', () => dictate()),
         button(
           recording ? 'Stop and save recording' : 'Record a voice idea',
-          () => run(() async {
-            await c.device.call('stopSpeech');
-            if (recording) {
-              await c.device.call('stopRecord');
-              recording = false;
-            } else {
-              await c.device.call('record');
-              recording = true;
-            }
-            await c.refresh();
-            if (mounted) setState(() {});
-          }),
+          toggleIdeaRecording,
+          enabled: !recordingBusy,
         ),
         button('Stop playback', () => run(() => c.device.call('stopAudio'))),
       ],

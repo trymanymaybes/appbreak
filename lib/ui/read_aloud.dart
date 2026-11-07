@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import 'dart:async';
+import 'attention_outline.dart';
 import 'package:flutter/material.dart';
 import '../application/controller.dart';
 import '../services/read_aloud.dart';
@@ -154,7 +155,9 @@ class _ReadAloudViewState extends State<ReadAloudView> {
           Wrap(
             spacing: 8,
             children: [
-              FilledButton.icon(
+              AttentionOutline(
+                active: playback == 'playing',
+                child: FilledButton.icon(
                 onPressed: loading || playback == 'loading' ? null : () async {
                   if (playback == 'playing') { await control('pause'); return; }
                   if ((c.profile['quiet'] ?? c.settings['quiet'] ?? true) == true) {
@@ -171,6 +174,7 @@ class _ReadAloudViewState extends State<ReadAloudView> {
                 },
                 icon: Icon(playback == 'playing' ? Icons.pause : Icons.play_arrow),
                 label: Text(playback == 'playing' ? 'Pause' : playback == 'paused' ? 'Resume' : playback == 'loading' ? 'Preparing voice…' : 'Play page'),
+                ),
               ),
               TextButton(
                 onPressed: playback == 'stopped' || loading ? null : () => control('restart'),
