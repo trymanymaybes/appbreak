@@ -89,3 +89,23 @@ See [AppBreak 0.6.0](docs/RELEASE-0.6.md) for the candidate feature list, test g
 ## Desktop preview
 
 The next release includes Windows, macOS and Linux targets. See [desktop capabilities and limitations](docs/DESKTOP.md). These are preview builds; Android remains the full-featured platform.
+
+### Activities
+
+The Activities tab lists personal, built-in, downloaded and imported breaks. Create
+up to three personal breaks with a name, instructions, category and duration
+(20–300 seconds). Edit or delete them to reuse a slot. They join the same activity
+pool used by routine selection and manual browsing; routine category and exclusion
+settings still apply. Imported packs do not consume these three personal slots.
+
+Tap any other activity to customize or reset its duration for activity selection.
+An activity is eligible for the cycle when its configured duration is no longer
+than the routine's break time, subject to the routine's category, activity-list
+and exclusion settings. For example, changing a Many Maybes activity from 120 to
+60 seconds makes it eligible for a 60-second routine that allows it.
+Preferences are local and survive catalogue updates. The routine controls the
+break timer; an activity's selection duration never replaces that timer.
+Timer expiry does not mark the activity complete: users press Complete when
+ready, at timer expiry or after finishing the activity. Active breaks retain
+their current instructions. The contribution button opens CONTRIBUTING.md
+on GitHub; personal breaks are never automatically uploaded.
