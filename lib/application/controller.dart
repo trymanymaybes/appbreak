@@ -796,8 +796,8 @@ class Companion extends ChangeNotifier {
         throw StateError(
           'The private activity storage limit has been reached.',
         );
-      final activityId =
-          id ?? 'personal.${DateTime.now().microsecondsSinceEpoch}';
+      final activityId = id ??
+          'personal.${List.generate(4, (_) => Random.secure().nextInt(1 << 32).toRadixString(16).padLeft(8, '0')).join()}';
       final activity = Activity({
         'schemaVersion': 1,
         'id': activityId,
