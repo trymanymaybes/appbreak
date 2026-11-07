@@ -12,6 +12,7 @@ import 'routine_fields.dart';
 import 'routine_bundles.dart';
 import 'content_media.dart';
 import 'read_aloud.dart';
+import 'attention_outline.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import '../application/controller.dart';
@@ -821,16 +822,22 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           if (!c.device.isDesktop)
-            IconButton(
+            AttentionOutline(
+              active: recording,
+              color: recording ? Theme.of(context).colorScheme.error : null,
+              child: IconButton(
               tooltip: recording ? 'Stop and save idea' : 'Record a voice idea',
               icon: Icon(recording ? Icons.stop_circle : Icons.mic),
               color: recording ? Theme.of(context).colorScheme.error : null,
               onPressed: recordingBusy ? null : toggleIdeaRecording,
+              ),
             ),
-          IconButton(
+          AttentionOutline(
+            child: IconButton(
             tooltip: 'Start / replay narration',
             icon: const Icon(Icons.volume_up_outlined),
             onPressed: () => run(c.narrate),
+            ),
           ),
           IconButton(
             tooltip: 'Stop narration',

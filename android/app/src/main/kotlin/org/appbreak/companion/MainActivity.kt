@@ -127,7 +127,7 @@ open class MainActivity: FlutterActivity() {
                         check(recorder==null) { "Stop audio recording first" }
                         if(checkSelfPermission(Manifest.permission.RECORD_AUDIO)!=PackageManager.PERMISSION_GRANTED) {
                             requestPermissions(arrayOf(Manifest.permission.RECORD_AUDIO),52);result.error("permission","Allow microphone access, then tap Speak again.",null)
-                        } else { tts?.stop();player?.release();player=null;check(requestFocus());dictation!!.start(call.argument<String>("language") ?: "en-IN");result.success(null) }
+                        } else { ReadAloudService.stop(this);tts?.stop();player?.release();player=null;check(requestFocus());dictation!!.start(call.argument<String>("language") ?: "en-IN");result.success(null) }
                     }
                     "stopDictation" -> { dictation?.stop();result.success(null) }
                     "allowed" -> result.success(Reminders.allowed(Store(this).use { it.read().optJSONObject("settings") ?: JSONObject() }))
@@ -174,8 +174,22 @@ open class MainActivity: FlutterActivity() {
                         result.success(null)
                     }
                     "refreshVoices" -> {ttsReady=false;tts?.shutdown();tts=TextToSpeech(this) {status -> ttsReady=status==TextToSpeech.SUCCESS};result.success(null)}
+                    "readAloudState" -> result.success(ReadAloudService.state())
+                    "readAloudControl" -> {
+                        val action=call.argument<String>("action") ?: "pause"
+                        require(action in listOf("pause","resume","restart","stop"))
+                        ReadAloudService.control(action); result.success(null)
+                    }
                     "speak" -> {
                         check(recorder==null && dictation?.running!=true) { "Stop recording or dictation before narration" }
+                        if(call.argument<Boolean>("backgroundReadAloud")==true) {
+                            tts?.stop();player?.release();player=null
+                            audioRequest?.let { getSystemService(AudioManager::class.java).abandonAudioFocusRequest(it) };audioRequest=null
+                            ReadAloudService.start(this,JSONObject(call.arguments as Map<*,*>))
+                            result.success(null)
+                            return@setMethodCallHandler
+                        }
+                        ReadAloudService.stop(this)
                         check(ttsReady) { "No local speech engine ready. Use text or quiet mode." }
                         check(!getSystemService(AccessibilityManager::class.java).isTouchExplorationEnabled) { "TalkBack is active. Use its reading controls to avoid competing speech." }
                         val voiceName=call.argument<String>("voice")
@@ -197,7 +211,7 @@ open class MainActivity: FlutterActivity() {
                         }
                         result.success(null)
                     }
-                    "stopSpeech" -> { tts?.stop(); result.success(null) }
+                    "stopSpeech" -> { ReadAloudService.stop(this); tts?.stop(); result.success(null) }
                     "previewCue" -> { val event=call.argument<String>("event") ?: "start"; require(event in listOf("start","end")); BreakCues.play(this,event,Store(this).use { it.read().optJSONObject("settings") ?: JSONObject() }); result.success(null) }
                     "cue" -> { if(call.argument<Boolean>("enabled")==true) { window.decorView.performHapticFeedback(android.view.HapticFeedbackConstants.CONFIRM); val tone=ToneGenerator(AudioManager.STREAM_NOTIFICATION,35); tone.startTone(ToneGenerator.TONE_PROP_ACK,120); handler.postDelayed({tone.release()},250) }; result.success(null) }
                     "record" -> {
@@ -210,10 +224,10 @@ open class MainActivity: FlutterActivity() {
                     "stopRecord" -> result.success(finishRecording())
                     "play" -> {
                         val name=call.argument<String>("name")!!; require(name.matches(Regex("[a-f0-9-]{36}\\.m4a")))
-                        check(recorder==null); tts?.stop(); player?.release(); check(requestFocus())
+                        check(recorder==null); ReadAloudService.stop(this);tts?.stop(); player?.release(); check(requestFocus())
                         player=MediaPlayer().apply { setDataSource(File(filesDir,"recordings/$name").path); prepare(); setOnCompletionListener { it.release(); player=null }; start() }; result.success(null)
                     }
-                    "stopAudio" -> { dictation?.stop();player?.release(); player=null; tts?.stop(); result.success(null) }
+                    "stopAudio" -> { ReadAloudService.stop(this); dictation?.stop();player?.release(); player=null; tts?.stop(); result.success(null) }
                     "shareText" -> { val text=call.argument<String>("text")!!; require(text.length<=100000); startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT,text),"Share selected content")); result.success(null) }
                     "shareAudio" -> {
                         val name=call.argument<String>("name")!!; require(name.matches(Regex("[a-f0-9-]{36}\\.m4a")))
@@ -232,7 +246,7 @@ open class MainActivity: FlutterActivity() {
                     "previewRestore" -> { check(recorder==null); beginFile(result,Intent(Intent.ACTION_OPEN_DOCUMENT).setType("application/json"),61) }
                     "restore" -> { check(recorder==null); val p=restorePreview ?: error("Choose a backup first"); Backups.restore(this,p); restorePreview=null; result.success(null) }
                     "usage" -> result.success(filesDir.walkTopDown().filter { it.isFile }.sumOf { it.length() } + getDatabasePath("companion.db").length())
-                    "deleteAll" -> { ActivityCatalog.clear(this); finishRecording(); tts?.stop(); player?.release(); player=null; Store(this).use { it.write(JSONObject().put("schemaVersion",1).put("settings",JSONObject().put("autoSetup",false)),true) }; File(filesDir,"recordings").deleteRecursively(); File(cacheDir,"shares").deleteRecursively(); ReminderHealth.clear(this);Reminders.clear(this); Reminders.schedule(this); result.success(null) }
+                    "deleteAll" -> { ReadAloudService.stop(this); ActivityCatalog.clear(this); finishRecording(); tts?.stop(); player?.release(); player=null; Store(this).use { it.write(JSONObject().put("schemaVersion",1).put("settings",JSONObject().put("autoSetup",false)),true) }; File(filesDir,"recordings").deleteRecursively(); File(cacheDir,"shares").deleteRecursively(); ReminderHealth.clear(this);Reminders.clear(this); Reminders.schedule(this); result.success(null) }
                     else -> result.notImplemented()
                 }
             } catch(e:Exception) { result.error("device",e.message ?: "Operation failed",null) }
@@ -249,7 +263,7 @@ open class MainActivity: FlutterActivity() {
     private fun startRecording() {
         val dir=File(filesDir,"recordings").apply { mkdirs() }
         check(dir.usableSpace>10*1024*1024 && dir.walk().filter { it.isFile }.sumOf { it.length() }<100*1024*1024) { "Not enough recording storage (100 MiB limit)" }
-        tts?.stop(); player?.release(); player=null; check(requestFocus()) { "Audio is in use" }
+        ReadAloudService.stop(this);tts?.stop(); player?.release(); player=null; check(requestFocus()) { "Audio is in use" }
         recordingActivity=Store(this).use { it.read().optJSONObject("session")?.optString("activity") }
         val name=UUID.randomUUID().toString()+".m4a"; val file=File(dir,name)
         @Suppress("DEPRECATION") val r=MediaRecorder()

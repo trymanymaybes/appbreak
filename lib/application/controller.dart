@@ -842,6 +842,9 @@ class Companion extends ChangeNotifier {
       }
       error = null;
       await device.call('speak', {
+        'backgroundReadAloud': current?.category == 'read-aloud',
+        'sessionId': session.id,
+        'activityId': current?.id,
         'steps': current?.category == 'read-aloud'
             ? readAloudArticle!.steps
             : [
