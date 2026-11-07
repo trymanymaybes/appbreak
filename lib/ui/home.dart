@@ -1,4 +1,5 @@
 import 'day_planner.dart';
+import 'activities.dart';
 import 'voice_setup.dart';
 import 'many_maybes.dart';
 import 'break_progress.dart';
@@ -226,7 +227,14 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
   );
   @override
   Widget build(BuildContext context) {
-    final pages = [dashboard, ideas, achievements, settings, routines];
+    final pages = [
+      dashboard,
+      ideas,
+      achievements,
+      settings,
+      routines,
+      () => [ActivitiesPanel(controller: c)],
+    ];
     return PopScope(
       canPop:
           !setupOpen &&
@@ -424,6 +432,10 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
               label: 'Settings',
             ),
             NavigationDestination(icon: Icon(Icons.alarm), label: 'Routines'),
+            NavigationDestination(
+              icon: Icon(Icons.grid_view),
+              label: 'Activities',
+            ),
           ],
         ),
       ),

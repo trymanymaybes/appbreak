@@ -515,6 +515,13 @@ class Companion extends ChangeNotifier {
           (a) => Activity(Map<String, dynamic>.from(a)),
         ),
       ];
+      final durations = settings['activityDurations'] as Map? ?? {};
+      activities = activities.map((a) {
+        final seconds = durations[a.id];
+        return seconds is int && seconds >= 20 && seconds <= 300
+            ? Activity({...a.data, 'estimatedSeconds': seconds})
+            : a;
+      }).toList();
       // An update must not replace the instructions in an ongoing break.
       if (previous != null && session.phase != Phase.idle) {
         final index = activities.indexWhere((a) => a.id == previous.id);
@@ -758,6 +765,114 @@ class Companion extends ChangeNotifier {
       await device.call('stopSpeech');
     }, stopCapture: true);
     if (error == null) await device.call('closePopup');
+  }
+
+  List<String> get personalActivityIds =>
+      List<String>.from(settings['personalActivityIds'] ?? const []);
+
+  Future<void> savePersonalActivity({
+    String? id,
+    required String title,
+    required String instructions,
+    required String category,
+    required int seconds,
+  }) async {
+    await act(() async {
+      final ids = personalActivityIds;
+      if (id == null && ids.length >= 3)
+        throw StateError('You can create up to 3 custom breaks.');
+      if (id != null && !ids.contains(id))
+        throw StateError('Custom break no longer exists.');
+      if (title.trim().isEmpty ||
+          title.trim().length > 120 ||
+          instructions.trim().isEmpty ||
+          instructions.trim().length > 2000 ||
+          !categories.where((c) => c != 'read-aloud').contains(category) ||
+          seconds < 20 ||
+          seconds > 300)
+        throw ArgumentError('Check the break details.');
+      if (id == null &&
+          ((data['customActivities'] ?? []) as List).length >= 200)
+        throw StateError(
+          'The private activity storage limit has been reached.',
+        );
+      final activityId = id ??
+          'personal.${List.generate(4, (_) => Random.secure().nextInt(1 << 32).toRadixString(16).padLeft(8, '0')).join()}';
+      final activity = Activity({
+        'schemaVersion': 1,
+        'id': activityId,
+        'title': title.trim(),
+        'description': instructions.trim(),
+        'category': category,
+        'language': 'en-IN',
+        'estimatedSeconds': seconds,
+        'steps': [
+          {'kind': 'instruction', 'text': instructions.trim()},
+        ],
+        'requiresVisualAttention': false,
+        'requiresInput': false,
+        'accessibleAlternatives': ['Choose quiet rest whenever you prefer.'],
+        'author': 'Local user',
+        'attribution': 'Personal activity',
+        'contentLicense': 'LicenseRef-Private',
+      });
+      data['customActivities'] = [
+        ...((data['customActivities'] ?? []) as List).where(
+          (a) => a['id'] != activityId,
+        ),
+        activity.data,
+      ];
+      final durations = Map<String, dynamic>.from(
+        settings['activityDurations'] ?? {},
+      );
+      durations.remove(activityId);
+      data['settings'] = {
+        ...settings,
+        'personalActivityIds': {...ids, activityId}.toList(),
+        'activityDurations': durations,
+      };
+    });
+    if (error == null) await refresh();
+  }
+
+  Future<void> deletePersonalActivity(String id) async {
+    await act(() async {
+      if (!personalActivityIds.contains(id))
+        throw StateError('Custom break no longer exists.');
+      data['customActivities'] = ((data['customActivities'] ?? []) as List)
+          .where((a) => a['id'] != id)
+          .toList();
+      final durations = Map<String, dynamic>.from(
+        settings['activityDurations'] ?? {},
+      )..remove(id);
+      data['settings'] = {
+        ...settings,
+        'activityDurations': durations,
+        'personalActivityIds': personalActivityIds
+            .where((a) => a != id)
+            .toList(),
+      };
+    });
+    if (error == null) await refresh();
+  }
+
+  Future<void> setActivityDuration(String id, int? seconds) async {
+    await act(() async {
+      if (!activities.any((a) => a.id == id))
+        throw StateError('Activity no longer exists.');
+      if (seconds != null && (seconds < 20 || seconds > 300))
+        throw ArgumentError('Use 20–300 seconds.');
+      final durations = Map<String, dynamic>.from(
+        settings['activityDurations'] ?? {},
+      );
+      if (seconds == null) {
+        durations.remove(id);
+      } else {
+        durations[id] = seconds;
+      }
+      data['settings'] = {...settings, 'activityDurations': durations};
+    });
+    if (error == null) await refresh();
   }
 
   Future<void> importPack() async {
