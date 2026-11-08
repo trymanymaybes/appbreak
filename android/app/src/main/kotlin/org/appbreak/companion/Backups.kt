@@ -99,6 +99,10 @@ object Backups {
         for(key in listOf("workSeconds","breakSeconds","activeStart","activeEnd","quietStart","quietEnd","goal","popupPausedUntil")) if(s.has(key)) require(s.get(key) is Int || s.get(key) is Long)
         for(key in listOf("rate","volume")) if(s.has(key)) require(s.get(key) is Number)
         if(s.has("popupPausedUntil")) require(s.getLong("popupPausedUntil")>=0)
+        if(s.has("excludedApps")) {
+            val apps=s.getJSONArray("excludedApps"); require(apps.length()<=500)
+            for(i in 0 until apps.length()) require(apps.get(i) is String && apps.getString(i).matches(Regex("[A-Za-z0-9_]+(\\.[A-Za-z0-9_]+)+")))
+        }
         if(s.has("plannerView")) require(s.getString("plannerView") in listOf("calendar","day","list"))
         if(s.has("readAloudUrl")) require(s.get("readAloudUrl") is String && s.getString("readAloudUrl").length<=2000)
         if(s.has("voice")) require(s.get("voice") is String)

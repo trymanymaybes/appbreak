@@ -130,7 +130,7 @@ object Reminders {
             try { manager.notify(1,b.build());posted=true } catch(_:SecurityException) { }
         } else clear(c)
         if(tracked) ReminderHealth.record(c,s,token,posted)
-        if(popup && tracked && !visible && !running && p.optBoolean("popup",true) && PopupPolicy.allowed(settings.optBoolean("popup",true), settings.optLong("popupPausedUntil",0), System.currentTimeMillis()) && Settings.canDrawOverlays(c) && c.getSystemService(PowerManager::class.java).isInteractive && !c.getSystemService(KeyguardManager::class.java).isKeyguardLocked) {
+        if(popup && tracked && !visible && !running && p.optBoolean("popup",true) && PopupPolicy.allowed(settings.optBoolean("popup",true), settings.optLong("popupPausedUntil",0), System.currentTimeMillis()) && !ExcludedApps.suppressPopup(c,settings) && Settings.canDrawOverlays(c) && c.getSystemService(PowerManager::class.java).isInteractive && !c.getSystemService(KeyguardManager::class.java).isKeyguardLocked) {
             try { c.startActivity(Intent(c,BreakPopupActivity::class.java).putExtra("breakPopup",true).putExtra("reminderToken",token).putExtra("reminderSession",s.toString()).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)) } catch(_:Exception) { }
         }
     }
