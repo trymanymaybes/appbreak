@@ -1,4 +1,5 @@
 import 'day_planner.dart';
+import 'excluded_apps.dart';
 import 'activities.dart';
 import 'voice_setup.dart';
 import 'many_maybes.dart';
@@ -739,7 +740,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
             'Usage access — needed for automatic active-screen routines; manual sessions work without it.',
           ),
           Text(
-            'Screen-time access: ${capabilities['usage'] == true ? 'granted' : 'not granted'}. Only screen/lock events are counted; app names are not saved.',
+            'Screen-time access: ${capabilities['usage'] == true ? 'granted' : 'not granted'}. Screen timing counts screen/lock events. Excluded apps use foreground detection; only your selected app IDs are saved.',
           ),
           button(
             'Enable Usage access',
@@ -1744,6 +1745,21 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       button(
         'Enable popup access',
         () => run(() => c.device.call('overlayAccess')),
+      ),
+    if (!c.device.isDesktop)
+      ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: const Icon(Icons.app_blocking),
+        title: const Text('Excluded apps'),
+        subtitle: Text(
+          '${(c.settings['excludedApps'] as List? ?? []).length} selected · notifications only while in use',
+        ),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => ExcludedAppsPage(controller: c),
+          ),
+        ),
       ),
     if (showPause && c.settings['popup'] != false)
       Wrap(

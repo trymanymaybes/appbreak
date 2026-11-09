@@ -108,6 +108,7 @@ open class MainActivity: FlutterActivity() {
                         val ch=manager.getNotificationChannel("breaks_v2")
                         result.success(mapOf("notifications" to (manager.areNotificationsEnabled() && (ch==null || ch.importance!=NotificationManager.IMPORTANCE_NONE)), "overlay" to android.provider.Settings.canDrawOverlays(this), "usage" to ScreenTime.granted(this), "screenSupported" to (Build.VERSION.SDK_INT>=28), "dictation" to Dictation.available(this), "microphone" to (checkSelfPermission(Manifest.permission.RECORD_AUDIO)==PackageManager.PERMISSION_GRANTED)))
                     }
+                    "installedApps" -> result.success(ExcludedApps.installed(this))
                     "overlayAccess" -> { startActivity(Intent(android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,android.net.Uri.parse("package:$packageName")));result.success(null) }
                     "usageAccess" -> { startActivity(Intent(android.provider.Settings.ACTION_USAGE_ACCESS_SETTINGS,android.net.Uri.parse("package:$packageName")));result.success(null) }
                     "startRoutine" -> { Routines.start(this,call.argument<String>("id")!!);result.success(null) }
