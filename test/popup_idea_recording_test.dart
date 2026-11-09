@@ -47,7 +47,7 @@ void main() {
     d.calls.clear();
     await tester.tap(find.byTooltip('Record a voice idea'));
     await tester.pumpAndSettle();
-    expect(d.calls, ['stopSpeech', 'record']);
+    expect(d.calls.where((call) => call != 'narrationState'), ['stopSpeech', 'record']);
     expect(find.byTooltip('Stop and save idea').hitTestable(), findsOneWidget);
     await tester.tap(find.byTooltip('Stop and save idea'));
     await tester.pumpAndSettle();

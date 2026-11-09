@@ -44,6 +44,27 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
   String search = '';
   bool recording = false, includeAudio = false, dictating = false;
   bool recordingBusy = false;
+  bool narrationPlaying = false;
+  bool narrationPollBusy = false;
+  bool foreground = true;
+  Timer? narrationTimer;
+
+  Future<void> refreshNarration() async {
+    if (!mounted || !foreground || c.device.isDesktop || narrationPollBusy) return;
+    narrationPollBusy = true;
+    var playing = false;
+    try {
+      final state = await c.device.call<Map>('narrationState');
+      playing = state?['playing'] == true;
+    } catch (_) {
+      // An unavailable engine must never leave an active indicator behind.
+    } finally {
+      narrationPollBusy = false;
+    }
+    if (mounted && foreground && narrationPlaying != playing) {
+      setState(() => narrationPlaying = playing);
+    }
+  }
   String transcript = '', dictationStatus = '';
   Future<void> Function()? flushDraft;
   Map<String, dynamic> capabilities = {};
@@ -55,6 +76,10 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     c.addListener(changed);
     initializeHome();
+    refreshNarration();
+    if (!c.device.isDesktop) {
+      narrationTimer = Timer.periodic(const Duration(milliseconds: 500), (_) => refreshNarration());
+    }
     Device.channel.setMethodCallHandler((call) async {
       if (call.method == 'permissionsChanged') await loadCapabilities();
       if (call.method == 'dictation') {
@@ -139,15 +164,19 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     c.visible = state == AppLifecycleState.resumed;
+    foreground = c.visible;
+    if (!foreground && mounted) setState(() => narrationPlaying = false);
     if (!c.visible) flushDraft?.call();
     if (c.visible) {
       c.refresh().then((_) => c.refreshCatalog());
       loadCapabilities();
+      refreshNarration();
     }
   }
 
   @override
   void dispose() {
+    narrationTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     c.removeListener(changed);
     c.dispose();
@@ -161,6 +190,8 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       if (result is String && mounted) message(result);
     } catch (e) {
       if (mounted) message('$e');
+    } finally {
+      await refreshNarration();
     }
   }
 
@@ -846,6 +877,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
               ),
             ),
           AttentionOutline(
+            active: narrationPlaying,
             child: IconButton(
             tooltip: 'Start / replay narration',
             icon: const Icon(Icons.volume_up_outlined),
