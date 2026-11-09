@@ -1,13 +1,19 @@
 // SPDX-License-Identifier: Apache-2.0
 import 'package:flutter/material.dart';
 
-/// Three gentle pulses on appearance/state changes, then a steady outline.
+/// Three gentle pulses when use starts, then a steady active outline.
+/// Inactive controls have no outline or animation.
 /// Paints inside the existing bounds so compact toolbar hit targets do not move.
 class AttentionOutline extends StatefulWidget {
   final Widget child;
   final bool active;
   final Color? color;
-  const AttentionOutline({super.key, required this.child, this.active = false, this.color});
+  const AttentionOutline({
+    super.key,
+    required this.child,
+    this.active = false,
+    this.color,
+  });
 
   @override
   State<AttentionOutline> createState() => _AttentionOutlineState();
@@ -23,15 +29,18 @@ class _AttentionOutlineState extends State<AttentionOutline>
   @override
   void initState() {
     super.initState();
-    pulse = AnimationController(vsync: this, duration: const Duration(milliseconds: 900))
-      ..addStatusListener((status) {
-        if (resetting) return;
-        if (status == AnimationStatus.completed) {
-          pulse.reverse();
-        } else if (status == AnimationStatus.dismissed && ++cycles < 3) {
-          pulse.forward();
-        }
-      });
+    pulse =
+        AnimationController(
+          vsync: this,
+          duration: const Duration(milliseconds: 900),
+        )..addStatusListener((status) {
+          if (resetting) return;
+          if (status == AnimationStatus.completed) {
+            pulse.reverse();
+          } else if (status == AnimationStatus.dismissed && ++cycles < 3) {
+            pulse.forward();
+          }
+        });
   }
 
   void restart() {
@@ -40,7 +49,7 @@ class _AttentionOutlineState extends State<AttentionOutline>
     pulse.value = 0;
     cycles = 0;
     resetting = false;
-    if (!reduceMotion) pulse.forward();
+    if (widget.active && !reduceMotion) pulse.forward();
   }
 
   @override
@@ -62,13 +71,17 @@ class _AttentionOutlineState extends State<AttentionOutline>
     child: widget.child,
     builder: (context, child) {
       final color = widget.color ?? Theme.of(context).colorScheme.primary;
-      final strength = reduceMotion ? 1.0 : Curves.easeInOut.transform(pulse.value);
+      final strength = reduceMotion
+          ? 1.0
+          : Curves.easeInOut.transform(pulse.value);
       return DecoratedBox(
         position: DecorationPosition.foreground,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: color.withValues(alpha: (widget.active ? 0.65 : 0.30) + (widget.active ? 0.35 : 0.50) * strength),
+            color: color.withValues(
+              alpha: widget.active ? 0.65 + 0.35 * strength : 0,
+            ),
             width: widget.active ? 2.5 : 2,
           ),
         ),

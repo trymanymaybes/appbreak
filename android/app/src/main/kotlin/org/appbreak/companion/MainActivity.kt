@@ -175,6 +175,8 @@ open class MainActivity: FlutterActivity() {
                         result.success(null)
                     }
                     "refreshVoices" -> {ttsReady=false;tts?.shutdown();tts=TextToSpeech(this) {status -> ttsReady=status==TextToSpeech.SUCCESS};result.success(null)}
+                    "narrationState" -> result.success(mapOf("playing" to
+                        (tts?.isSpeaking == true || ReadAloudService.state()["state"] == "playing")))
                     "readAloudState" -> result.success(ReadAloudService.state())
                     "readAloudControl" -> {
                         val action=call.argument<String>("action") ?: "pause"
