@@ -12,6 +12,7 @@ class RecordingDevice extends FakeDevice {
   bool denyMicrophone = false;
   @override
   Future<T?> call<T>(String method, [Map<String, dynamic>? args]) async {
+    if (method == 'speechActive') return false as T;
     calls.add(method);
     if (method == 'record' && denyMicrophone) {
       throw PlatformException(code: 'permission', message: 'Microphone permission requested. Tap Record again after granting it.');
@@ -46,7 +47,7 @@ void main() {
     }
     d.calls.clear();
     await tester.tap(find.byTooltip('Record a voice idea'));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 100));
     expect(d.calls, ['stopSpeech', 'record']);
     expect(find.byTooltip('Stop and save idea').hitTestable(), findsOneWidget);
     await tester.tap(find.byTooltip('Stop and save idea'));
@@ -67,12 +68,12 @@ void main() {
     await tester.pumpWidget(MaterialApp(home: Home(controller: c, popup: true)));
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Record a voice idea'));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 100));
     expect(find.byTooltip('Stop and save idea'), findsNothing);
     expect(find.byTooltip('Record a voice idea'), findsOneWidget);
     d.denyMicrophone = false;
     await tester.tap(find.byTooltip('Record a voice idea'));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 100));
     expect(find.byTooltip('Stop and save idea'), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
   });
